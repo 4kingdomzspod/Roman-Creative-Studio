@@ -93,7 +93,7 @@ p {
 /* ── SELECTION ────────────────────────────────────────────── */
 
 ::selection {
-  background: var(--color-blue-100);
+  background: var(--color-gold-100);
   color: var(--color-navy-900);
 }
 

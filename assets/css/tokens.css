@@ -22,6 +22,18 @@
   --color-blue-100:  #DBEAFE;
   --color-blue-50:   #EFF6FF;
 
+  --color-gold-950:  #4A330A;
+  --color-gold-900:  #6B4C12;
+  --color-gold-800:  #8A6218;
+  --color-gold-700:  #A87C20;
+  --color-gold-600:  #B8942A;
+  --color-gold-500:  #C9A84C;
+  --color-gold-400:  #CEB268;
+  --color-gold-300:  #DCC98A;
+  --color-gold-200:  #EBDDB5;
+  --color-gold-100:  #F5EED4;
+  --color-gold-50:   #FBF8F0;
+
   --color-gray-950:  #09090B;
   --color-gray-900:  #111113;
   --color-gray-800:  #18181B;
@@ -55,11 +67,11 @@
   --color-text-inverse:   var(--color-white);
   --color-text-dark-muted: rgba(255,255,255,0.6);
 
-  --color-brand:          var(--color-blue-600);
-  --color-brand-dark:     var(--color-blue-700);
-  --color-brand-light:    var(--color-blue-500);
-  --color-brand-subtle:   var(--color-blue-50);
-  --color-brand-border:   var(--color-blue-200);
+  --color-brand:          #C9A84C;
+  --color-brand-dark:     #A87C20;
+  --color-brand-light:    #D4B46A;
+  --color-brand-subtle:   #FBF8F0;
+  --color-brand-border:   #EBDDB5;
 
   --color-success:        #16A34A;
   --color-success-subtle: #DCFCE7;
@@ -149,8 +161,8 @@
   --shadow-xl:    0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.05);
   --shadow-2xl:   0 25px 50px -12px rgb(0 0 0 / 0.20);
   --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-  --shadow-brand:    0 4px 20px rgb(37 99 235 / 0.20);
-  --shadow-brand-lg: 0 8px 40px rgb(37 99 235 / 0.28);
+  --shadow-brand:    0 4px 20px rgb(201 168 76 / 0.25);
+  --shadow-brand-lg: 0 8px 40px rgb(201 168 76 / 0.32);
   --shadow-dark:     0 20px 60px rgb(0 0 0 / 0.40);
   --shadow-card:       var(--shadow-md);
   --shadow-card-hover: var(--shadow-xl);
@@ -190,6 +202,33 @@
   --nav-height: 72px;
   --grid-cols: 12;
   --grid-gap:  clamp(1rem, 2vw, 1.5rem);
+
+  /* ── SHORTHAND ALIASES ────────────────────────────────────── */
+  --brand-50:  var(--color-gold-50);
+  --brand-100: var(--color-gold-100);
+  --brand-200: var(--color-gold-200);
+  --brand-300: var(--color-gold-300);
+  --brand-400: var(--color-gold-400);
+  --brand-500: var(--color-gold-500);
+  --brand-600: var(--color-gold-600);
+  --brand-700: var(--color-gold-700);
+
+  --neutral-50:  var(--color-gray-50);
+  --neutral-100: var(--color-gray-100);
+  --neutral-200: var(--color-gray-200);
+  --neutral-300: var(--color-gray-300);
+  --neutral-400: var(--color-gray-400);
+  --neutral-500: var(--color-gray-500);
+  --neutral-600: var(--color-gray-600);
+  --neutral-700: var(--color-gray-700);
+  --neutral-800: var(--color-gray-800);
+  --neutral-900: var(--color-gray-900);
+
+  --navy-600: var(--color-navy-600);
+  --navy-700: var(--color-navy-700);
+  --navy-800: var(--color-navy-800);
+  --navy-900: var(--color-navy-900);
+  --navy-950: var(--color-navy-950);
 }
 
 @media (prefers-reduced-motion: reduce) {
