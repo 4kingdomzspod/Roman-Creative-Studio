@@ -19,6 +19,15 @@
 - [x] Services restructured (Build / Grow / Scale)
 - [x] "What Happens Next?" booking flow
 
+## ✅ Phase 1B — Business Assets
+- [x] Email signature (HTML, dark + light versions)
+- [x] Proposal template (10-section, print-ready)
+- [x] Invoice template (line items, payment instructions, print-ready)
+- [x] Business card (SVG, front + back)
+- [x] Letterhead (A4, print-ready)
+- [x] Social media templates (profile, cover, post)
+- [x] Brand Kit Hub (index page with all assets)
+
 ## 🚧 Phase 2 — Industry Landing Pages
 - [ ] Healthcare
 - [ ] Startups

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice — Roman Creative Studio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #e5e7eb; display: flex; justify-content: center; padding: 40px 20px; color: #374151; }
+    .page { width: 794px; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+    .header { background: #121417; padding: 32px 40px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .logo-area { display: flex; align-items: center; gap: 14px; }
+    .studio-name { font-size: 17px; font-weight: 700; color: #fff; }
+    .studio-sub { font-size: 10px; color: #D4AF37; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+    .invoice-title { text-align: right; }
+    .invoice-title h1 { font-size: 32px; font-weight: 700; color: #D4AF37; letter-spacing: 1px; }
+    .invoice-title .inv-num { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+    .gold-bar { height: 3px; background: linear-gradient(90deg, #D4AF37, #f0d060, #D4AF37); }
+    .body { padding: 40px; }
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 36px; }
+    .meta-block label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; font-weight: 700; display: block; margin-bottom: 6px; }
+    .meta-block p { font-size: 13px; color: #374151; line-height: 1.7; }
+    .meta-block .highlight { font-size: 15px; font-weight: 700; color: #121417; }
+    .divider { height: 1px; background: #f3f4f6; margin: 28px 0; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+    thead tr { background: #121417; }
+    thead th { padding: 12px 14px; text-align: left; font-size: 11px; font-weight: 700; color: #D4AF37; letter-spacing: 1px; text-transform: uppercase; }
+    thead th:last-child { text-align: right; }
+    tbody tr { border-bottom: 1px solid #f3f4f6; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody td { padding: 14px; font-size: 13px; color: #374151; vertical-align: top; }
+    tbody td:last-child { text-align: right; font-weight: 600; color: #121417; }
+    .totals { display: flex; justify-content: flex-end; }
+    .totals-table { width: 300px; }
+    .totals-table td { padding: 6px 0; font-size: 13px; }
+    .totals-table td:first-child { color: #6b7280; }
+    .totals-table td:last-child { text-align: right; font-weight: 600; color: #121417; }
+    .total-row td { border-top: 2px solid #D4AF37; padding-top: 12px; font-size: 15px; font-weight: 700; color: #121417; }
+    .notes { margin-top: 36px; padding: 20px 24px; background: #f9fafb; border-left: 3px solid #D4AF37; border-radius: 4px; }
+    .notes h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; margin-bottom: 8px; }
+    .notes p { font-size: 12px; color: #6b7280; line-height: 1.7; }
+    .payment-box { margin-top: 28px; padding: 20px 24px; background: #121417; border-radius: 6px; }
+    .payment-box h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #D4AF37; margin-bottom: 10px; }
+    .payment-box p { font-size: 12px; color: #9ca3af; line-height: 1.7; }
+    .footer { background: #121417; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; margin-top: 40px; }
+    .footer p { font-size: 10px; color: #4b5563; }
+    .footer a { color: #D4AF37; text-decoration: none; }
+    .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+    .status-draft { background: #374151; color: #9ca3af; }
+    .status-sent { background: #1e3a5f; color: #60a5fa; }
+    .status-paid { background: #14532d; color: #4ade80; }
+    @media print {
+      body { background: none; padding: 0; }
+      .page { box-shadow: none; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="logo-area">
+      <svg width="48" height="48" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="20,2 38,20 20,38 2,20" fill="rgba(212,175,55,0.1)" stroke="#D4AF37" stroke-width="1.5"/>
+        <text x="20" y="25" font-family="Georgia,serif" font-size="11" font-weight="700" fill="#D4AF37" text-anchor="middle" letter-spacing="1">RS</text>
+      </svg>
+      <div>
+        <div class="studio-name">Roman Creative Studio</div>
+        <div class="studio-sub">Premium Web Design</div>
+      </div>
+    </div>
+    <div class="invoice-title">
+      <h1>INVOICE</h1>
+      <div class="inv-num">#INV-2025-001 &nbsp;<span class="status-badge status-draft">Draft</span></div>
+    </div>
+  </div>
+  <div class="gold-bar"></div>
+
+  <div class="body">
+    <div class="meta-grid">
+      <div>
+        <div class="meta-block" style="margin-bottom:20px;">
+          <label>From</label>
+          <p class="highlight">Roman Creative Studio</p>
+          <p>Alexander Roman<br>Alexander@romancreativestudio.co<br>romancreativestudio.com</p>
+        </div>
+        <div class="meta-block">
+          <label>Bill To</label>
+          <p class="highlight">[Client Name]</p>
+          <p>[Contact Name]<br>[Email Address]<br>[Company / Practice]<br>[City, State]</p>
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="meta-block" style="margin-bottom:16px;">
+          <label>Invoice Date</label>
+          <p>[Month DD, YYYY]</p>
+        </div>
+        <div class="meta-block" style="margin-bottom:16px;">
+          <label>Due Date</label>
+          <p>[Month DD, YYYY]</p>
+        </div>
+        <div class="meta-block">
+          <label>Project</label>
+          <p>[Project Name / Description]</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40%;">Description</th>
+          <th>Qty</th>
+          <th>Rate</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <strong>Website Design &amp; Development</strong><br>
+            <span style="font-size:12px;color:#9ca3af;">Custom design, responsive development, CMS setup</span>
+          </td>
+          <td>1</td>
+          <td>$5,500.00</td>
+          <td>$5,500.00</td>
+        </tr>
+        <tr>
+          <td>
+            <strong>SEO Foundation Setup</strong><br>
+            <span style="font-size:12px;color:#9ca3af;">On-page SEO, meta tags, sitemap, Google setup</span>
+          </td>
+          <td>1</td>
+          <td>$800.00</td>
+          <td>$800.00</td>
+        </tr>
+        <tr>
+          <td>
+            <strong>Content Writing (5 pages)</strong><br>
+            <span style="font-size:12px;color:#9ca3af;">Home, About, Services (x2), Contact</span>
+          </td>
+          <td>5</td>
+          <td>$200.00</td>
+          <td>$1,000.00</td>
+        </tr>
+        <tr>
+          <td>
+            <strong>30-Day Post-Launch Support</strong><br>
+            <span style="font-size:12px;color:#9ca3af;">Bug fixes, minor edits, performance monitoring</span>
+          </td>
+          <td>1</td>
+          <td>$0.00</td>
+          <td>$0.00</td>
+        </tr>
+        <tr style="background:#fafafa;">
+          <td colspan="3" style="padding:10px 14px;font-size:12px;color:#9ca3af;font-style:italic;">[Add or remove line items as needed]</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <table class="totals-table">
+        <tr><td>Subtotal</td><td>$7,300.00</td></tr>
+        <tr><td>Deposit Paid (50%)</td><td style="color:#4ade80;">-$3,650.00</td></tr>
+        <tr><td>Tax (0%)</td><td>$0.00</td></tr>
+        <tr class="total-row"><td>Balance Due</td><td>$3,650.00</td></tr>
+      </table>
+    </div>
+
+    <div class="notes">
+      <h3>Notes</h3>
+      <p>[Add any project-specific notes, deliverable clarifications, or scope reminders here. E.g.: “This invoice covers Phase 1 deliverables as outlined in the signed proposal dated [date].”]</p>
+    </div>
+
+    <div class="payment-box">
+      <h3>Payment Instructions</h3>
+      <p>
+        <strong style="color:#e5e7eb;">Bank Transfer (ACH):</strong> [Bank Name] &nbsp;&middot;&nbsp; Routing: [Routing #] &nbsp;&middot;&nbsp; Account: [Account #]<br>
+        <strong style="color:#e5e7eb;">Zelle / Venmo:</strong> Alexander@romancreativestudio.co<br>
+        <strong style="color:#e5e7eb;">Credit Card:</strong> Invoice link will be sent via email for online payment.<br>
+        <span style="color:#6b7280;">Payment is due within 7 days of the invoice date. Late payments may be subject to a 1.5% monthly fee.</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>&copy; 2025 Roman Creative Studio. Thank you for your business.</p>
+    <p><a href="mailto:Alexander@romancreativestudio.co">Alexander@romancreativestudio.co</a> &nbsp;&middot;&nbsp; romancreativestudio.com</p>
+  </div>
+
+</div>
+</body>
+</html>

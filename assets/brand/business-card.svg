@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300" viewBox="0 0 900 300">
+  <defs>
+    <style>text { font-family: Arial, Helvetica, sans-serif; }</style>
+  </defs>
+
+  <!-- FRONT (left, dark) -->
+  <rect x="0" y="0" width="420" height="250" rx="12" fill="#121417"/>
+  <!-- gold accent line -->
+  <rect x="0" y="238" width="420" height="3" rx="0" fill="#D4AF37" opacity="0.6"/>
+  <!-- RS diamond monogram -->
+  <g transform="translate(30, 28)">
+    <polygon points="32,3 61,32 32,61 3,32" fill="rgba(212,175,55,0.08)" stroke="#D4AF37" stroke-width="2"/>
+    <text x="32" y="40" font-family="Georgia,serif" font-size="17" font-weight="700" fill="#D4AF37" text-anchor="middle" letter-spacing="1.5">RS</text>
+  </g>
+  <!-- Name -->
+  <text x="30" y="128" font-size="22" font-weight="700" fill="#ffffff" letter-spacing="0.3">Alexander Roman</text>
+  <!-- Title -->
+  <text x="30" y="150" font-size="11" font-weight="600" fill="#D4AF37" letter-spacing="1.5">FOUNDER &amp; CREATIVE DIRECTOR</text>
+  <!-- Contact info -->
+  <text x="30" y="178" font-size="12" fill="#9ca3af">Alexander@romancreativestudio.co</text>
+  <text x="30" y="196" font-size="12" fill="#6b7280">romancreativestudio.com</text>
+  <!-- Studio name bottom right -->
+  <text x="390" y="220" font-size="10" fill="#4b5563" text-anchor="end" letter-spacing="0.5">Roman Creative Studio</text>
+  <!-- Label -->
+  <text x="210" y="272" font-size="10" fill="#aaa" text-anchor="middle">FRONT</text>
+
+  <!-- BACK (right, dark with centered mark) -->
+  <rect x="480" y="0" width="420" height="250" rx="12" fill="#1B1E23"/>
+  <!-- gold border accent -->
+  <rect x="480" y="0" width="420" height="250" rx="12" fill="none" stroke="#D4AF37" stroke-width="1" opacity="0.3"/>
+  <!-- Large RS diamond centered -->
+  <g transform="translate(690, 125) scale(2.2)">
+    <polygon points="0,-44 44,0 0,44 -44,0" fill="rgba(212,175,55,0.05)" stroke="#D4AF37" stroke-width="1.5"/>
+    <text x="0" y="7" font-family="Georgia,serif" font-size="18" font-weight="700" fill="#D4AF37" text-anchor="middle" letter-spacing="2">RS</text>
+  </g>
+  <!-- Tagline -->
+  <text x="690" y="210" font-size="10" fill="#6b7280" text-anchor="middle" letter-spacing="1.5">BUILD &middot; GROW &middot; SCALE</text>
+  <!-- Label -->
+  <text x="690" y="272" font-size="10" fill="#aaa" text-anchor="middle">BACK</text>
+
+  <!-- Separator -->
+  <line x1="450" y1="10" x2="450" y2="290" stroke="#444" stroke-width="1" stroke-dasharray="4,4"/>
+  <text x="450" y="297" font-size="9" fill="#666" text-anchor="middle">3.5" × 2" standard business card</text>
+</svg>
