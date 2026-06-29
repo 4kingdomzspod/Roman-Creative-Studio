@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 56" fill="none">
+  <polygon points="28,4 52,28 28,52 4,28" stroke="#D4AF37" stroke-width="2" fill="rgba(212,175,55,0.08)"/>
+  <text x="28" y="33" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="17" font-weight="700" fill="#D4AF37" letter-spacing="-0.5">RS</text>
+  <text x="68" y="24" font-family="'Plus Jakarta Sans',Inter,system-ui,sans-serif" font-size="15" font-weight="800" fill="#FFFFFF" letter-spacing="0.5">ROMAN</text>
+  <text x="68" y="40" font-family="'Plus Jakarta Sans',Inter,system-ui,sans-serif" font-size="10" font-weight="600" fill="#D4AF37" letter-spacing="3">CREATIVE STUDIO</text>
+  <line x1="68" y1="44" x2="160" y2="44" stroke="#D4AF37" stroke-width="0.75" opacity="0.5"/>
+  <text x="68" y="53" font-family="'Plus Jakarta Sans',Inter,system-ui,sans-serif" font-size="7" font-weight="500" fill="rgba(255,255,255,0.5)" letter-spacing="2.5">DESIGN. STRATEGY. GROWTH.</text>
+</svg>

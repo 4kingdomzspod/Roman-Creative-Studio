@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" fill="none">
+  <!-- Diamond Mark — centered -->
+  <polygon points="100,8 140,48 100,88 60,48" stroke="#D4AF37" stroke-width="2.5" fill="rgba(212,175,55,0.06)"/>
+  <text x="100" y="56" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="22" font-weight="700" fill="#D4AF37" letter-spacing="-0.5">RS</text>
+  <!-- Wordmark below -->
+  <text x="100" y="110" text-anchor="middle" font-family="'Plus Jakarta Sans',Inter,system-ui,sans-serif" font-size="18" font-weight="800" fill="#121417" letter-spacing="2">ROMAN</text>
+  <text x="100" y="128" text-anchor="middle" font-family="'Plus Jakarta Sans',Inter,system-ui,sans-serif" font-size="10" font-weight="600" fill="#D4AF37" letter-spacing="4">CREATIVE STUDIO</text>
+  <line x1="60" y1="133" x2="140" y2="133" stroke="#D4AF37" stroke-width="0.75" opacity="0.5"/>
+  <text x="100" y="148" text-anchor="middle" font-family="'Plus Jakarta Sans',Inter,system-ui,sans-serif" font-size="7.5" font-weight="500" fill="#868E96" letter-spacing="2">DESIGN. STRATEGY. GROWTH.</text>
+</svg>

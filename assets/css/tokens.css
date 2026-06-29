@@ -1,209 +1,162 @@
 /* ============================================================
-   ROMAN CREATIVE STUDIO — DESIGN TOKENS
-   Single source of truth for every visual decision.
+   ROMAN CREATIVE STUDIO — DESIGN TOKENS v1.0
+   The single source of truth for every visual decision.
    ============================================================ */
 
 :root {
 
-  /* ── BRAND PALETTE ────────────────────────────────────────── */
+  /* ════════════════════════════════════════════════
+     BRAND IDENTITY
+     ════════════════════════════════════════════════ */
 
-  --color-navy-950:  #020817;
-  --color-navy-900:  #0A1628;
-  --color-navy-800:  #0F1F3C;
-  --color-navy-700:  #152A50;
-  --color-navy-600:  #1E3A6E;
+  /* Primary Brand Colors */
+  --color-gold:           #D4AF37;
+  --color-gold-light:     #E8CC6A;
+  --color-gold-dark:      #A88920;
+  --color-gold-subtle:    #FBF7EC;
+  --color-gold-border:    #E8D99A;
 
-  --color-blue-700:  #1D4ED8;
-  --color-blue-600:  #2563EB;
-  --color-blue-500:  #3B82F6;
-  --color-blue-400:  #60A5FA;
-  --color-blue-300:  #93C5FD;
-  --color-blue-200:  #BFDBFE;
-  --color-blue-100:  #DBEAFE;
-  --color-blue-50:   #EFF6FF;
+  /* Full Gold Scale */
+  --color-gold-50:   #FBF7EC;
+  --color-gold-100:  #F5EAC8;
+  --color-gold-200:  #EBCF8A;
+  --color-gold-300:  #E0B84D;
+  --color-gold-400:  #D4AF37;
+  --color-gold-500:  #C49A20;
+  --color-gold-600:  #A88920;
+  --color-gold-700:  #886D18;
+  --color-gold-800:  #6A5313;
+  --color-gold-900:  #4C3B0D;
+  --color-gold-950:  #2E2208;
 
-  --color-gold-950:  #4A330A;
-  --color-gold-900:  #6B4C12;
-  --color-gold-800:  #8A6218;
-  --color-gold-700:  #A87C20;
-  --color-gold-600:  #B8942A;
-  --color-gold-500:  #C9A84C;
-  --color-gold-400:  #CEB268;
-  --color-gold-300:  #DCC98A;
-  --color-gold-200:  #EBDDB5;
-  --color-gold-100:  #F5EED4;
-  --color-gold-50:   #FBF8F0;
+  /* Brand Semantic Aliases */
+  --color-brand:        var(--color-gold-400);
+  --color-brand-dark:   var(--color-gold-600);
+  --color-brand-light:  var(--color-gold-300);
+  --color-brand-subtle: var(--color-gold-50);
+  --color-brand-border: var(--color-gold-200);
 
-  --color-gray-950:  #09090B;
-  --color-gray-900:  #111113;
-  --color-gray-800:  #18181B;
-  --color-gray-700:  #27272A;
-  --color-gray-600:  #3F3F46;
-  --color-gray-500:  #52525B;
-  --color-gray-400:  #71717A;
-  --color-gray-300:  #A1A1AA;
-  --color-gray-200:  #D4D4D8;
-  --color-gray-100:  #F4F4F5;
-  --color-gray-50:   #FAFAFA;
-  --color-white:     #FFFFFF;
+  /* Brand Shadows */
+  --shadow-brand:    0 4px 20px rgba(212,175,55,0.28);
+  --shadow-brand-lg: 0 8px 40px rgba(212,175,55,0.35);
 
-  --color-bg:             var(--color-white);
-  --color-bg-subtle:      var(--color-gray-50);
-  --color-bg-muted:       var(--color-gray-100);
-  --color-bg-dark:        var(--color-navy-950);
-  --color-bg-dark-subtle: var(--color-navy-900);
+  /* ════════════════════════════════════════════════
+     DARK SURFACE PALETTE
+     Premium charcoal — warmer and richer than pure navy
+     ════════════════════════════════════════════════ */
 
-  --color-surface:        var(--color-white);
-  --color-surface-raised: var(--color-white);
-  --color-surface-dark:   var(--color-navy-800);
+  --color-charcoal-950: #0C0E11;
+  --color-charcoal-900: #121417;
+  --color-charcoal-800: #1B1E23;
+  --color-charcoal-700: #24282F;
+  --color-charcoal-600: #2E333C;
+  --color-charcoal-500: #3D4452;
+  --color-charcoal-400: #525C6E;
+  --color-charcoal-300: #6B7585;
+  --color-charcoal-200: #8E97A5;
+  --color-charcoal-100: #B4BAC5;
+  --color-charcoal-50:  #D8DCE3;
 
-  --color-border:         var(--color-gray-200);
-  --color-border-muted:   var(--color-gray-100);
-  --color-border-dark:    rgba(255,255,255,0.1);
+  /* Keep navy scale for backward compatibility */
+  --color-navy-950: #0C0E11;
+  --color-navy-900: #121417;
+  --color-navy-800: #1B1E23;
+  --color-navy-700: #24282F;
+  --color-navy-600: #2E333C;
+  --color-navy-500: #3D4452;
+  --color-navy-400: #525C6E;
 
-  --color-text:           var(--color-gray-950);
-  --color-text-secondary: var(--color-gray-500);
-  --color-text-muted:     var(--color-gray-400);
+  /* ════════════════════════════════════════════════
+     ACCENT COLORS
+     ════════════════════════════════════════════════ */
+
+  /* Royal Blue — tech, startup, professional */
+  --color-blue-50:  #EFF6FF;
+  --color-blue-100: #DBEAFE;
+  --color-blue-200: #BFDBFE;
+  --color-blue-300: #93C5FD;
+  --color-blue-400: #60A5FA;
+  --color-blue-500: #3B82F6;
+  --color-blue-600: #2563EB;
+  --color-blue-700: #1D4ED8;
+  --color-blue-800: #1E40AF;
+  --color-blue-900: #1E3A8A;
+
+  /* Success Green */
+  --color-green-50:  #F0FDF4;
+  --color-green-100: #DCFCE7;
+  --color-green-200: #BBF7D0;
+  --color-green-400: #4ADE80;
+  --color-green-500: #22C55E;
+  --color-green-600: #16A34A;
+  --color-green-700: #15803D;
+  --color-green-900: #14532D;
+
+  /* Danger Red */
+  --color-red-50:  #FFF5F5;
+  --color-red-100: #FEE2E2;
+  --color-red-400: #F87171;
+  --color-red-500: #EF4444;
+  --color-red-600: #DC2626;
+
+  /* Warning Amber */
+  --color-amber-400: #FBBF24;
+  --color-amber-500: #F59E0B;
+
+  /* Semantic color aliases */
+  --color-success:        var(--color-green-600);
+  --color-success-subtle: var(--color-green-50);
+  --color-error:          var(--color-red-500);
+  --color-error-subtle:   var(--color-red-50);
+  --color-warning:        var(--color-amber-500);
+
+  /* ════════════════════════════════════════════════
+     NEUTRAL SCALE — True neutral gray
+     ════════════════════════════════════════════════ */
+
+  --color-gray-50:  #F8F9FA;
+  --color-gray-100: #F1F3F5;
+  --color-gray-200: #E9ECEF;
+  --color-gray-300: #DEE2E6;
+  --color-gray-400: #CED4DA;
+  --color-gray-500: #ADB5BD;
+  --color-gray-600: #868E96;
+  --color-gray-700: #495057;
+  --color-gray-800: #343A40;
+  --color-gray-900: #212529;
+  --color-gray-950: #101214;
+
+  /* ════════════════════════════════════════════════
+     SEMANTIC UI COLORS
+     ════════════════════════════════════════════════ */
+
+  --color-white:   #FFFFFF;
+  --color-black:   #000000;
+
+  /* Backgrounds */
+  --color-bg:           var(--color-white);
+  --color-bg-subtle:    var(--color-gray-50);
+  --color-bg-muted:     var(--color-gray-100);
+  --color-surface:      var(--color-white);
+  --color-surface-dark: var(--color-charcoal-800);
+
+  /* Text */
+  --color-text:           var(--color-gray-900);
+  --color-text-secondary: var(--color-gray-600);
+  --color-text-muted:     var(--color-gray-500);
   --color-text-inverse:   var(--color-white);
-  --color-text-dark-muted: rgba(255,255,255,0.6);
+  --color-text-dark-muted: rgba(255,255,255,0.65);
 
-  --color-brand:          #C9A84C;
-  --color-brand-dark:     #A87C20;
-  --color-brand-light:    #D4B46A;
-  --color-brand-subtle:   #FBF8F0;
-  --color-brand-border:   #EBDDB5;
+  /* Borders */
+  --color-border:       var(--color-gray-200);
+  --color-border-muted: var(--color-gray-100);
+  --color-border-dark:  rgba(255,255,255,0.1);
 
-  --color-success:        #16A34A;
-  --color-success-subtle: #DCFCE7;
-  --color-warning:        #D97706;
-  --color-warning-subtle: #FEF3C7;
-  --color-error:          #DC2626;
-  --color-error-subtle:   #FEE2E2;
+  /* ════════════════════════════════════════════════
+     SHORTHAND ALIASES (used in HTML inline styles)
+     ════════════════════════════════════════════════ */
 
-  --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-display: 'Plus Jakarta Sans', 'Inter', -apple-system, system-ui, sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, 'Cascadia Code', monospace;
-
-  --text-xs:   0.75rem;
-  --text-sm:   0.875rem;
-  --text-base: 1rem;
-  --text-lg:   1.125rem;
-  --text-xl:   1.25rem;
-  --text-2xl:  1.5rem;
-  --text-3xl:  clamp(1.75rem, 2.5vw, 1.875rem);
-  --text-4xl:  clamp(2rem,    3vw,   2.25rem);
-  --text-5xl:  clamp(2.5rem,  4vw,   3rem);
-  --text-6xl:  clamp(3rem,    5vw,   3.75rem);
-  --text-7xl:  clamp(3.5rem,  6vw,   4.5rem);
-  --text-8xl:  clamp(4rem,    7.5vw, 6rem);
-
-  --leading-none:    1;
-  --leading-tight:   1.15;
-  --leading-snug:    1.3;
-  --leading-normal:  1.5;
-  --leading-relaxed: 1.65;
-  --leading-loose:   2;
-
-  --tracking-tighter: -0.05em;
-  --tracking-tight:   -0.03em;
-  --tracking-snug:    -0.015em;
-  --tracking-normal:  0em;
-  --tracking-wide:    0.05em;
-  --tracking-wider:   0.1em;
-  --tracking-widest:  0.15em;
-
-  --weight-regular:  400;
-  --weight-medium:   500;
-  --weight-semibold: 600;
-  --weight-bold:     700;
-  --weight-extrabold: 800;
-
-  --space-px:  1px;
-  --space-0:   0;
-  --space-1:   0.25rem;
-  --space-2:   0.5rem;
-  --space-3:   0.75rem;
-  --space-4:   1rem;
-  --space-5:   1.25rem;
-  --space-6:   1.5rem;
-  --space-7:   1.75rem;
-  --space-8:   2rem;
-  --space-10:  2.5rem;
-  --space-12:  3rem;
-  --space-14:  3.5rem;
-  --space-16:  4rem;
-  --space-20:  5rem;
-  --space-24:  6rem;
-  --space-28:  7rem;
-  --space-32:  8rem;
-  --space-40:  10rem;
-  --space-48:  12rem;
-
-  --section-sm: clamp(3rem, 6vw, 4.5rem);
-  --section-md: clamp(4rem, 8vw, 6rem);
-  --section-lg: clamp(5rem, 10vw, 8rem);
-  --section-xl: clamp(6rem, 12vw, 10rem);
-
-  --radius-xs:   2px;
-  --radius-sm:   6px;
-  --radius-md:   10px;
-  --radius-lg:   14px;
-  --radius-xl:   18px;
-  --radius-2xl:  24px;
-  --radius-3xl:  32px;
-  --radius-4xl:  40px;
-  --radius-full: 9999px;
-
-  --shadow-xs:    0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm:    0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.06);
-  --shadow-md:    0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.06);
-  --shadow-lg:    0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-  --shadow-xl:    0 20px 25px -5px rgb(0 0 0 / 0.10), 0 8px 10px -6px rgb(0 0 0 / 0.05);
-  --shadow-2xl:   0 25px 50px -12px rgb(0 0 0 / 0.20);
-  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-  --shadow-brand:    0 4px 20px rgb(201 168 76 / 0.25);
-  --shadow-brand-lg: 0 8px 40px rgb(201 168 76 / 0.32);
-  --shadow-dark:     0 20px 60px rgb(0 0 0 / 0.40);
-  --shadow-card:       var(--shadow-md);
-  --shadow-card-hover: var(--shadow-xl);
-
-  --z-base:     0;
-  --z-raised:   10;
-  --z-dropdown: 100;
-  --z-sticky:   200;
-  --z-overlay:  300;
-  --z-modal:    400;
-  --z-toast:    500;
-
-  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
-  --ease-in:      cubic-bezier(0.4, 0, 1, 1);
-  --ease-out:     cubic-bezier(0, 0, 0.2, 1);
-  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-bounce:  cubic-bezier(0.68, -0.55, 0.265, 1.55);
-
-  --duration-fast:  100ms;
-  --duration-base:  180ms;
-  --duration-slow:  320ms;
-  --duration-lazy:  500ms;
-  --duration-enter: 600ms;
-
-  --transition-base:  var(--duration-base) var(--ease-default);
-  --transition-fast:  var(--duration-fast) var(--ease-default);
-  --transition-slow:  var(--duration-slow) var(--ease-default);
-  --transition-spring: var(--duration-slow) var(--ease-spring);
-
-  --container-xs:  480px;
-  --container-sm:  640px;
-  --container-md:  768px;
-  --container-lg:  1024px;
-  --container-xl:  1280px;
-  --container-2xl: 1440px;
-  --container-px: clamp(1.25rem, 5vw, 4rem);
-  --nav-height: 72px;
-  --grid-cols: 12;
-  --grid-gap:  clamp(1rem, 2vw, 1.5rem);
-
-  /* ── SHORTHAND ALIASES ────────────────────────────────────── */
+  /* Brand shortcuts */
   --brand-50:  var(--color-gold-50);
   --brand-100: var(--color-gold-100);
   --brand-200: var(--color-gold-200);
@@ -213,6 +166,7 @@
   --brand-600: var(--color-gold-600);
   --brand-700: var(--color-gold-700);
 
+  /* Neutral shortcuts */
   --neutral-50:  var(--color-gray-50);
   --neutral-100: var(--color-gray-100);
   --neutral-200: var(--color-gray-200);
@@ -224,19 +178,215 @@
   --neutral-800: var(--color-gray-800);
   --neutral-900: var(--color-gray-900);
 
-  --navy-600: var(--color-navy-600);
-  --navy-700: var(--color-navy-700);
-  --navy-800: var(--color-navy-800);
-  --navy-900: var(--color-navy-900);
-  --navy-950: var(--color-navy-950);
+  /* Navy/charcoal shortcuts */
+  --navy-600:  var(--color-charcoal-600);
+  --navy-700:  var(--color-charcoal-700);
+  --navy-800:  var(--color-charcoal-800);
+  --navy-900:  var(--color-charcoal-900);
+  --navy-950:  var(--color-charcoal-950);
+
+  /* ════════════════════════════════════════════════
+     TYPOGRAPHY SYSTEM
+     Scale: Perfect Fourth (1.333)
+     ════════════════════════════════════════════════ */
+
+  /* Font Families */
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif:   'Georgia', 'Times New Roman', serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Type Scale */
+  --text-xs:   0.75rem;    /* 12px — Caption, labels */
+  --text-sm:   0.875rem;   /* 14px — Body small, captions */
+  --text-base: 1rem;       /* 16px — Body, buttons */
+  --text-lg:   1.125rem;   /* 18px — Body large */
+  --text-xl:   1.25rem;    /* 20px — Sub-headings */
+  --text-2xl:  1.5rem;     /* 24px — Heading S */
+  --text-3xl:  1.875rem;   /* 30px — Heading M */
+  --text-4xl:  2.25rem;    /* 36px — Heading L */
+  --text-5xl:  3rem;       /* 48px — Heading XL */
+  --text-6xl:  3.75rem;    /* 60px — Display S */
+  --text-7xl:  4.5rem;     /* 72px — Display M */
+  --text-8xl:  6rem;       /* 96px — Display L */
+
+  /* Font Weights */
+  --weight-regular:   400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
+  --weight-extrabold: 800;
+  --weight-black:     900;
+
+  /* Line Heights */
+  --leading-none:    1;
+  --leading-tight:   1.25;
+  --leading-snug:    1.375;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose:   2;
+
+  /* Letter Spacing */
+  --tracking-tighter: -0.05em;
+  --tracking-tight:   -0.025em;
+  --tracking-snug:    -0.01em;
+  --tracking-normal:   0em;
+  --tracking-wide:     0.025em;
+  --tracking-wider:    0.05em;
+  --tracking-widest:   0.1em;
+
+  /* ════════════════════════════════════════════════
+     SPACING SYSTEM
+     Base: 4px — multiples of 4
+     ════════════════════════════════════════════════ */
+
+  --space-0:   0;
+  --space-px:  1px;
+  --space-0-5: 0.125rem;  /* 2px */
+  --space-1:   0.25rem;   /* 4px */
+  --space-1-5: 0.375rem;  /* 6px */
+  --space-2:   0.5rem;    /* 8px */
+  --space-2-5: 0.625rem;  /* 10px */
+  --space-3:   0.75rem;   /* 12px */
+  --space-3-5: 0.875rem;  /* 14px */
+  --space-4:   1rem;      /* 16px */
+  --space-5:   1.25rem;   /* 20px */
+  --space-6:   1.5rem;    /* 24px */
+  --space-7:   1.75rem;   /* 28px */
+  --space-8:   2rem;      /* 32px */
+  --space-9:   2.25rem;   /* 36px */
+  --space-10:  2.5rem;    /* 40px */
+  --space-11:  2.75rem;   /* 44px */
+  --space-12:  3rem;      /* 48px */
+  --space-14:  3.5rem;    /* 56px */
+  --space-16:  4rem;      /* 64px */
+  --space-20:  5rem;      /* 80px */
+  --space-24:  6rem;      /* 96px */
+  --space-28:  7rem;      /* 112px */
+  --space-32:  8rem;      /* 128px */
+  --space-36:  9rem;      /* 144px */
+  --space-40:  10rem;     /* 160px */
+  --space-48:  12rem;     /* 192px */
+  --space-56:  14rem;     /* 224px */
+  --space-64:  16rem;     /* 256px */
+
+  /* Section spacing shortcuts */
+  --section-xs: var(--space-12);
+  --section-sm: var(--space-16);
+  --section-md: var(--space-20);
+  --section-lg: var(--space-24);
+  --section-xl: var(--space-32);
+  --section-2xl: var(--space-40);
+
+  /* ════════════════════════════════════════════════
+     BORDER RADIUS SYSTEM
+     ════════════════════════════════════════════════ */
+
+  --radius-none:  0;
+  --radius-sm:    0.125rem;  /* 2px */
+  --radius-md:    0.375rem;  /* 6px */
+  --radius-lg:    0.5rem;    /* 8px */
+  --radius-xl:    0.75rem;   /* 12px */
+  --radius-2xl:   1rem;      /* 16px */
+  --radius-3xl:   1.5rem;    /* 24px */
+  --radius-4xl:   2rem;      /* 32px */
+  --radius-full:  9999px;
+
+  /* ════════════════════════════════════════════════
+     SHADOW SYSTEM
+     ════════════════════════════════════════════════ */
+
+  --shadow-xs:   0 1px 2px rgba(0,0,0,0.05);
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:   0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+  --shadow-lg:   0 10px 15px rgba(0,0,0,0.08), 0 4px 6px rgba(0,0,0,0.04);
+  --shadow-xl:   0 20px 25px rgba(0,0,0,0.10), 0 10px 10px rgba(0,0,0,0.04);
+  --shadow-2xl:  0 25px 50px rgba(0,0,0,0.18);
+  --shadow-dark: 0 25px 50px rgba(0,0,0,0.45);
+  --shadow-card:       0 2px 8px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(212,175,55,0.15);
+
+  /* ════════════════════════════════════════════════
+     ANIMATION & MOTION SYSTEM
+     ════════════════════════════════════════════════ */
+
+  /* Durations */
+  --duration-instant: 0ms;
+  --duration-75:      75ms;
+  --duration-100:     100ms;
+  --duration-150:     150ms;
+  --duration-200:     200ms;
+  --duration-300:     300ms;
+  --duration-500:     500ms;
+  --duration-700:     700ms;
+  --duration-1000:    1000ms;
+
+  /* Aliases */
+  --duration-fast:   var(--duration-150);
+  --duration-base:   var(--duration-200);
+  --duration-slow:   var(--duration-300);
+  --duration-enter:  var(--duration-500);
+  --duration-lazy:   var(--duration-700);
+
+  /* Easing Functions */
+  --ease-linear:    linear;
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);
+  --ease-out:       cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce:    cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth:    cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-premium:   cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Transition Shortcuts */
+  --transition-fast:   var(--duration-fast) var(--ease-out);
+  --transition-base:   var(--duration-base) var(--ease-out);
+  --transition-slow:   var(--duration-slow) var(--ease-out);
+
+  /* ════════════════════════════════════════════════
+     LAYOUT & GRID
+     ════════════════════════════════════════════════ */
+
+  --nav-height:     68px;
+  --container-px:   clamp(1rem, 5vw, 2rem);
+  --container-sm:   640px;
+  --container-md:   768px;
+  --container-lg:   1024px;
+  --container-xl:   1280px;
+  --container-2xl:  1400px;
+
+  /* ════════════════════════════════════════════════
+     Z-INDEX SCALE
+     ════════════════════════════════════════════════ */
+
+  --z-below:    -1;
+  --z-base:      0;
+  --z-raised:    1;
+  --z-dropdown:  100;
+  --z-sticky:    200;
+  --z-overlay:   300;
+  --z-modal:     400;
+  --z-toast:     500;
+  --z-tooltip:   600;
+
 }
 
+/* ════════════════════════════════════════════════
+   DARK MODE SUPPORT (future-ready)
+   ════════════════════════════════════════════════ */
+@media (prefers-color-scheme: dark) {
+  /* Dark mode overrides can be added here */
+  /* Currently using explicit dark sections via class */
+}
+
+/* ════════════════════════════════════════════════
+   REDUCED MOTION
+   ════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --duration-fast:  0ms;
     --duration-base:  0ms;
     --duration-slow:  0ms;
-    --duration-lazy:  0ms;
     --duration-enter: 0ms;
+    --duration-lazy:  0ms;
   }
 }

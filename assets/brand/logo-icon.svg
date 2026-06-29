@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" fill="none">
+  <rect width="56" height="56" rx="12" fill="#121417"/>
+  <polygon points="28,6 50,28 28,50 6,28" stroke="#D4AF37" stroke-width="2" fill="rgba(212,175,55,0.08)"/>
+  <text x="28" y="34" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="18" font-weight="700" fill="#D4AF37" letter-spacing="-0.5">RS</text>
+</svg>
