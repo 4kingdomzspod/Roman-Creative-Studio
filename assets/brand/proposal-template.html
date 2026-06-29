@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project Proposal — Roman Creative Studio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; background: #e5e7eb; color: #374151; }
+    .page { width: 794px; margin: 0 auto; background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+    /* COVER PAGE */
+    .cover { background: #121417; min-height: 1123px; display: flex; flex-direction: column; justify-content: space-between; padding: 0; position: relative; overflow: hidden; }
+    .cover-top { padding: 48px 56px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .cover-logo { display: flex; align-items: center; gap: 14px; }
+    .cover-logo-name { font-size: 15px; font-weight: 700; color: #fff; }
+    .cover-logo-sub { font-size: 9px; color: #D4AF37; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+    .cover-date { font-size: 11px; color: #6b7280; text-align: right; }
+    .cover-hero { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 56px; }
+    .cover-eyebrow { font-size: 10px; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+    .cover-title { font-size: 42px; font-weight: 700; color: #fff; line-height: 1.2; margin-bottom: 20px; }
+    .cover-subtitle { font-size: 14px; color: #9ca3af; line-height: 1.7; max-width: 480px; }
+    .cover-divider { width: 60px; height: 3px; background: #D4AF37; margin: 28px 0; }
+    .cover-client-block { margin-top: 32px; padding: 24px 28px; border: 1px solid rgba(212,175,55,0.3); border-radius: 6px; display: inline-block; }
+    .cover-client-label { font-size: 10px; color: #D4AF37; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+    .cover-client-name { font-size: 20px; font-weight: 700; color: #fff; }
+    .cover-client-sub { font-size: 12px; color: #9ca3af; margin-top: 2px; }
+    .cover-footer { padding: 28px 56px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .cover-footer-left { font-size: 11px; color: #4b5563; }
+    .cover-footer-right { font-size: 11px; color: #6b7280; text-align: right; }
+    /* INNER PAGES */
+    .section-page { min-height: 1123px; padding: 56px; display: flex; flex-direction: column; page-break-before: always; }
+    .section-page + .section-page { border-top: none; }
+    .section-header { margin-bottom: 36px; }
+    .section-num { font-size: 11px; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+    .section-title { font-size: 26px; font-weight: 700; color: #121417; }
+    .section-rule { width: 40px; height: 3px; background: #D4AF37; margin-top: 14px; }
+    .body-text { font-size: 13px; color: #4b5563; line-height: 1.9; }
+    .body-text p { margin-bottom: 14px; }
+    .body-text p.placeholder { color: #bbb; font-style: italic; }
+    .highlight-box { background: #f9fafb; border-left: 3px solid #D4AF37; padding: 18px 20px; border-radius: 4px; margin: 20px 0; font-size: 13px; color: #374151; line-height: 1.7; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 20px 0; }
+    .card { background: #f9fafb; border-radius: 6px; padding: 20px; }
+    .card h4 { font-size: 13px; font-weight: 700; color: #121417; margin-bottom: 8px; }
+    .card p { font-size: 12px; color: #6b7280; line-height: 1.6; }
+    /* INVESTMENT TABLE */
+    table.inv { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    table.inv thead tr { background: #121417; }
+    table.inv thead th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: #D4AF37; letter-spacing: 1px; text-transform: uppercase; }
+    table.inv thead th:last-child { text-align: right; }
+    table.inv tbody tr { border-bottom: 1px solid #f3f4f6; }
+    table.inv tbody td { padding: 12px 14px; font-size: 13px; color: #374151; }
+    table.inv tbody td:last-child { text-align: right; font-weight: 600; }
+    table.inv tfoot td { padding: 12px 14px; font-size: 14px; font-weight: 700; color: #121417; border-top: 2px solid #D4AF37; }
+    table.inv tfoot td:last-child { text-align: right; }
+    /* TIMELINE */
+    .timeline { list-style: none; padding: 0; margin: 20px 0; }
+    .timeline li { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+    .tl-dot { width: 32px; height: 32px; border-radius: 50%; background: #121417; border: 2px solid #D4AF37; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #D4AF37; flex-shrink: 0; margin-top: 2px; }
+    .tl-content h4 { font-size: 13px; font-weight: 700; color: #121417; margin-bottom: 3px; }
+    .tl-content p { font-size: 12px; color: #6b7280; line-height: 1.6; }
+    /* SIGNATURE PAGE */
+    .sig-page { background: #121417; min-height: 400px; padding: 48px 56px; }
+    .sig-page h2 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .sig-page p { font-size: 13px; color: #9ca3af; line-height: 1.7; margin-bottom: 32px; }
+    .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 32px; }
+    .sig-block label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #D4AF37; display: block; margin-bottom: 8px; }
+    .sig-line { height: 1px; background: rgba(255,255,255,0.2); margin-bottom: 6px; }
+    .sig-block p { font-size: 12px; color: #6b7280; }
+    /* PAGE FOOTER -->
+    .inner-footer { margin-top: auto; padding-top: 32px; border-top: 1px solid #f3f4f6; display: flex; justify-content: space-between; font-size: 10px; color: #9ca3af; }
+    @media print {
+      body { background: none; }
+      .page { box-shadow: none; width: 100%; }
+      .section-page { page-break-before: always; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ====== COVER PAGE ====== -->
+  <div class="cover">
+    <div class="cover-top">
+      <div class="cover-logo">
+        <svg width="44" height="44" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="20,2 38,20 20,38 2,20" fill="rgba(212,175,55,0.1)" stroke="#D4AF37" stroke-width="1.5"/>
+          <text x="20" y="25" font-family="Georgia,serif" font-size="11" font-weight="700" fill="#D4AF37" text-anchor="middle" letter-spacing="1">RS</text>
+        </svg>
+        <div>
+          <div class="cover-logo-name">Roman Creative Studio</div>
+          <div class="cover-logo-sub">Premium Web Design</div>
+        </div>
+      </div>
+      <div class="cover-date">Prepared: [Month DD, YYYY]<br>Valid for 30 days</div>
+    </div>
+
+    <div class="cover-hero">
+      <div class="cover-eyebrow">Project Proposal</div>
+      <div class="cover-title">A Website Built<br>to Grow With You</div>
+      <div class="cover-divider"></div>
+      <div class="cover-subtitle">
+        We've prepared this proposal based on your goals, your audience, and what it takes to compete online in your industry. Everything inside is tailored to you.
+      </div>
+      <div class="cover-client-block">
+        <div class="cover-client-label">Prepared For</div>
+        <div class="cover-client-name">[Client Name / Practice Name]</div>
+        <div class="cover-client-sub">[City, State &nbsp;&middot;&nbsp; Industry]</div>
+      </div>
+    </div>
+
+    <div class="cover-footer">
+      <div class="cover-footer-left">Confidential &mdash; For [Client Name] Only</div>
+      <div class="cover-footer-right">Alexander@romancreativestudio.co<br>romancreativestudio.com</div>
+    </div>
+  </div>
+
+  <!-- ====== 1. EXECUTIVE SUMMARY ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 01</div>
+      <div class="section-title">Executive Summary</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="body-text">
+      <p class="placeholder">[1–2 sentences capturing the client’s core challenge. E.g.: “Your current website isn’t converting visitors into new patients. Potential patients are landing on your site and leaving without calling.”]</p>
+      <p class="placeholder">[1–2 sentences on your proposed solution. E.g.: “We’re proposing a complete redesign built around conversion — a site that answers the right questions, builds trust fast, and makes booking an appointment effortless.”]</p>
+    </div>
+    <div class="highlight-box">
+      <strong>The outcome we’re building toward:</strong> [One clear, specific, measurable outcome. E.g.: “A website that consistently converts 3–5% of visitors into booked appointments.”]
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 2</span>
+    </div>
+  </div>
+
+  <!-- ====== 2. ABOUT RCS ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 02</div>
+      <div class="section-title">About Roman Creative Studio</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="body-text">
+      <p>Roman Creative Studio is a premium web design agency specializing in high-performance websites for dental practices and churches. We don’t build generic sites — we build conversion systems that understand your audience, your industry, and the specific trust signals that turn visitors into patients or congregation members.</p>
+      <p class="placeholder">[Customize with 1–2 sentences specific to this client’s industry or situation.]</p>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <h4>Our Focus</h4>
+        <p>We specialize in two industries: dental practices and churches. Deep focus means we know what works — and what wastes your budget.</p>
+      </div>
+      <div class="card">
+        <h4>Our Process</h4>
+        <p>Every project moves through Strategy, Design, Development, and Launch — with clear milestones and no surprises.</p>
+      </div>
+      <div class="card">
+        <h4>Our Results</h4>
+        <p>Sites we build are fast, accessible, and built for search engines from day one.</p>
+      </div>
+      <div class="card">
+        <h4>Your Point of Contact</h4>
+        <p>Alexander Roman, Founder &amp; Creative Director, will personally oversee your project from kickoff to launch.</p>
+      </div>
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 3</span>
+    </div>
+  </div>
+
+  <!-- ====== 3. SCOPE OF WORK ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 03</div>
+      <div class="section-title">Scope of Work</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="body-text">
+      <p class="placeholder">[List every deliverable included in this engagement. Be specific. Each item should be unambiguous so there’s no scope creep later.]</p>
+    </div>
+    <div class="highlight-box">
+      <strong>Included in this proposal:</strong>
+      <ul style="margin-top:10px;padding-left:18px;font-size:13px;color:#4b5563;line-height:2;">
+        <li>[Deliverable 1 — e.g., Custom homepage design and development]</li>
+        <li>[Deliverable 2 — e.g., 5 interior pages (About, Services x2, Contact, Book)]</li>
+        <li>[Deliverable 3 — e.g., Mobile-responsive layout]</li>
+        <li>[Deliverable 4 — e.g., SEO foundation (meta, sitemap, schema)]</li>
+        <li>[Deliverable 5 — e.g., Contact form + booking integration]</li>
+        <li>[Deliverable 6 — e.g., 30-day post-launch support]</li>
+      </ul>
+    </div>
+    <div class="highlight-box" style="border-left-color:#ef4444;background:#fff5f5;">
+      <strong>Not included:</strong>
+      <ul style="margin-top:10px;padding-left:18px;font-size:13px;color:#4b5563;line-height:2;">
+        <li>[Exclusion 1 — e.g., Copywriting (unless add-on selected)]</li>
+        <li>[Exclusion 2 — e.g., Photography / custom imagery]</li>
+        <li>[Exclusion 3 — e.g., Ongoing hosting or maintenance]</li>
+      </ul>
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 4</span>
+    </div>
+  </div>
+
+  <!-- ====== 4. INVESTMENT ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 04</div>
+      <div class="section-title">Investment</div>
+      <div class="section-rule"></div>
+    </div>
+    <table class="inv">
+      <thead>
+        <tr>
+          <th style="width:50%;">Deliverable</th>
+          <th>Details</th>
+          <th>Investment</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>[Item 1]</strong></td><td>[Description]</td><td>$[Amount]</td></tr>
+        <tr><td><strong>[Item 2]</strong></td><td>[Description]</td><td>$[Amount]</td></tr>
+        <tr><td><strong>[Item 3]</strong></td><td>[Description]</td><td>$[Amount]</td></tr>
+        <tr><td><strong>[Add-on (optional)]</strong></td><td>[Description]</td><td>$[Amount]</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="2">Total Investment</td><td>$[Total]</td></tr>
+      </tfoot>
+    </table>
+    <div class="highlight-box">
+      <strong>Payment Schedule:</strong> 50% deposit to begin &mdash; $[Amount]. Balance of $[Amount] due upon final delivery before site goes live.
+    </div>
+    <div class="body-text" style="margin-top:20px;">
+      <p class="placeholder">[Optional: note any payment plan options, or any time-sensitive pricing (e.g., “This pricing is valid for 30 days from the proposal date.”)]</p>
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 5</span>
+    </div>
+  </div>
+
+  <!-- ====== 5. TIMELINE ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 05</div>
+      <div class="section-title">Project Timeline</div>
+      <div class="section-rule"></div>
+    </div>
+    <ul class="timeline">
+      <li><div class="tl-dot">1</div><div class="tl-content"><h4>Kickoff &amp; Strategy &mdash; Week 1</h4><p>Discovery call, intake form review, sitemap finalized, content brief delivered.</p></div></li>
+      <li><div class="tl-dot">2</div><div class="tl-content"><h4>Design &mdash; Weeks 2–3</h4><p>Homepage mockup presented for feedback. Interior page designs follow. Two revision rounds included.</p></div></li>
+      <li><div class="tl-dot">3</div><div class="tl-content"><h4>Development &mdash; Weeks 4–5</h4><p>Approved designs built out. All pages responsive and tested across devices and browsers.</p></div></li>
+      <li><div class="tl-dot">4</div><div class="tl-content"><h4>Content &amp; Review &mdash; Week 6</h4><p>Final content placed, forms tested, SEO elements implemented. Client review period.</p></div></li>
+      <li><div class="tl-dot">5</div><div class="tl-content"><h4>Launch &mdash; Week 7</h4><p>Site goes live. DNS transfer, analytics setup, sitemap submitted to Google.</p></div></li>
+      <li><div class="tl-dot">6</div><div class="tl-content"><h4>Post-Launch Support &mdash; Weeks 8–1 1</h4><p>30 days of included support for bug fixes and minor adjustments.</p></div></li>
+    </ul>
+    <div class="body-text" style="margin-top:12px;">
+      <p class="placeholder">[Adjust timeline to match actual project scope. Note: timeline begins upon receipt of deposit and signed agreement.]</p>
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 6</span>
+    </div>
+  </div>
+
+  <!-- ====== 6. WHY RCS ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 06</div>
+      <div class="section-title">Why Roman Creative Studio</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="two-col">
+      <div class="card"><h4>Industry Specialization</h4><p>We only work in two verticals. That means no learning curve on your industry’s trust signals, compliance needs, or patient/visitor psychology.</p></div>
+      <div class="card"><h4>Conversion-First Design</h4><p>Every design decision is evaluated against one question: does this move the visitor closer to booking or connecting? Aesthetics serve the goal.</p></div>
+      <div class="card"><h4>Transparent Process</h4><p>You always know where your project stands. No black boxes, no waiting. Shared milestones, real-time access to your project portal.</p></div>
+      <div class="card"><h4>Built to Last</h4><p>Clean code, semantic HTML, fast load times, and accessible design — your site won’t need a full rebuild in two years.</p></div>
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 7</span>
+    </div>
+  </div>
+
+  <!-- ====== 7. NEXT STEPS ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 07</div>
+      <div class="section-title">Next Steps</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="body-text">
+      <p>Ready to move forward? Here’s exactly what happens next:</p>
+    </div>
+    <ul class="timeline" style="margin-top:24px;">
+      <li><div class="tl-dot">1</div><div class="tl-content"><h4>Sign the Agreement</h4><p>Review and sign the project agreement. We’ll send it via DocuSign within 24 hours of your approval.</p></div></li>
+      <li><div class="tl-dot">2</div><div class="tl-content"><h4>Submit Deposit</h4><p>50% deposit secures your spot on our calendar. Payment instructions are in Section 04.</p></div></li>
+      <li><div class="tl-dot">3</div><div class="tl-content"><h4>Kickoff Call</h4><p>We schedule your kickoff call within 3 business days. We’ll walk through the intake form and align on goals before design begins.</p></div></li>
+    </ul>
+    <div class="highlight-box" style="margin-top:32px;">
+      <strong>Questions?</strong> Reach out anytime at <a href="mailto:Alexander@romancreativestudio.co" style="color:#D4AF37;">Alexander@romancreativestudio.co</a> or schedule a quick call at romancreativestudio.com/book.
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 8</span>
+    </div>
+  </div>
+
+  <!-- ====== 8. TERMS ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 08</div>
+      <div class="section-title">Terms &amp; Conditions</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="body-text">
+      <p><strong>Revisions:</strong> This proposal includes two (2) rounds of revisions at each project phase. Additional revisions beyond the included rounds are billed at $125/hour.</p>
+      <p><strong>Content:</strong> Client is responsible for providing all written content, images, and brand assets within 5 business days of kickoff. Delays in content delivery may extend the project timeline.</p>
+      <p><strong>Payment:</strong> A 50% deposit is required before work begins. The remaining 50% is due upon final delivery, before the site goes live. All payments are non-refundable once the corresponding phase of work has been completed.</p>
+      <p><strong>Intellectual Property:</strong> Upon receipt of final payment, client owns all custom design and development assets delivered. Third-party licenses (fonts, stock images, plugins) remain subject to their respective terms.</p>
+      <p><strong>Warranty:</strong> Roman Creative Studio warrants the delivered work against defects for 30 days post-launch. This does not cover third-party platform issues or client-initiated changes.</p>
+      <p><strong>Confidentiality:</strong> Both parties agree to keep the terms of this proposal and any proprietary information confidential.</p>
+      <p class="placeholder">[Add, remove, or modify terms as needed. Consult a legal professional for contracts used in formal engagements.]</p>
+    </div>
+    <div class="inner-footer">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 9</span>
+    </div>
+  </div>
+
+  <!-- ====== 9. SIGNATURE PAGE ====== -->
+  <div class="section-page">
+    <div class="section-header">
+      <div class="section-num">Section 09</div>
+      <div class="section-title">Agreement &amp; Signature</div>
+      <div class="section-rule"></div>
+    </div>
+    <div class="body-text">
+      <p>By signing below, both parties agree to the scope, investment, timeline, and terms outlined in this proposal. This document becomes a binding agreement upon receipt of the deposit.</p>
+    </div>
+    <div class="sig-grid" style="margin-top:48px;">
+      <div class="sig-block">
+        <label>Client Signature</label>
+        <div class="sig-line" style="margin-top:48px;"></div>
+        <p>[Client Name]</p>
+        <div style="height:12px;"></div>
+        <label>Date</label>
+        <div class="sig-line"></div>
+      </div>
+      <div class="sig-block">
+        <label>Roman Creative Studio</label>
+        <div class="sig-line" style="margin-top:48px;"></div>
+        <p>Alexander Roman, Founder</p>
+        <div style="height:12px;"></div>
+        <label>Date</label>
+        <div class="sig-line"></div>
+      </div>
+    </div>
+    <div class="inner-footer" style="margin-top:60px;">
+      <span>Roman Creative Studio &mdash; Confidential Proposal</span>
+      <span>Page 10</span>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
