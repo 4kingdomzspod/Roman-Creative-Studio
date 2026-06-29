@@ -1,0 +1,138 @@
+/* ============================================================
+   ROMAN CREATIVE STUDIO — LAYOUT
+   Container, grid, section rhythm, and utility classes.
+   ============================================================ */
+
+/* ── CONTAINER ──────────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: var(--container-xl);
+  margin-inline: auto;
+  padding-inline: var(--container-px);
+}
+
+.container-sm  { max-width: var(--container-sm);  }
+.container-md  { max-width: var(--container-md);  }
+.container-lg  { max-width: var(--container-lg);  }
+.container-2xl { max-width: var(--container-2xl); }
+
+/* ── SECTION SPACING ─────────────────────────────────────── */
+
+.section {
+  padding-block: var(--section-md);
+}
+
+.section-sm { padding-block: var(--section-sm); }
+.section-lg { padding-block: var(--section-lg); }
+.section-xl { padding-block: var(--section-xl); }
+
+.section-bg         { background: var(--color-bg); }
+.section-bg-subtle  { background: var(--color-bg-subtle); }
+.section-bg-muted   { background: var(--color-bg-muted); }
+.section-bg-dark    { background: var(--color-bg-dark); color: var(--color-text-inverse); }
+.section-bg-brand   { background: var(--color-brand); color: var(--color-text-inverse); }
+.section-bg-navy    { background: var(--color-navy-900); color: var(--color-text-inverse); }
+
+/* ── GRID ────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), 1fr);
+  gap: var(--grid-gap);
+}
+
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+.grid-auto-sm  { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.grid-auto-md  { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.grid-auto-lg  { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+
+/* ── FLEX UTILITIES ───────────────────────────────────────────── */
+
+.flex         { display: flex; }
+.flex-col     { flex-direction: column; }
+.flex-wrap    { flex-wrap: wrap; }
+.items-start  { align-items: flex-start; }
+.items-center { align-items: center; }
+.items-end    { align-items: flex-end; }
+.justify-start  { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end    { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.gap-1  { gap: var(--space-1); }
+.gap-2  { gap: var(--space-2); }
+.gap-3  { gap: var(--space-3); }
+.gap-4  { gap: var(--space-4); }
+.gap-6  { gap: var(--space-6); }
+.gap-8  { gap: var(--space-8); }
+.gap-10 { gap: var(--space-10); }
+.gap-12 { gap: var(--space-12); }
+.gap-16 { gap: var(--space-16); }
+
+/* ── SECTION HEADER ───────────────────────────────────────── */
+
+.section-header {
+  text-align: center;
+  max-width: 720px;
+  margin-inline: auto;
+  margin-bottom: var(--space-16);
+}
+
+.section-header .eyebrow { margin-bottom: var(--space-3); }
+.section-header h2 { margin-bottom: var(--space-5); }
+.section-header p {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.section-header--left { text-align: left; margin-inline: 0; }
+
+/* ── TWO-COLUMN FEATURE LAYOUT ────────────────────────────────── */
+
+.feature-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(2.5rem, 6vw, 5rem);
+  align-items: center;
+}
+
+.feature-split.reverse { direction: rtl; }
+.feature-split.reverse > * { direction: ltr; }
+
+/* ── STACK UTILITY ────────────────────────────────────────────────── */
+
+.stack     { display: flex; flex-direction: column; }
+.stack > * + * { margin-top: var(--space-4); }
+.stack-2   > * + * { margin-top: var(--space-2); }
+.stack-3   > * + * { margin-top: var(--space-3); }
+.stack-6   > * + * { margin-top: var(--space-6); }
+.stack-8   > * + * { margin-top: var(--space-8); }
+
+/* ── CENTRED CONTENT ───────────────────────────────────────── */
+
+.text-center { text-align: center; }
+.mx-auto     { margin-inline: auto; }
+.max-prose   { max-width: 65ch; }
+.max-tight   { max-width: 42ch; }
+
+/* ── RESPONSIVE UTILITIES ───────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .feature-split { grid-template-columns: 1fr; }
+  .feature-split.reverse { direction: ltr; }
+}
+
+@media (max-width: 768px) {
+  .grid-2,
+  .grid-3,
+  .grid-4 { grid-template-columns: 1fr; }
+  .section-header { margin-bottom: var(--space-10); }
+}
+
+@media (max-width: 640px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
