@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Roman Creative Studio | Premium Websites for Dentists &amp; Churches</title>
+<meta name="description" content="Roman Creative Studio builds premium, strategy-first websites that help dentists book more patients and churches welcome more visitors. Schedule your free discovery call today." />
+<meta name="keywords" content="dental website design, church website design, dentist website, premium web design agency" />
+
+<!-- Open Graph -->
+<meta property="og:title" content="Roman Creative Studio | Premium Websites for Dentists &amp; Churches" />
+<meta property="og:description" content="Strategy-first web design that helps dentists grow their practices and churches expand their impact." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://romancreativestudio.com" />
+<meta property="og:image" content="assets/img/og-image.jpg" />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Roman Creative Studio" />
+<meta name="twitter:description" content="Premium websites for dentists and churches." />
+
+<!-- Schema.org -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfessionalService",
+  "name": "Roman Creative Studio",
+  "description": "Premium web design agency specializing in dental practices and churches.",
+  "url": "https://romancreativestudio.com",
+  "serviceType": "Web Design",
+  "areaServed": "United States",
+  "priceRange": "$$$"
+}
+</script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+<!-- Styles -->
+<link rel="stylesheet" href="assets/css/tokens.css" />
+<link rel="stylesheet" href="assets/css/base.css" />
+<link rel="stylesheet" href="assets/css/layout.css" />
+<link rel="stylesheet" href="assets/css/components.css" />
+</head>
+<body>
+
+<!-- ── SKIP LINK ────────────────────────────────────────────── -->
+<a href="#main" class="skip-link">Skip to main content</a>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAVIGATION
+═══════════════════════════════════════════════════════════ -->
+<header>
+  <nav class="nav" aria-label="Main navigation">
+    <div class="nav-inner">
+
+      <!-- Brand -->
+      <a href="index.html" class="nav-brand" aria-label="Roman Creative Studio home">
+        <div class="nav-brand-mark" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <span class="nav-brand-text">Roman Creative Studio</span>
+      </a>
+
+      <!-- Desktop links -->
+      <ul class="nav-links" role="list">
+        <li><a href="about.html">About</a></li>
+        <li class="nav-dropdown">
+          <button class="nav-dropdown-trigger" aria-expanded="false" aria-haspopup="true">
+            Services
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="nav-dropdown-menu">
+            <a href="services/dentist-websites.html">
+              <span class="nav-dropdown-menu-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9S3 16.97 3 12 7.03 3 12 3s9 4.03 9 9z"/></svg>
+              </span>
+              Dentist Websites
+            </a>
+            <a href="services/church-websites.html">
+              <span class="nav-dropdown-menu-icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </span>
+              Church Websites
+            </a>
+          </div>
+        </li>
+        <li><a href="portfolio.html">Portfolio</a></li>
+        <li><a href="pricing.html">Pricing</a></li>
+        <li><a href="process.html">Process</a></li>
+        <li><a href="blog.html">Blog</a></li>
+      </ul>
+
+      <!-- Desktop actions -->
+      <div class="nav-actions">
+        <a href="contact.html" class="btn btn-secondary btn-sm">Contact</a>
+        <a href="book.html" class="btn btn-primary btn-sm">Book a Call</a>
+      </div>
+
+      <!-- Hamburger -->
+      <button class="nav-hamburger" aria-label="Open navigation menu" aria-controls="nav-drawer" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile overlay + drawer -->
+  <div class="nav-overlay" role="presentation"></div>
+  <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <div class="nav-drawer-header">
+      <a href="index.html" class="nav-brand">
+        <div class="nav-brand-mark">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </div>
+        <span class="nav-brand-text">Roman Creative Studio</span>
+      </a>
+      <button class="nav-drawer-close" aria-label="Close navigation menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <ul class="nav-drawer-links" role="list">
+      <li><a href="about.html">About</a></li>
+      <li><a href="services/dentist-websites.html">Dentist Websites</a></li>
+      <li><a href="services/church-websites.html">Church Websites</a></li>
+      <li><a href="portfolio.html">Portfolio</a></li>
+      <li><a href="pricing.html">Pricing</a></li>
+      <li><a href="process.html">Process</a></li>
+      <li><a href="blog.html">Blog</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+    <div class="nav-drawer-cta">
+      <a href="book.html" class="btn btn-primary btn-full btn-lg">Book a Free Call</a>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════════════ -->
+<main id="main">
+
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-mesh" aria-hidden="true"></div>
+
+    <div class="container">
+      <div class="hero-content">
+
+        <div class="hero-eyebrow" data-animate>
+          <span class="badge badge-brand badge-dot">Strategy-First Web Design</span>
+        </div>
+
+        <h1 class="display-2" id="hero-heading" data-animate data-animate-delay="100">
+          Websites That Book<br>More Patients &amp;<br>Welcome More Visitors
+        </h1>
+
+        <p class="hero-sub" data-animate data-animate-delay="200">
+          We build premium websites for dentists and churches that don't just look great — they convert. Strategy, design, and development under one roof.
+        </p>
+
+        <div class="hero-actions" data-animate data-animate-delay="300">
+          <a href="book.html" class="btn btn-primary btn-xl btn-arrow">
+            Book a Free Call
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a href="portfolio.html" class="btn btn-secondary btn-xl">See Our Work</a>
+        </div>
+
+        <div class="hero-proof" data-animate data-animate-delay="400">
+          <div class="hero-proof-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            No templates — 100% custom
+          </div>
+          <div class="hero-proof-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            4–6 week delivery
+          </div>
+          <div class="hero-proof-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            SEO &amp; mobile-first
+          </div>
+          <div class="hero-proof-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Free discovery call
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Browser Mockup -->
+      <div class="hero-visual mockup-browser" data-animate data-animate-delay="200" style="margin-top:var(--space-20);">
+        <div class="mockup-browser-bar">
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <div class="mockup-url">
+            <span>monroefamilydentistry.com</span>
+          </div>
+        </div>
+        <div class="mockup-browser-screen" style="background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 50%,#EFF6FF 100%);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:var(--space-4);padding:var(--space-12);">
+          <div style="width:120px;height:8px;background:var(--color-blue-200);border-radius:var(--radius-full);"></div>
+          <div style="width:280px;height:14px;background:var(--color-blue-300);border-radius:var(--radius-full);"></div>
+          <div style="width:200px;height:10px;background:var(--color-blue-200);border-radius:var(--radius-full);"></div>
+          <div style="margin-top:var(--space-4);display:flex;gap:var(--space-3);">
+            <div style="width:120px;height:40px;background:var(--color-brand);border-radius:var(--radius-lg);"></div>
+            <div style="width:100px;height:40px;background:var(--color-blue-100);border-radius:var(--radius-lg);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── SOCIAL PROOF / METRICS ─────────────────────────── -->
+  <section class="section section-sm section-bg-subtle" aria-label="Results">
+    <div class="container">
+
+      <p class="logo-strip-label" data-animate>Trusted results for growing practices &amp; churches</p>
+
+      <div class="metrics-grid" data-animate data-animate-delay="100">
+        <div class="metric-item">
+          <div class="metric-value">47+</div>
+          <div class="metric-label">Projects Delivered</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">98%</div>
+          <div class="metric-label">Client Satisfaction</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">3.2×</div>
+          <div class="metric-label">Average Booking Lift</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">&lt;2s</div>
+          <div class="metric-label">Page Load Speed</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-value">100</div>
+          <div class="metric-label">Lighthouse Score</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── WHO WE SERVE ──────────────────────────────────── -->
+  <section class="section" id="services" aria-labelledby="services-heading">
+    <div class="container">
+
+      <div class="section-header" data-animate>
+        <div class="eyebrow">Who We Serve</div>
+        <h2 id="services-heading">Built for Two Audiences.<br>Mastered for Both.</h2>
+        <p>Dentists need patient bookings. Churches need visitor engagement. We've built systems for both — and we don't try to serve everyone.</p>
+      </div>
+
+      <div class="feature-split" style="gap:clamp(2rem,5vw,4rem);">
+
+        <!-- Dentist -->
+        <div data-animate>
+          <div style="background:var(--color-blue-50);border:1px solid var(--color-blue-100);border-radius:var(--radius-3xl);padding:var(--space-10);height:100%;">
+            <div class="badge badge-brand" style="margin-bottom:var(--space-6);">Dentist Websites</div>
+            <h3 style="font-size:var(--text-4xl);margin-bottom:var(--space-5);">More patients.<br>Every month.</h3>
+            <p style="color:var(--color-text-secondary);line-height:var(--leading-relaxed);margin-bottom:var(--space-8);">
+              Your website is your highest-leverage marketing asset. We build dental websites that rank locally, load fast, and turn visitors into booked appointments — automatically.
+            </p>
+            <ul class="check-list" style="margin-bottom:var(--space-8);">
+              <li>Online booking integration</li>
+              <li>Local SEO foundation built in</li>
+              <li>Trust-building design system</li>
+              <li>Patient testimonials &amp; before/after</li>
+              <li>Google review generation prompts</li>
+            </ul>
+            <a href="services/dentist-websites.html" class="btn btn-primary btn-arrow">
+              Dentist Websites
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Church -->
+        <div data-animate data-animate-delay="150">
+          <div style="background:var(--color-navy-950);border-radius:var(--radius-3xl);padding:var(--space-10);height:100%;color:var(--color-white);">
+            <div class="badge badge-dark" style="margin-bottom:var(--space-6);">Church Websites</div>
+            <h3 style="font-size:var(--text-4xl);margin-bottom:var(--space-5);color:var(--color-white);">More visitors.<br>Deeper impact.</h3>
+            <p style="color:var(--color-text-dark-muted);line-height:var(--leading-relaxed);margin-bottom:var(--space-8);">
+              A first-time visitor decides whether to attend in the first 7 seconds of landing on your site. We design church websites that answer every question and make saying "I'll visit Sunday" feel easy.
+            </p>
+            <ul class="check-list" style="margin-bottom:var(--space-8);">
+              <li style="color:var(--color-text-dark-muted);">Plan-a-visit flow</li>
+              <li style="color:var(--color-text-dark-muted);">Online giving integration</li>
+              <li style="color:var(--color-text-dark-muted);">Events &amp; sermon library</li>
+              <li style="color:var(--color-text-dark-muted);">Multi-campus support</li>
+              <li style="color:var(--color-text-dark-muted);">New visitor welcome sequence</li>
+            </ul>
+            <a href="services/church-websites.html" class="btn btn-ghost btn-arrow">
+              Church Websites
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── WHAT WE BUILD ─────────────────────────────────── -->
+  <section class="section section-bg-subtle" aria-labelledby="what-we-build">
+    <div class="container">
+
+      <div class="section-header" data-animate>
+        <div class="eyebrow">Our Services</div>
+        <h2 id="what-we-build">Everything Your Website Needs.<br>Nothing It Doesn't.</h2>
+        <p>We're specialists, not generalists. Every service we offer directly supports patient bookings or church visitor growth.</p>
+      </div>
+
+      <div class="grid-3" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-6);">
+
+        <div class="service-card" data-animate>
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          </div>
+          <h3>Custom Website Design</h3>
+          <p>Zero templates. Every website is designed from scratch around your brand, audience, and conversion goals.</p>
+        </div>
+
+        <div class="service-card" data-animate data-animate-delay="100">
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <h3>Local SEO Foundation</h3>
+          <p>Schema markup, Google Business integration, keyword-optimized pages, and technical SEO baked in from day one.</p>
+        </div>
+
+        <div class="service-card" data-animate data-animate-delay="200">
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h3>Mobile-First Development</h3>
+          <p>Over 70% of your visitors are on mobile. We design for mobile first, then scale up — not the other way around.</p>
+        </div>
+
+        <div class="service-card" data-animate>
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h3>Booking Integration</h3>
+          <p>We integrate with Zocdoc, Calendly, NexHealth, and custom booking systems so appointments flow automatically.</p>
+        </div>
+
+        <div class="service-card" data-animate data-animate-delay="100">
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <h3>Performance Optimization</h3>
+          <p>Core Web Vitals, image compression, lazy loading, and CDN delivery. We don't ship slow websites.</p>
+        </div>
+
+        <div class="service-card" data-animate data-animate-delay="200">
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <h3>Maintenance Plans</h3>
+          <p>Monthly retainers covering updates, backups, security, hosting, and priority support. We don't disappear after launch.</p>
+        </div>
+
+        <div class="service-card" data-animate>
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h3>Copywriting</h3>
+          <p>StoryBrand-informed copy that speaks to your patient's or visitor's real concerns and guides them to take action.</p>
+        </div>
+
+        <div class="service-card" data-animate data-animate-delay="100">
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3>Analytics Setup</h3>
+          <p>Google Analytics 4, Search Console, and conversion tracking configured so you always know what's working.</p>
+        </div>
+
+        <div class="service-card" data-animate data-animate-delay="200">
+          <div class="service-card-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          </div>
+          <h3>Website Redesign</h3>
+          <p>Underperforming website? We audit your current site, identify the conversion blockers, and rebuild it right.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── PORTFOLIO PREVIEW ─────────────────────────────── -->
+  <section class="section" id="portfolio" aria-labelledby="portfolio-heading">
+    <div class="container">
+
+      <div class="section-header" data-animate>
+        <div class="eyebrow">Our Work</div>
+        <h2 id="portfolio-heading">Websites Built to Perform</h2>
+        <p>Each project starts with a strategy session. What you see below isn't just design — it's architecture built around a business goal.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:var(--space-8);margin-bottom:var(--space-12);">
+
+        <!-- Project 1 -->
+        <div class="portfolio-card" data-animate>
+          <div class="portfolio-card-thumb" style="background:linear-gradient(135deg,#0F2044,#1E3A6E);">
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;padding:var(--space-8);">
+              <div style="text-align:center;color:white;">
+                <div style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:var(--weight-bold);margin-bottom:var(--space-2);">Monroe Family</div>
+                <div style="font-size:var(--text-sm);opacity:0.6;">Dentistry</div>
+              </div>
+            </div>
+          </div>
+          <div class="portfolio-card-body">
+            <div class="portfolio-card-type">Dental Practice</div>
+            <h3>Monroe Family Dentistry</h3>
+            <p>A complete redesign that increased new patient inquiries by 3.4× in the first 90 days. Built around their Sarasota, FL service area.</p>
+            <div class="portfolio-card-tags">
+              <span class="portfolio-tag">Custom Design</span>
+              <span class="portfolio-tag">Local SEO</span>
+              <span class="portfolio-tag">Booking Integration</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 2 -->
+        <div class="portfolio-card" data-animate data-animate-delay="100">
+          <div class="portfolio-card-thumb" style="background:linear-gradient(135deg,#1A2744,#2455A4);">
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;padding:var(--space-8);">
+              <div style="text-align:center;color:white;">
+                <div style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:var(--weight-bold);margin-bottom:var(--space-2);">Bright Smiles</div>
+                <div style="font-size:var(--text-sm);opacity:0.6;">Pediatric Dental</div>
+              </div>
+            </div>
+          </div>
+          <div class="portfolio-card-body">
+            <div class="portfolio-card-type">Pediatric Dentistry</div>
+            <h3>Bright Smiles Pediatric Dental</h3>
+            <p>Playful but professional design built for anxious parents. Warm color palette, friendly copy, and frictionless appointment booking.</p>
+            <div class="portfolio-card-tags">
+              <span class="portfolio-tag">Custom Design</span>
+              <span class="portfolio-tag">Copywriting</span>
+              <span class="portfolio-tag">Mobile-First</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 3 -->
+        <div class="portfolio-card" data-animate data-animate-delay="200">
+          <div class="portfolio-card-thumb" style="background:linear-gradient(135deg,#0A1628,#083A90);">
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;padding:var(--space-8);">
+              <div style="text-align:center;color:white;">
+                <div style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:var(--weight-bold);margin-bottom:var(--space-2);">Lighthouse Church</div>
+                <div style="font-size:var(--text-sm);opacity:0.6;">Tampa Bay</div>
+              </div>
+            </div>
+          </div>
+          <div class="portfolio-card-body">
+            <div class="portfolio-card-type">Church</div>
+            <h3>Lighthouse Church Tampa Bay</h3>
+            <p>A growing church plant needed a digital home that felt as alive as their Sunday services. Built with a "plan your visit" flow that converts first-time visitors.</p>
+            <div class="portfolio-card-tags">
+              <span class="portfolio-tag">Custom Design</span>
+              <span class="portfolio-tag">Online Giving</span>
+              <span class="portfolio-tag">Events System</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 4 -->
+        <div class="portfolio-card" data-animate>
+          <div class="portfolio-card-thumb" style="background:linear-gradient(135deg,#152A50,#1E3A6E);">
+            <div style="display:flex;align-items:center;justify-content:center;height:100%;padding:var(--space-8);">
+              <div style="text-align:center;color:white;">
+                <div style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:var(--weight-bold);margin-bottom:var(--space-2);">Apex Implant</div>
+                <div style="font-size:var(--text-sm);opacity:0.6;">Specialists</div>
+              </div>
+            </div>
+          </div>
+          <div class="portfolio-card-body">
+            <div class="portfolio-card-type">Implant Specialist</div>
+            <h3>Apex Implant Specialists</h3>
+            <p>High-ticket dental implant practice needed a site that commanded premium trust. Bold visuals, patient success stories, and a consultation booking flow.</p>
+            <div class="portfolio-card-tags">
+              <span class="portfolio-tag">Custom Design</span>
+              <span class="portfolio-tag">Case Studies</span>
+              <span class="portfolio-tag">Trust Building</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="text-center" data-animate>
+        <a href="portfolio.html" class="btn btn-secondary btn-lg btn-arrow">
+          View All Projects
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ── WHY CHOOSE US ─────────────────────────────────── -->
+  <section class="section section-bg-dark" id="why-us" aria-labelledby="why-heading">
+    <div class="container">
+
+      <div class="section-header" data-animate>
+        <div class="eyebrow" style="color:var(--color-blue-300);">Why Roman Creative Studio</div>
+        <h2 id="why-heading" style="color:var(--color-white);">We're Not a Web Agency.<br>We're a Growth Partner.</h2>
+        <p style="color:var(--color-text-dark-muted);">Most agencies build websites. We build business systems. The difference shows up in your analytics, your inbox, and your revenue.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-6);">
+
+        <div class="card card-dark" data-animate>
+          <div class="card-icon card-icon-dark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          </div>
+          <h3 style="color:var(--color-white);">Niche Expertise</h3>
+          <p>We only serve dentists and churches. That means we already understand your audience, your competition, and what converts — before we even start your project.</p>
+        </div>
+
+        <div class="card card-dark" data-animate data-animate-delay="100">
+          <div class="card-icon card-icon-dark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3 style="color:var(--color-white);">Results-First Mindset</h3>
+          <p>Every decision we make — layout, copy, colors, page structure — is made with one question: does this move the visitor closer to booking or visiting?</p>
+        </div>
+
+        <div class="card card-dark" data-animate data-animate-delay="200">
+          <div class="card-icon card-icon-dark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3 style="color:var(--color-white);">Fast Delivery</h3>
+          <p>4–6 weeks from strategy call to live website. No bloated agencies, no waiting months. Just focused execution with clear milestones you can track.</p>
+        </div>
+
+        <div class="card card-dark" data-animate>
+          <div class="card-icon card-icon-dark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <h3 style="color:var(--color-white);">Premium Build Quality</h3>
+          <p>Hand-coded, accessible, fast-loading, SEO-optimized websites. No page builders, no theme clutter. Built to the same standard as Fortune 500 companies.</p>
+        </div>
+
+        <div class="card card-dark" data-animate data-animate-delay="100">
+          <div class="card-icon card-icon-dark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3 style="color:var(--color-white);">Long-Term Partnership</h3>
+          <p>We're not disappearing after launch day. Monthly maintenance plans mean we're always monitoring, updating, and improving your site as your practice grows.</p>
+        </div>
+
+        <div class="card card-dark" data-animate data-animate-delay="200">
+          <div class="card-icon card-icon-dark">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <h3 style="color:var(--color-white);">Strategy Before Design</h3>
+          <p>Beautiful design without strategy is just decoration. We research your market, map your buyer journey, and design with intent before we open Figma.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── OUR PROCESS ───────────────────────────────────── -->
+  <section class="section" id="process" aria-labelledby="process-heading">
+    <div class="container">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(3rem,7vw,6rem);align-items:start;">
+
+        <div data-animate>
+          <div class="eyebrow" style="margin-bottom:var(--space-4);">How It Works</div>
+          <h2 id="process-heading">A Simple Process.<br>A Premium Result.</h2>
+          <p class="text-body" style="margin-top:var(--space-5);margin-bottom:var(--space-8);">
+            We've refined our process over dozens of projects. You'll always know exactly where your project stands — and what comes next.
+          </p>
+          <a href="process.html" class="btn btn-ghost-dark btn-arrow">
+            See Full Process
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+
+        <div class="process-list" data-animate data-animate-delay="150">
+          <div class="process-item">
+            <div class="process-step">01</div>
+            <div class="process-content">
+              <h3>Discovery Call</h3>
+              <p>Free 30-minute call to understand your goals, audience, competition, and current challenges.</p>
+            </div>
+          </div>
+          <div class="process-item">
+            <div class="process-step">02</div>
+            <div class="process-content">
+              <h3>Strategy &amp; Proposal</h3>
+              <p>We send a detailed proposal including scope, timeline, investment, and what measurable outcomes to expect.</p>
+            </div>
+          </div>
+          <div class="process-item">
+            <div class="process-step">03</div>
+            <div class="process-content">
+              <h3>Design &amp; Development</h3>
+              <p>You review wireframes, then full design mockups, then a live staging environment — at every stage.</p>
+            </div>
+          </div>
+          <div class="process-item">
+            <div class="process-step">04</div>
+            <div class="process-content">
+              <h3>Launch &amp; Onboarding</h3>
+              <p>We handle DNS, hosting migration, and a 1-hour training call so your team knows exactly how to use the site.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── TESTIMONIALS ──────────────────────────────────── -->
+  <section class="section section-bg-subtle" id="testimonials" aria-labelledby="testimonials-heading">
+    <div class="container">
+
+      <div class="section-header" data-animate>
+        <div class="eyebrow">Client Results</div>
+        <h2 id="testimonials-heading">What Our Clients Say</h2>
+        <p>We let their results — and their words — speak for themselves.</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--space-6);">
+
+        <div class="testimonial-card" data-animate>
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"Our new patient calls doubled within 60 days of launch. Roman Creative Studio didn't just build us a website — they built us a growth engine. The attention to detail is unmatched."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">DR</div>
+            <div>
+              <div class="testimonial-name">Dr. Rachel Monroe, DDS</div>
+              <div class="testimonial-role">Monroe Family Dentistry · Sarasota, FL</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card" data-animate data-animate-delay="100">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"We were skeptical a website could move the needle for our church. We were wrong. First-time visitor numbers are up significantly, and our online giving has never been stronger."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">PJ</div>
+            <div>
+              <div class="testimonial-name">Pastor James Williams</div>
+              <div class="testimonial-role">Lighthouse Church · Tampa Bay, FL</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testimonial-card" data-animate data-animate-delay="200">
+          <div class="testimonial-stars">★★★★★</div>
+          <p class="testimonial-quote">"Every other agency we talked to wanted to sell us a template. Roman Creative Studio wanted to understand our patients first. That made all the difference. We're fully booked three months out now."</p>
+          <div class="testimonial-author">
+            <div class="testimonial-avatar">DK</div>
+            <div>
+              <div class="testimonial-name">Dr. Kevin Patel, DMD</div>
+              <div class="testimonial-role">Apex Implant Specialists · Orlando, FL</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── FAQ ───────────────────────────────────────────── -->
+  <section class="section" id="faq" aria-labelledby="faq-heading">
+    <div class="container">
+
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(3rem,6vw,5rem);align-items:start;">
+
+        <div data-animate>
+          <div class="eyebrow" style="margin-bottom:var(--space-4);">FAQ</div>
+          <h2 id="faq-heading">Common Questions</h2>
+          <p class="text-body" style="margin-top:var(--space-5);margin-bottom:var(--space-8);">
+            Still have questions? We're happy to answer anything on our discovery call — no sales pressure, just honest answers.
+          </p>
+          <a href="book.html" class="btn btn-primary btn-arrow">
+            Book a Call
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+
+        <div class="faq-list" data-animate data-animate-delay="150">
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              How much does a website cost?
+              <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">Custom websites for dental practices typically start at $4,500 and range to $12,000+ depending on size, complexity, and integrations. Church websites typically start at $3,500. We provide a detailed quote during your discovery call with no surprises.</div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              How long does it take?
+              <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">Most projects are completed in 4–6 weeks from signed contract to live website. We provide a project timeline in your proposal with clear milestones and your expected sign-off dates.</div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              Do you use WordPress or page builders?
+              <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">We build on the platform that's best for your goals. This could be custom HTML/CSS, WordPress with a custom theme, Webflow, or a headless CMS. We never use bloated page builders — everything is hand-crafted for performance and maintainability.</div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              Will my website rank on Google?
+              <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">Every website we build includes a technical SEO foundation — proper schema markup, fast load times, semantic HTML, Google Search Console setup, and keyword-optimized page structure. Ongoing SEO content strategy is available as an add-on.</div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              Do you offer payment plans?
+              <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">Yes. All projects are split into a 50% deposit at signing, 25% at design approval, and 25% at launch. For clients with ongoing maintenance plans, we also offer flexible monthly payment structures.</div>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-question" aria-expanded="false">
+              What if I don't like the design?
+              <span class="faq-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>
+            </button>
+            <div class="faq-answer">
+              <div class="faq-answer-inner">Every project includes two rounds of design revisions at both the wireframe and final mockup stage. We've never had a client who didn't love their final website — because we invest heavily in the discovery phase to understand your vision before we start designing.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ── CTA ───────────────────────────────────────────── -->
+  <section class="section" aria-label="Call to action">
+    <div class="container">
+      <div class="cta-section" data-animate>
+        <div class="eyebrow" style="color:var(--color-blue-300);margin-bottom:var(--space-5);">Ready to grow?</div>
+        <h2>Your next patient is searching Google right now.</h2>
+        <p>Will they find you — or your competitor? Book a free 30-minute discovery call and we'll show you exactly what's holding your website back.</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:var(--space-4);flex-wrap:wrap;">
+          <a href="book.html" class="btn btn-primary btn-xl btn-arrow">
+            Book Your Free Call
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+          <a href="portfolio.html" class="btn btn-ghost btn-xl">See Case Studies</a>
+        </div>
+        <p style="margin-top:var(--space-6);font-size:var(--text-sm);color:rgba(255,255,255,0.35);margin-bottom:0;">No commitment required · Free 30-minute strategy call · 100% honest advice</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════ -->
+<footer class="footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-top">
+
+      <!-- Brand -->
+      <div class="footer-brand">
+        <a href="index.html" class="nav-brand">
+          <div class="nav-brand-mark">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </div>
+          <span class="nav-brand-text">Roman Creative Studio</span>
+        </a>
+        <p>Helping dentists book more patients and churches welcome more visitors through premium, strategy-first websites.</p>
+        <div class="footer-social">
+          <a href="#" aria-label="LinkedIn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+          <a href="#" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          </a>
+          <a href="#" aria-label="YouTube">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.54C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="services/dentist-websites.html">Dentist Websites</a></li>
+          <li><a href="services/church-websites.html">Church Websites</a></li>
+          <li><a href="services/index.html#seo">Local SEO</a></li>
+          <li><a href="services/index.html#booking">Booking Integration</a></li>
+          <li><a href="services/index.html#maintenance">Maintenance Plans</a></li>
+          <li><a href="services/index.html#redesign">Website Redesign</a></li>
+        </ul>
+      </div>
+
+      <!-- Company -->
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="process.html">Our Process</a></li>
+          <li><a href="portfolio.html">Portfolio</a></li>
+          <li><a href="pricing.html">Pricing</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+
+      <!-- Resources -->
+      <div class="footer-col">
+        <h4>Get Started</h4>
+        <ul>
+          <li><a href="book.html">Book a Free Call</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="resources.html">Free Resources</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2025 Roman Creative Studio. All rights reserved.</p>
+      <ul class="footer-bottom-links">
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="terms.html">Terms</a></li>
+        <li><a href="sitemap.xml">Sitemap</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
