@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://romancreativestudio.com/sitemap.xml
+Sitemap: https://romancreativestudio.co/sitemap.xml

@@ -17,8 +17,8 @@
 ```html
 <meta property="og:title" content="Page Title | Roman Creative Studio">
 <meta property="og:description" content="Page description (same as meta description is fine)">
-<meta property="og:image" content="https://romancreativestudio.com/assets/images/og-image.jpg">
-<meta property="og:url" content="https://romancreativestudio.com/page-url">
+<meta property="og:image" content="https://romancreativestudio.co/assets/images/og-image.jpg">
+<meta property="og:url" content="https://romancreativestudio.co/page-url">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 ```
@@ -36,7 +36,7 @@
   "@type": "LocalBusiness",
   "name": "Roman Creative Studio",
   "description": "Premium digital agency helping businesses build, grow, and scale.",
-  "url": "https://romancreativestudio.com",
+  "url": "https://romancreativestudio.co",
   "email": "Alexander@romancreativestudio.co",
   "priceRange": "$$",
   "serviceArea": {"@type": "Country", "name": "US"}
@@ -58,7 +58,7 @@
 
 ## Technical SEO Checklist
 
-- [ ] `sitemap.xml` exists and lists all public pages
+- [ ] `sitemap.xml` exists at `https://romancreativestudio.co/sitemap.xml`
 - [ ] `robots.txt` exists with sitemap reference
 - [ ] Google Search Console verified with sitemap submitted
 - [ ] Google Analytics 4 tracking installed and verified

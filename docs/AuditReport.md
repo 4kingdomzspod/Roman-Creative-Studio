@@ -21,14 +21,13 @@ The site is a well-structured static HTML/CSS/JS agency website deployed on GitH
 - Design tokens properly namespaced with `--color-*`, `--text-*`, `--space-*`, `--radius-*`
 - Single `main.js` keeps JavaScript surface area minimal
 - `.nojekyll` correctly prevents Jekyll interference on GitHub Pages
-- Custom domain properly configured via `CNAME`
+- Custom domain properly configured via `CNAME` → `romancreativestudio.co`
 
 ### Issues
-- **CSS variable naming drift:** Service pages (`dentist-websites.html`, `church-websites.html`) were recently migrated from old token names (`--navy-950`, `--neutral-50`, `--brand-600`) to hardcoded values. The long-term fix is to ensure all pages consume only defined `--color-*` tokens.
-- **No 404 page:** Missing `404.html` means GitHub Pages shows a generic error — a missed branding and recovery opportunity.
-- **No privacy or terms pages:** Listed in site footer links but pages may not exist or be linked.
-- **README.md was empty** — now corrected.
-- **ROADMAP.md at root** — moved into `docs/roadmap/` as part of AOS; root file can redirect.
+- **CSS variable naming drift:** Service pages were recently migrated from old token names (`--navy-950`, `--neutral-50`, `--brand-600`) to hardcoded values. Long-term fix: all pages consume only defined `--color-*` tokens.
+- **No 404 page:** ✅ Now resolved — `404.html` created.
+- **No sitemap / robots.txt:** ✅ Now resolved.
+- **README.md was empty:** ✅ Now resolved.
 
 ---
 
@@ -46,6 +45,7 @@ The site is a well-structured static HTML/CSS/JS agency website deployed on GitH
 | `contact.html` | Contact form | ✅ Current |
 | `book.html` | Booking / calendar embed | ✅ Current |
 | `design-system.html` | Live component reference | ✅ Current |
+| `404.html` | Error page | ✅ Created |
 
 ### Service Pages (2)
 | File | Purpose | Status |
@@ -59,6 +59,12 @@ The site is a well-structured static HTML/CSS/JS agency website deployed on GitH
 | `resources/website-audit-checklist.html` | Lead magnet | ✅ Current |
 | `resources/local-seo-guide.html` | Lead magnet | ✅ Current |
 | `resources/conversion-rate-guide.html` | Lead magnet | ✅ Current |
+
+### SEO Infrastructure
+| File | Status |
+|------|--------|
+| `sitemap.xml` | ✅ Created |
+| `robots.txt` | ✅ Created |
 
 ### CSS Files (4)
 | File | Role | Size |
@@ -90,37 +96,34 @@ The site is a well-structured static HTML/CSS/JS agency website deployed on GitH
 - Logo displayed at 72px with gold border glow in nav across all pages
 
 ### Issues
-- **components.css is 46 KB** — could be split into logical modules (nav, hero, cards, forms, etc.) as the codebase grows
-- **Inline styles present** on index.html hero section — ideally these would be CSS class-based
-- **Service pages use hardcoded hex values** instead of token references — creates drift risk if brand colors change
+- **components.css is 46 KB** — could be split into logical modules as the codebase grows
+- **Inline styles present** on index.html hero section — ideally CSS class-based
+- **Service pages use hardcoded hex values** instead of token references — tracked for migration
 
 ---
 
 ## 4. Accessibility
 
 ### Issues to Address
-- Image `alt` text should be audited across all pages for descriptiveness
+- Image `alt` text should be audited across all pages
 - Focus states should be verified for all interactive elements
-- Color contrast ratios should be validated for body text against dark backgrounds
+- Color contrast ratios should be validated for body text
 - Form labels and ARIA attributes should be audited on `contact.html` and `book.html`
-- Skip navigation link should be added to all pages
+- Skip navigation link should be added to all pages (added to `404.html` as reference)
 
 ---
 
 ## 5. SEO
 
-### Strengths
-- Pages appear to have title tags and meta descriptions
-- Static HTML is fully crawlable (no JavaScript rendering required)
-- Custom domain with CNAME properly configured
+### Resolved ✅
+- `sitemap.xml` created — all 13 public pages listed
+- `robots.txt` created — points crawlers to sitemap
 
-### Issues
-- **No sitemap.xml** — search engines must discover pages by crawl only
-- **No robots.txt** — no crawl guidance provided to search engines
-- **Structured data (JSON-LD)** not confirmed on any page — missing LocalBusiness, Organization, Service schema
+### Remaining
+- **Structured data (JSON-LD)** not yet added — LocalBusiness, Organization, Service schema
 - **Open Graph / Twitter Card meta tags** — need verification across all pages
-- **No blog content yet** — blog.html exists but likely has placeholder content
-- **Only 2 industry pages** — significant opportunity for additional service/industry pages (15+ industries identified)
+- **No blog content yet** — blog.html exists but needs real posts
+- **Only 2 industry pages** — 10+ more identified in the roadmap
 
 ---
 
@@ -132,41 +135,40 @@ The site is a well-structured static HTML/CSS/JS agency website deployed on GitH
 - Static hosting on GitHub Pages with CDN
 
 ### Issues
-- **Image optimization** — `founder.jpg` is 232 KB; should be under 100 KB with WebP conversion
+- **Image optimization** — `founder.jpg` is 232 KB; target < 100 KB with WebP
 - **No lazy loading** confirmed on images
-- **CSS not minified** — for production, minification would improve load time
-- **No preconnect hints** for third-party resources (fonts, calendars, etc.)
+- **CSS not minified** — future build system task
+- **No preconnect hints** for third-party resources
 
 ---
 
 ## 7. Technical Debt Prioritization
 
-| Priority | Issue | Effort |
+| Priority | Issue | Status |
 |----------|-------|--------|
-| 🔴 Critical | Add `404.html` page | Low |
-| 🔴 Critical | Add `sitemap.xml` | Low |
-| 🔴 Critical | Add `robots.txt` | Low |
-| 🟠 High | Optimize `founder.jpg` to WebP | Low |
-| 🟠 High | Add JSON-LD structured data to homepage | Medium |
-| 🟠 High | Service page tokens → CSS variable references | Medium |
-| 🟡 Medium | Split `components.css` into modules | High |
-| 🟡 Medium | Accessibility audit (focus, contrast, ARIA) | Medium |
-| 🟡 Medium | Add Open Graph tags to all pages | Medium |
-| 🟢 Future | Build system (minification, WebP auto-conversion) | High |
-| 🟢 Future | Add 13+ industry service pages | High |
+| 🔴 Critical | `404.html` | ✅ Done |
+| 🔴 Critical | `sitemap.xml` | ✅ Done |
+| 🔴 Critical | `robots.txt` | ✅ Done |
+| 🟠 High | Optimize `founder.jpg` to WebP | Pending |
+| 🟠 High | Add JSON-LD structured data to homepage | Pending |
+| 🟠 High | Service page tokens → CSS variable references | Pending |
+| 🟡 Medium | Split `components.css` into modules | Pending |
+| 🟡 Medium | Accessibility audit (focus, contrast, ARIA) | Pending |
+| 🟡 Medium | Add Open Graph tags to all pages | Pending |
+| 🟢 Future | Build system (minification, WebP auto-conversion) | Backlog |
+| 🟢 Future | Add 10+ industry service pages | Backlog |
 
 ---
 
 ## 8. Scalability Assessment
 
-The current architecture scales cleanly to ~20 pages without a build system. Beyond that, a static site generator (Eleventh, Astro) or component extraction strategy becomes valuable to avoid duplicating nav/footer HTML across every page. That threshold is the trigger for v4.0 architecture work.
+The current architecture scales cleanly to ~20 pages without a build system. Beyond that, a static site generator (Eleventy, Astro) becomes valuable to avoid duplicating nav/footer HTML. That threshold is the trigger for v4.0 architecture work.
 
 ---
 
-## 9. Recommended Next Steps
+## 9. Domain
 
-1. **Immediate (this sprint):** Create `404.html`, `sitemap.xml`, `robots.txt`
-2. **Next sprint:** Add JSON-LD to homepage and service pages
-3. **Content sprint:** Build 5–8 additional industry service pages
-4. **Design sprint:** Accessibility audit and remediation
-5. **Architecture review:** Revisit at 20+ pages for static site generator decision
+**Correct domain:** `romancreativestudio.co` (`.co` — not `.com`)  
+**Contact email:** `Alexander@romancreativestudio.co`
+
+All internal references, sitemap URLs, robots.txt, and documentation use `.co`.

@@ -2,7 +2,7 @@
 
 Premium digital agency helping businesses build, grow, and scale through strategy, design, and technology.
 
-**Website:** [romancreativestudio.com](https://romancreativestudio.com)  
+**Website:** [romancreativestudio.co](https://romancreativestudio.co)  
 **Contact:** Alexander@romancreativestudio.co
 
 ---
@@ -70,6 +70,7 @@ Start here: [docs/AuditReport.md](docs/AuditReport.md)
 ## Tech Stack
 
 - **Hosting:** GitHub Pages (main branch root, custom domain via CNAME)
+- **Domain:** romancreativestudio.co
 - **Stack:** Vanilla HTML · CSS Custom Properties · Vanilla JS
 - **Design System:** 4-layer CSS architecture — `tokens.css` → `base.css` → `layout.css` → `components.css`
 - **No build system** — source files deploy directly; `.nojekyll` bypasses Jekyll processing
