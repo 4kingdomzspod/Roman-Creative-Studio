@@ -326,7 +326,8 @@
 .nav-brand-mark img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 2px;
 }
 
 .nav-brand-text {
@@ -705,11 +706,11 @@
 }
 
 .hero-dark .hero-heading {
-  color: var(--color-white);
+  color: #ffffff !important;
 }
 
 .hero-dark .hero-heading em {
-  color: var(--color-gold-400);
+  color: #D4AF37 !important;
   font-style: italic;
 }
 
@@ -722,7 +723,7 @@
   margin-inline: auto;
 }
 
-.hero-dark .hero-sub { color: var(--color-text-dark-muted); }
+.hero-dark .hero-sub { color: rgba(255,255,255,0.80) !important; }
 
 .hero-actions {
   display: flex;
