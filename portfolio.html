@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portfolio — Roman Creative Studio</title>
   <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
-<meta name="description" content="See the websites we've built for dental practices and churches. Real projects, real results." />
+  <meta name="description" content="See the websites we've built for dental practices and churches. Real projects, real results." />
   <meta property="og:title" content="Portfolio — Roman Creative Studio" />
   <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,14 +17,14 @@
   <link rel="stylesheet" href="assets/css/components.css" />
   <style>
     .portfolio-filter { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-10); }
-    .filter-btn { padding: var(--space-2) var(--space-5); border-radius: 9999px; border: 1.5px solid var(--neutral-200); background: white; color: var(--neutral-600); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all var(--duration-200) var(--ease-out); }
-    .filter-btn:hover { border-color: var(--brand-400); color: var(--brand-600); }
-    .filter-btn.active { background: var(--brand-600); border-color: var(--brand-600); color: white; }
+    .filter-btn { padding: var(--space-2) var(--space-5); border-radius: 9999px; border: 1.5px solid rgba(255,255,255,0.12); background: #1B1E23; color: rgba(240,239,233,0.70); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all var(--duration-200) var(--ease-out); }
+    .filter-btn:hover { border-color: rgba(212,175,55,0.40); color: #D4AF37; }
+    .filter-btn.active { background: #D4AF37; border-color: #D4AF37; color: #0C0E11; }
     .portfolio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-8); }
     @media (max-width: 768px) { .portfolio-grid { grid-template-columns: 1fr; } }
-    .portfolio-card { border-radius: var(--radius-2xl); overflow: hidden; border: 1px solid var(--neutral-200); background: white; transition: transform var(--duration-300) var(--ease-out), box-shadow var(--duration-300) var(--ease-out); }
-    .portfolio-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl); }
-    .portfolio-thumb { aspect-ratio: 16/10; background: var(--navy-950); position: relative; overflow: hidden; }
+    .portfolio-card { border-radius: var(--radius-2xl); overflow: hidden; border: 1px solid rgba(255,255,255,0.08); background: #151719; transition: transform var(--duration-300) var(--ease-out), box-shadow var(--duration-300) var(--ease-out); }
+    .portfolio-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl); border-color: rgba(212,175,55,0.28); }
+    .portfolio-thumb { aspect-ratio: 16/10; background: #0C0E11; position: relative; overflow: hidden; }
     .portfolio-thumb-inner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
     .browser-mockup { background: white; border-radius: 8px; width: 85%; box-shadow: 0 8px 32px rgba(0,0,0,0.35); overflow: hidden; }
     .browser-bar { background: #f1f1f1; padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e0e0e0; }
@@ -34,8 +34,8 @@
     .portfolio-tag { position: absolute; top: var(--space-4); left: var(--space-4); background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 9999px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: white; }
     .portfolio-info { padding: var(--space-6); }
     .portfolio-meta { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
-    .portfolio-stat { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--neutral-500); }
-    .portfolio-stat strong { color: var(--brand-600); font-weight: 700; }
+    .portfolio-stat { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: rgba(240,239,233,0.50); }
+    .portfolio-stat strong { color: #D4AF37; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -48,9 +48,7 @@
       <div class="nav-inner">
         <a href="index.html" class="nav-brand">
           <div class="nav-brand-mark">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <polygon points="10,2 18,10 10,18 2,10" stroke="#C9A84C" stroke-width="1.3" fill="none"/><text x="10" y="13.5" text-anchor="middle" font-family="Georgia,serif" font-size="7.5" font-weight="700" fill="#C9A84C">RS</text>
-            </svg>
+            <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" />
           </div>
           <span class="nav-brand-text">Roman Creative Studio</span>
         </a>
@@ -91,7 +89,10 @@
     <div class="nav-overlay" role="presentation"></div>
     <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation menu">
       <div class="nav-drawer-header">
-        <span class="nav-brand-text">Roman Creative Studio</span>
+        <a href="index.html" class="nav-brand">
+          <div class="nav-brand-mark"><img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" /></div>
+          <span class="nav-brand-text">Roman Creative Studio</span>
+        </a>
         <button class="nav-drawer-close" aria-label="Close navigation menu">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M5 5l12 12M17 5L5 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </button>
@@ -116,35 +117,35 @@
   <main id="main">
 
     <!-- HERO -->
-    <section style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-16); background: var(--navy-950);">
+    <section style="padding-top: calc(var(--nav-height) + var(--space-16)); padding-bottom: var(--space-16); background: #0C0E11;">
       <div class="container" style="max-width: 760px; text-align: center;">
         <div data-animate="fade-up">
-          <span class="eyebrow" style="color: var(--brand-400);">Our Work</span>
-          <h1 class="h1" style="color: var(--neutral-50); margin-top: var(--space-3);">Websites That Work as Hard as You Do</h1>
-          <p style="color: var(--neutral-400); font-size: var(--text-lg); margin-top: var(--space-4); line-height: 1.7;">
+          <span class="eyebrow" style="color: #D4AF37;">Our Work</span>
+          <h1 class="h1" style="color: #F0EFE9; margin-top: var(--space-3);">Websites That Work as Hard as You Do</h1>
+          <p style="color: rgba(240,239,233,0.55); font-size: var(--text-lg); margin-top: var(--space-4); line-height: 1.7;">
             Every project here was built with one goal: measurable growth for the client. Not just good-looking — genuinely effective.
           </p>
         </div>
         <!-- Stats bar -->
         <div data-animate="fade-up" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6); margin-top: var(--space-12); padding: var(--space-8); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-2xl);">
           <div>
-            <p style="font-size: var(--text-4xl); font-weight: 800; color: var(--brand-400); line-height: 1; margin-bottom: var(--space-2);">47+</p>
-            <p style="color: var(--neutral-400); font-size: var(--text-sm);">Projects Launched</p>
+            <p style="font-size: var(--text-4xl); font-weight: 800; color: #D4AF37; line-height: 1; margin-bottom: var(--space-2);">47+</p>
+            <p style="color: rgba(240,239,233,0.55); font-size: var(--text-sm);">Projects Launched</p>
           </div>
           <div style="border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1); padding: 0 var(--space-4);">
-            <p style="font-size: var(--text-4xl); font-weight: 800; color: var(--brand-400); line-height: 1; margin-bottom: var(--space-2);">4.9★</p>
-            <p style="color: var(--neutral-400); font-size: var(--text-sm);">Average Client Rating</p>
+            <p style="font-size: var(--text-4xl); font-weight: 800; color: #D4AF37; line-height: 1; margin-bottom: var(--space-2);">4.9&#9733;</p>
+            <p style="color: rgba(240,239,233,0.55); font-size: var(--text-sm);">Average Client Rating</p>
           </div>
           <div>
-            <p style="font-size: var(--text-4xl); font-weight: 800; color: var(--brand-400); line-height: 1; margin-bottom: var(--space-2);">2.3×</p>
-            <p style="color: var(--neutral-400); font-size: var(--text-sm);">Avg. Inquiry Increase</p>
+            <p style="font-size: var(--text-4xl); font-weight: 800; color: #D4AF37; line-height: 1; margin-bottom: var(--space-2);">2.3&times;</p>
+            <p style="color: rgba(240,239,233,0.55); font-size: var(--text-sm);">Avg. Inquiry Increase</p>
           </div>
         </div>
       </div>
     </section>
 
     <!-- PORTFOLIO GRID -->
-    <section class="section" style="background: var(--neutral-50);">
+    <section class="section" style="background: #121417;">
       <div class="container">
 
         <div class="portfolio-filter" role="group" aria-label="Filter portfolio by type">
@@ -179,15 +180,15 @@
             </div>
             <div class="portfolio-info">
               <div class="portfolio-meta">
-                <span style="background: var(--brand-50); color: var(--brand-700); font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
-                <span style="color: var(--neutral-400); font-size: var(--text-sm);">Atlanta, GA</span>
+                <span style="background: rgba(212,175,55,0.12); color: #D4AF37; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
+                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Atlanta, GA</span>
               </div>
-              <h3 class="h4" style="color: var(--navy-950); margin-bottom: var(--space-2);">Bright Smile Dental</h3>
-              <p style="color: var(--neutral-600); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Complete rebrand and new website for a family practice wanting to attract higher-value cosmetic cases. New patient inquiries doubled within 60 days.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid var(--neutral-100); padding-top: var(--space-4);">
+              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Bright Smile Dental</h3>
+              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Complete rebrand and new website for a family practice wanting to attract higher-value cosmetic cases. New patient inquiries doubled within 60 days.</p>
+              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
                 <div class="portfolio-stat"><strong>+112%</strong> New Patients</div>
                 <div class="portfolio-stat"><strong>0.8s</strong> Load Time</div>
-                <div class="portfolio-stat"><strong>4.6×</strong> ROI</div>
+                <div class="portfolio-stat"><strong>4.6&times;</strong> ROI</div>
               </div>
             </div>
           </div>
@@ -216,15 +217,15 @@
             </div>
             <div class="portfolio-info">
               <div class="portfolio-meta">
-                <span style="background: #f5f3ff; color: #6d28d9; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
-                <span style="color: var(--neutral-400); font-size: var(--text-sm);">Nashville, TN</span>
+                <span style="background: rgba(124,58,237,0.15); color: #a78bfa; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
+                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Nashville, TN</span>
               </div>
-              <h3 class="h4" style="color: var(--navy-950); margin-bottom: var(--space-2);">Grace Community Church</h3>
-              <p style="color: var(--neutral-600); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Modern redesign focused on helping first-time visitors feel welcomed before they even walk through the door. Online giving increased 67% in the first quarter.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid var(--neutral-100); padding-top: var(--space-4);">
+              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Grace Community Church</h3>
+              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Modern redesign focused on helping first-time visitors feel welcomed before they even walk through the door. Online giving increased 67% in the first quarter.</p>
+              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
                 <div class="portfolio-stat"><strong>+67%</strong> Online Giving</div>
                 <div class="portfolio-stat"><strong>+89%</strong> New Visitors</div>
-                <div class="portfolio-stat"><strong>4.8★</strong> Review</div>
+                <div class="portfolio-stat"><strong>4.8&#9733;</strong> Review</div>
               </div>
             </div>
           </div>
@@ -253,12 +254,12 @@
             </div>
             <div class="portfolio-info">
               <div class="portfolio-meta">
-                <span style="background: var(--brand-50); color: var(--brand-700); font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
-                <span style="color: var(--neutral-400); font-size: var(--text-sm);">Phoenix, AZ</span>
+                <span style="background: rgba(212,175,55,0.12); color: #D4AF37; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
+                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Phoenix, AZ</span>
               </div>
-              <h3 class="h4" style="color: var(--navy-950); margin-bottom: var(--space-2);">Park Family Dental</h3>
-              <p style="color: var(--neutral-600); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">High-converting landing page funnel built to capture new patient leads from Google Ads. Cost-per-lead dropped from $87 to $31 within 45 days.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid var(--neutral-100); padding-top: var(--space-4);">
+              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Park Family Dental</h3>
+              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">High-converting landing page funnel built to capture new patient leads from Google Ads. Cost-per-lead dropped from $87 to $31 within 45 days.</p>
+              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
                 <div class="portfolio-stat"><strong>-64%</strong> Cost/Lead</div>
                 <div class="portfolio-stat"><strong>+203%</strong> Conversions</div>
                 <div class="portfolio-stat"><strong>97</strong> PageSpeed</div>
@@ -290,15 +291,15 @@
             </div>
             <div class="portfolio-info">
               <div class="portfolio-meta">
-                <span style="background: #fff7ed; color: #c2410c; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
-                <span style="color: var(--neutral-400); font-size: var(--text-sm);">Dallas, TX</span>
+                <span style="background: rgba(234,88,12,0.15); color: #fb923c; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
+                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Dallas, TX</span>
               </div>
-              <h3 class="h4" style="color: var(--navy-950); margin-bottom: var(--space-2);">River of Life Church</h3>
-              <p style="color: var(--neutral-600); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Full website with sermon library, event calendar, and integrated online giving. Streaming attendance grew 140% after launch thanks to improved discoverability.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid var(--neutral-100); padding-top: var(--space-4);">
+              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">River of Life Church</h3>
+              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Full website with sermon library, event calendar, and integrated online giving. Streaming attendance grew 140% after launch thanks to improved discoverability.</p>
+              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
                 <div class="portfolio-stat"><strong>+140%</strong> Stream Views</div>
                 <div class="portfolio-stat"><strong>+82%</strong> Giving</div>
-                <div class="portfolio-stat"><strong>4.9★</strong> Review</div>
+                <div class="portfolio-stat"><strong>4.9&#9733;</strong> Review</div>
               </div>
             </div>
           </div>
@@ -326,15 +327,15 @@
             </div>
             <div class="portfolio-info">
               <div class="portfolio-meta">
-                <span style="background: var(--brand-50); color: var(--brand-700); font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
-                <span style="color: var(--neutral-400); font-size: var(--text-sm);">San Diego, CA</span>
+                <span style="background: rgba(212,175,55,0.12); color: #D4AF37; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
+                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">San Diego, CA</span>
               </div>
-              <h3 class="h4" style="color: var(--navy-950); margin-bottom: var(--space-2);">Coastal Smiles Dental</h3>
-              <p style="color: var(--neutral-600); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Cosmetic and implant specialist site with detailed service pages, before/after gallery, and virtual consultation booking. Positioned them as the premium choice in their market.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid var(--neutral-100); padding-top: var(--space-4);">
+              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Coastal Smiles Dental</h3>
+              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Cosmetic and implant specialist site with detailed service pages, before/after gallery, and virtual consultation booking. Positioned them as the premium choice in their market.</p>
+              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
                 <div class="portfolio-stat"><strong>+156%</strong> Implant Leads</div>
                 <div class="portfolio-stat"><strong>+44%</strong> Avg Case Value</div>
-                <div class="portfolio-stat"><strong>5★</strong> Review</div>
+                <div class="portfolio-stat"><strong>5&#9733;</strong> Review</div>
               </div>
             </div>
           </div>
@@ -362,15 +363,15 @@
             </div>
             <div class="portfolio-info">
               <div class="portfolio-meta">
-                <span style="background: #f8fafc; color: #475569; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
-                <span style="color: var(--neutral-400); font-size: var(--text-sm);">Chicago, IL</span>
+                <span style="background: rgba(71,85,105,0.25); color: #94a3b8; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
+                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Chicago, IL</span>
               </div>
-              <h3 class="h4" style="color: var(--navy-950); margin-bottom: var(--space-2);">Hope Bridge Church</h3>
-              <p style="color: var(--neutral-600); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Multi-campus church with location finder, events, small groups directory, and full media library. Volunteer sign-ups tripled in the first month.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid var(--neutral-100); padding-top: var(--space-4);">
-                <div class="portfolio-stat"><strong>3×</strong> Volunteers</div>
+              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Hope Bridge Church</h3>
+              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Multi-campus church with location finder, events, small groups directory, and full media library. Volunteer sign-ups tripled in the first month.</p>
+              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
+                <div class="portfolio-stat"><strong>3&times;</strong> Volunteers</div>
                 <div class="portfolio-stat"><strong>+91%</strong> Event Sign-ups</div>
-                <div class="portfolio-stat"><strong>4.9★</strong> Review</div>
+                <div class="portfolio-stat"><strong>4.9&#9733;</strong> Review</div>
               </div>
             </div>
           </div>
@@ -380,52 +381,52 @@
     </section>
 
     <!-- TESTIMONIALS -->
-    <section class="section" style="background: white;">
+    <section class="section" style="background: #0C0E11;">
       <div class="container" style="max-width: 900px;">
         <div class="section-header" data-animate="fade-up">
-          <h2 class="h2" style="color: var(--navy-950);">What Our Clients Say</h2>
+          <h2 class="h2" style="color: #F0EFE9;">What Our Clients Say</h2>
         </div>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6);">
           <div data-animate="fade-up" class="card" style="padding: var(--space-6);">
             <div style="display: flex; gap: 2px; margin-bottom: var(--space-4);">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
             </div>
-            <p style="color: var(--neutral-700); font-size: var(--text-sm); line-height: 1.7; margin-bottom: var(--space-5);">&quot;The new site paid for itself in the first month from new patient inquiries alone. Absolutely incredible work.&quot;</p>
+            <p style="color: rgba(240,239,233,0.75); font-size: var(--text-sm); line-height: 1.7; margin-bottom: var(--space-5);">&quot;The new site paid for itself in the first month from new patient inquiries alone. Absolutely incredible work.&quot;</p>
             <div style="display: flex; align-items: center; gap: var(--space-3);">
-              <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--brand-100); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand-700);">S</div>
-              <div><p style="font-weight: 600; color: var(--navy-950); font-size: var(--text-sm); margin: 0;">Dr. Sarah Chen</p><p style="color: var(--neutral-500); font-size: 12px; margin: 0;">Bright Smile Dental</p></div>
+              <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #D4AF37;">S</div>
+              <div><p style="font-weight: 600; color: #F0EFE9; font-size: var(--text-sm); margin: 0;">Dr. Sarah Chen</p><p style="color: rgba(240,239,233,0.40); font-size: 12px; margin: 0;">Bright Smile Dental</p></div>
             </div>
           </div>
           <div data-animate="fade-up" class="card" style="padding: var(--space-6); animation-delay: 0.1s;">
             <div style="display: flex; gap: 2px; margin-bottom: var(--space-4);">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
             </div>
-            <p style="color: var(--neutral-700); font-size: var(--text-sm); line-height: 1.7; margin-bottom: var(--space-5);">&quot;Our congregation keeps telling first-time visitors they found us through our website. That never happened with our old site.&quot;</p>
+            <p style="color: rgba(240,239,233,0.75); font-size: var(--text-sm); line-height: 1.7; margin-bottom: var(--space-5);">&quot;Our congregation keeps telling first-time visitors they found us through our website. That never happened with our old site.&quot;</p>
             <div style="display: flex; align-items: center; gap: var(--space-3);">
-              <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--brand-100); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand-700);">M</div>
-              <div><p style="font-weight: 600; color: var(--navy-950); font-size: var(--text-sm); margin: 0;">Pastor Marcus Webb</p><p style="color: var(--neutral-500); font-size: 12px; margin: 0;">Grace Community Church</p></div>
+              <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #D4AF37;">M</div>
+              <div><p style="font-weight: 600; color: #F0EFE9; font-size: var(--text-sm); margin: 0;">Pastor Marcus Webb</p><p style="color: rgba(240,239,233,0.40); font-size: 12px; margin: 0;">Grace Community Church</p></div>
             </div>
           </div>
           <div data-animate="fade-up" class="card" style="padding: var(--space-6); animation-delay: 0.2s;">
             <div style="display: flex; gap: 2px; margin-bottom: var(--space-4);">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="var(--brand-500)" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
             </div>
-            <p style="color: var(--neutral-700); font-size: var(--text-sm); line-height: 1.7; margin-bottom: var(--space-5);">&quot;They understood exactly what makes dental patients choose one practice over another. The copy they wrote is sharper than anything I could have done.&quot;</p>
+            <p style="color: rgba(240,239,233,0.75); font-size: var(--text-sm); line-height: 1.7; margin-bottom: var(--space-5);">&quot;They understood exactly what makes dental patients choose one practice over another. The copy they wrote is sharper than anything I could have done.&quot;</p>
             <div style="display: flex; align-items: center; gap: var(--space-3);">
-              <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--brand-100); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--brand-700);">D</div>
-              <div><p style="font-weight: 600; color: var(--navy-950); font-size: var(--text-sm); margin: 0;">Dr. David Park</p><p style="color: var(--neutral-500); font-size: 12px; margin: 0;">Park Family Dental</p></div>
+              <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(212,175,55,0.15); display: flex; align-items: center; justify-content: center; font-weight: 700; color: #D4AF37;">D</div>
+              <div><p style="font-weight: 600; color: #F0EFE9; font-size: var(--text-sm); margin: 0;">Dr. David Park</p><p style="color: rgba(240,239,233,0.40); font-size: 12px; margin: 0;">Park Family Dental</p></div>
             </div>
           </div>
         </div>
@@ -436,7 +437,7 @@
     <section class="section cta-section">
       <div class="container" style="max-width: 680px; text-align: center;">
         <div data-animate="fade-up">
-          <span class="eyebrow" style="color: var(--brand-300);">Ready to Get Results Like These?</span>
+          <span class="eyebrow" style="color: #C9A84C;">Ready to Get Results Like These?</span>
           <h2 class="h2" style="color: white; margin-top: var(--space-3); margin-bottom: var(--space-4);">Your Website Could Be Next</h2>
           <p style="color: rgba(255,255,255,0.75); margin-bottom: var(--space-8);">Book a free 30-minute call. We'll audit your current site and show you exactly where you're leaving patients — or congregation members — on the table.</p>
           <div style="display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap;">
@@ -455,43 +456,43 @@
       <div class="footer-top">
         <div>
           <a href="index.html" class="nav-brand" style="margin-bottom: var(--space-4); display: inline-flex;">
-            <div class="nav-brand-mark"><svg width="22" height="22" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><polygon points="18,2 34,18 18,34 2,18" stroke="#C9A84C" stroke-width="1.8" fill="rgba(201,168,76,0.08)"/><text x="18" y="22.5" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="14" font-weight="700" fill="#C9A84C" letter-spacing="-0.5">RS</text></svg></div>
+            <div class="nav-brand-mark"><img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" /></div>
             <span class="nav-brand-text">Roman Creative Studio</span>
           </a>
-          <p style="color: var(--neutral-400); font-size: var(--text-sm); line-height: 1.7; max-width: 280px; margin-top: var(--space-3);">Premium digital agency. We help businesses build, grow, and scale their digital presence.</p>
+          <p style="color: rgba(240,239,233,0.55); font-size: var(--text-sm); line-height: 1.7; max-width: 280px; margin-top: var(--space-3);">Premium digital agency. We help businesses build, grow, and scale their digital presence.</p>
         </div>
         <div>
-          <p style="font-weight: 600; color: var(--neutral-50); margin-bottom: var(--space-4);">Industries</p>
+          <p style="font-weight: 600; color: #F0EFE9; margin-bottom: var(--space-4);">Industries</p>
           <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2);">
-            <li><a href="#" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Healthcare &amp; Dental</a></li>
-            <li><a href="#" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Churches &amp; Nonprofits</a></li>
-            <li><a href="#" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Startups &amp; Tech</a></li>
-            <li><a href="#" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Local Businesses</a></li>
-            <li><a href="#" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">See All &rarr;</a></li>
+            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Healthcare &amp; Dental</a></li>
+            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Churches &amp; Nonprofits</a></li>
+            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Startups &amp; Tech</a></li>
+            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Local Businesses</a></li>
+            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">See All &rarr;</a></li>
           </ul>
         </div>
         <div>
-          <p style="font-weight: 600; color: var(--neutral-50); margin-bottom: var(--space-4);">Services</p>
+          <p style="font-weight: 600; color: #F0EFE9; margin-bottom: var(--space-4);">Services</p>
           <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2);">
-            <li><a href="services/dentist-websites.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Dentist Websites</a></li>
-            <li><a href="services/church-websites.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Church Websites</a></li>
-            <li><a href="pricing.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Pricing</a></li>
-            <li><a href="process.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Our Process</a></li>
+            <li><a href="services/dentist-websites.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Dentist Websites</a></li>
+            <li><a href="services/church-websites.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Church Websites</a></li>
+            <li><a href="pricing.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Pricing</a></li>
+            <li><a href="process.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Our Process</a></li>
           </ul>
         </div>
         <div>
-          <p style="font-weight: 600; color: var(--neutral-50); margin-bottom: var(--space-4);">Company</p>
+          <p style="font-weight: 600; color: #F0EFE9; margin-bottom: var(--space-4);">Company</p>
           <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2);">
-            <li><a href="about.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">About</a></li>
-            <li><a href="portfolio.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Portfolio</a></li>
-            <li><a href="blog.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Blog</a></li>
-            <li><a href="contact.html" style="color: var(--neutral-400); text-decoration: none; font-size: var(--text-sm);">Contact</a></li>
+            <li><a href="about.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">About</a></li>
+            <li><a href="portfolio.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Portfolio</a></li>
+            <li><a href="blog.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Blog</a></li>
+            <li><a href="contact.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Contact</a></li>
           </ul>
         </div>
         <div>
-          <p style="font-weight: 600; color: var(--neutral-50); margin-bottom: var(--space-4);">Get Started</p>
+          <p style="font-weight: 600; color: #F0EFE9; margin-bottom: var(--space-4);">Get Started</p>
           <a href="book.html" class="btn btn-primary btn-sm" style="margin-bottom: var(--space-3); display: inline-flex;">Book a Free Call</a>
-          <p style="color: var(--neutral-500); font-size: var(--text-xs); margin-top: var(--space-2);">No commitment required.</p>
+          <p style="color: rgba(240,239,233,0.40); font-size: var(--text-xs); margin-top: var(--space-2);">No commitment required.</p>
         </div>
       </div>
       <div class="footer-bottom">
@@ -506,7 +507,6 @@
 
   <script src="assets/js/main.js"></script>
   <script>
-    // Portfolio filter
     const filterBtns = document.querySelectorAll('.filter-btn');
     const portfolioCards = document.querySelectorAll('.portfolio-card');
     filterBtns.forEach(btn => {
