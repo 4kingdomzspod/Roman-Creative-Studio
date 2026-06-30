@@ -1,54 +1,85 @@
 # Brand Promise
 
+**Roman Creative Studio Brand Bible — Vol. 1, Part A**
+*Version 1.0 | Last Updated: June 2026*
+
+---
+
+## Purpose of This Document
+
+The brand promise is a single, unconditional commitment that every client can hold us to. It is not a marketing slogan. It is an operational standard. Every project, every communication, and every decision should make this promise feel real.
+
+---
+
 ## The Promise
 
-**We will build you a digital presence that reflects the real quality of your business — and we won't stop until it does.**
+> **When you work with Roman Creative Studio, you get a strategic partner who treats your business seriously — delivering premium work, communicating clearly at every stage, and staying invested in your results long after launch.**
 
 ---
 
 ## What This Commits Us To
 
-### 1. We Start With Your Business, Not a Template
-Every project begins with understanding what you do, who you serve, what makes you different, and what you need the website to accomplish. There is no one-size-fits-all starting point.
+### Strategic Partnership
+You are not buying a website. You are engaging a strategic partner who understands your business, your market, and your customers before touching a single design element. Every recommendation we make is grounded in your goals.
 
-### 2. We Build for Results, Not Just Looks
-Your website exists to do a job — attract the right customers, build credibility, and convert visitors into leads. We measure our work against that standard, not against how it looks in a portfolio screenshot.
+**How clients feel it:** In the first conversation, they realize we're asking different questions than other designers they've spoken to.
 
-### 3. We Communicate Clearly at Every Stage
-You will never wonder what's happening with your project. We set clear timelines, we update you proactively, and we explain our decisions in plain language.
+### Premium Work
+Every deliverable — design, copy direction, code, documentation — is held to a standard we would put in our portfolio. We don't ship work we're not proud of. We don't normalize mediocrity under deadline pressure.
 
-### 4. We Deliver What We Scope
-If we say we'll do it, we do it. If something changes, we tell you before it becomes a problem, not after.
+**How clients feel it:** When they see the first design presentation, it exceeds what they imagined.
 
-### 5. We Stand Behind the Work
-We don't disappear after launch. We offer ongoing care plans, answer questions, and remain a resource for clients who want to keep growing.
+### Clear Communication
+Clients will always know what is happening with their project. We communicate proactively, document decisions, and never leave a client wondering. When there's a problem, they hear about it from us — before it becomes a crisis.
 
----
+**How clients feel it:** They never have to chase us for an update.
 
-## What the Client Can Expect
+### Reliable Delivery
+If we commit to a scope, a timeline, and a price — we deliver on all three. If something changes, we say so immediately and collaboratively. We don't surprise clients with scope creep, overages, or missed deadlines.
 
-- A professional who treats their business with seriousness and respect
-- Clear, honest communication throughout the engagement
-- A final product that they're proud to share
-- A partner who genuinely wants to see their business succeed
+**How clients feel it:** The project lands the way the proposal described it.
 
----
+### Ongoing Investment
+Our relationship does not end at launch. We check in, we answer questions, we monitor for issues. Clients on Care Plans receive ongoing attention and a partner who is watching their digital presence so they don't have to.
 
-## What We Expect From Clients
-
-The promise works both ways:
-
-- Clients come with clear goals and open communication
-- They provide necessary materials (logos, content, photos) on agreed timelines
-- They give honest feedback during revision rounds
-- They trust the process while remaining engaged in it
+**How clients feel it:** Six months after launch, they still feel supported.
 
 ---
 
-## When the Promise Is Being Kept
+## What the Promise Requires From Clients
+
+This promise is kept best when the client meets us as a genuine partner:
+
+- Come with clear goals and honest communication
+- Provide materials, feedback, and decisions on agreed timelines
+- Trust the professional judgment we were hired for
+- Engage as a partner, not a supervisor
+
+---
+
+## How We Know the Promise Is Being Kept
 
 The clearest signal: a client refers someone to us without being asked.
 
-That referral says the work delivered real value, the experience was worth talking about, and the relationship was built on trust.
+That referral means the work delivered real value, the experience was worth talking about, and the relationship was built on trust that transferred.
 
-That is the outcome we design every engagement toward.
+Every engagement should end with us having earned that referral — whether or not the client gives it.
+
+---
+
+## Future Notes
+
+As the team grows, this promise should be embedded in onboarding materials. Every person who represents Roman Creative Studio should understand and be accountable to these five commitments. Client satisfaction reviews should explicitly measure against them.
+
+---
+
+## Related Documents
+
+- [Mission.md](Mission.md)
+- [CoreValues.md](CoreValues.md)
+- [client-experience/Journey.md](../client-experience/Journey.md)
+- [sales/DiscoveryCall.md](../sales/DiscoveryCall.md)
+
+---
+
+*Roman Creative Studio Brand Bible | Version 1.0*

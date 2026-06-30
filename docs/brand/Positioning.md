@@ -1,60 +1,104 @@
 # Positioning
 
-## Position Statement
+**Roman Creative Studio Brand Bible — Vol. 1, Part A**
+*Version 1.0 | Last Updated: June 2026*
 
-Roman Creative Studio is **the premium digital agency for small and growth-stage businesses** that are serious about building a professional online presence — positioned between expensive large agencies and low-quality template shops.
+---
+
+## Purpose of This Document
+
+Positioning defines where Roman Creative Studio lives in the market — not relative to geography, but relative to alternatives. A clear position makes marketing easier, sales faster, and pricing justified.
+
+---
+
+## Positioning Statement
+
+> **Roman Creative Studio is the strategic digital partner for serious small and growth-stage businesses — the premium alternative to template shops and the accessible alternative to large agencies, for founders and operators who understand that their digital presence is a business asset, not a line item.**
+
+---
+
+## What We Are Not
+
+**Not a freelance web designer**
+Freelancers execute. Roman Creative Studio leads. We bring strategy, process, a documented system, and a long-term partnership model — not just a completed file.
+
+**Not a template shop**
+Every project begins with the client's specific business goals. There is no pre-made starting point that determines the outcome. The strategy comes first; the design follows it.
+
+**Not a large agency**
+We don't have 30 employees, account managers between the client and the work, or processes that serve the agency more than the client. Clients work directly with the person doing the work. That proximity produces better results.
+
+**Not the cheapest option**
+Our pricing reflects the level of thought, skill, and commitment we bring. Clients who prioritize price over outcome are not our clients.
+
+**Not a generalist**
+We build expertise in specific industries. Dental practices, churches, local service businesses, startups — we understand their customers, their language, and their conversion challenges before the project begins.
+
+---
+
+## What We Are
+
+**A strategic business growth partner**
+We lead with strategy. Every design decision traces back to a business outcome. Every recommendation is made with the client's goals in mind.
+
+**A premium execution studio**
+The quality of our work competes with agencies charging 3–5x more. We achieve this through focused specialization, documented process, and an uncompromising quality standard.
+
+**An industry-informed specialist**
+When a dental practice hires us, we already understand what their patients are looking for before the first call. We don't need a semester of onboarding to become useful.
+
+**A long-term partner**
+We don't disappear after launch. Our Care Plans, SEO retainers, and ongoing support keep us invested in results, not just deliverables.
 
 ---
 
 ## The Market Gap
 
-| Tier | Who | What They Deliver | Price Point |
-|------|-----|--------------------|-------------|
-| Enterprise agencies | Fortune 500 | Full-service, 6-figure projects | $50K–$500K+ |
-| Mid-market agencies | Funded startups, regional brands | Strategy + execution | $10K–$50K |
-| **Roman Creative Studio** | **Serious small businesses, local businesses, growth-stage companies** | **Premium strategy + execution** | **$2K–$15K** |
-| Freelance generalists | Budget businesses | Template-based, inconsistent | $500–$3K |
-| DIY platforms | Budget/solo | Self-serve, no strategy | $0–$500/yr |
+| Tier | Client Type | Price Range | What They Deliver |
+|------|------------|-------------|-------------------|
+| Enterprise agencies | Fortune 500 | $50K–$500K+ | Full-service, high overhead |
+| Mid-market agencies | Funded startups, regional brands | $10K–$50K | Strategy + execution, account management layers |
+| **Roman Creative Studio** | **Serious small businesses, growth-stage companies** | **$2K–$15K** | **Premium strategy + execution, direct relationship** |
+| Freelance generalists | Budget-conscious businesses | $500–$5K | Variable quality, no strategy |
+| DIY platforms | Solo operators | $0–$500/yr | Self-serve, no strategy, no execution |
 
-We occupy the gap where clients need more than a freelancer can deliver but can't afford (or don't need) an enterprise agency.
-
----
-
-## Our Differentiators
-
-### 1. Strategy-First Approach
-Most agencies at our price point skip the strategy layer and jump straight to design. We start with business goals, competitive positioning, and customer psychology before we touch design.
-
-### 2. Premium Execution at Independent Prices
-Our work competes visually and technically with agencies charging 3–5x more. We achieve this through disciplined process, reusable design systems, and focused specialization.
-
-### 3. Industry Specialization
-Deep knowledge of dental, church, healthcare, and local service sectors means we understand the client's customer before the project begins. No onboarding from scratch.
-
-### 4. Long-Term Partnership Model
-Our Care Plans and retainer services mean we're not a one-and-done vendor. We grow with clients.
-
-### 5. Clear, Documented Process
-Clients know exactly what they're getting, when they're getting it, and what it will cost. No surprises.
+The gap between freelance and mid-market is real, underserved, and exactly where we operate.
 
 ---
 
-## Who We Are NOT Competing With
+## Why Clients Choose Us
 
-- Wix / Squarespace / GoDaddy (we serve clients who've outgrown DIY)
-- $500 freelancers on Fiverr (different buyer, different outcome)
-- $100K agency retainers (different scale and scope)
-
-We compete with:
-- Regional digital agencies charging $5K–$20K for commodity work
-- "Full-service" freelancers who take on too much and deliver inconsistently
+1. **They've outgrown templates.** They tried DIY and it didn't reflect who they are.
+2. **They've been burned.** A previous designer or agency delivered less than promised.
+3. **They're serious.** They understand that their website is either helping or hurting their business right now.
+4. **They want a partner, not a vendor.** They want someone invested in their growth, not just their invoice.
+5. **They trust the portfolio.** The work speaks before we do.
 
 ---
 
-## Positioning Pillars
+## Positioning in Practice
 
-1. **Premium quality** — the work speaks for itself
-2. **Strategic depth** — we understand business, not just design
-3. **Industry expertise** — we speak the language of your industry
-4. **Reliable partnership** — we're here before, during, and after launch
-5. **Honest pricing** — clear scope, no hidden fees
+On the website: we lead with outcomes, not services. "We build digital experiences that grow businesses" — not "We offer web design, SEO, and branding."
+
+In proposals: we frame the investment relative to the business outcome it enables — not relative to what cheaper alternatives would cost.
+
+In conversation: we ask what success looks like before we explain what we do. That sequence signals a partner, not a vendor.
+
+---
+
+## Future Notes
+
+As Roman Creative Studio expands into education and products, the positioning will evolve to include a content and knowledge dimension. Update this document when that expansion begins to take shape.
+
+---
+
+## Related Documents
+
+- [CompetitivePositioning.md](CompetitivePositioning.md)
+- [IdealClients.md](IdealClients.md)
+- [MessagingFramework.md](MessagingFramework.md)
+- [Taglines.md](Taglines.md)
+
+---
+
+*Roman Creative Studio Brand Bible | Version 1.0*

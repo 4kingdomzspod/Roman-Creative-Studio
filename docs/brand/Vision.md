@@ -1,52 +1,88 @@
 # Vision
 
-## Statement
-
-**To be the most trusted digital agency for small and growing businesses — known for building digital presences that genuinely change business trajectories.**
-
----
-
-## The World We're Building Toward
-
-A future where every serious small business has a digital presence that reflects the quality of what they actually offer.
-
-Right now, there's a massive gap:
-- Fortune 500 companies have agencies with million-dollar budgets
-- Individual freelancers serve the bottom of the market with template work
-- The middle — serious, growth-oriented small businesses — is underserved
-
-Roman Creative Studio fills that gap. Premium strategy and execution at a price point that makes sense for businesses that are building, not just maintaining.
+**Roman Creative Studio Brand Bible — Vol. 1, Part A**
+*Version 1.0 | Last Updated: June 2026*
 
 ---
 
-## 3-Year Vision
+## Purpose of This Document
 
-By 2029, Roman Creative Studio is:
-
-- Recognized as the go-to agency for dental practices, churches, and local service businesses in our target markets
-- Operating a fully documented client experience from first inquiry to ongoing care
-- Generating sustainable recurring revenue through Website Care Plans, SEO retainers, and hosting
-- Publishing industry-leading content that drives inbound leads without paid advertising
-- Building toward a small, elite team — never sacrificing quality for volume
+The vision defines where Roman Creative Studio is going — not where it is today. It is written for the next decade, not the next quarter. It should inspire the people who work here and clarify the direction of every strategic decision.
 
 ---
 
-## 10-Year Vision
+## Vision Statement
 
-Roman Creative Studio has evolved into a full-service digital growth company:
+> **To become the most trusted digital growth partner for small and growing businesses — a premium agency, an educational platform, and an industry resource that raises the standard for what great digital work looks like.**
 
-- A recognized brand in the digital agency space
-- A portfolio of 100+ documented case studies showing measurable business impact
-- A product line that includes digital templates, courses, and tools for businesses we can't serve 1:1
-- A team that embodies the values of excellence, integrity, and genuine client partnership
-- A company that has measurably helped hundreds of businesses reach more customers, serve more people, and build sustainable growth
+---
+
+## What We're Building Toward
+
+### In 3 Years
+
+Roman Creative Studio is a recognized premium agency operating with a clear process, a growing portfolio of documented results, and a client base that refers without being asked.
+
+- A roster of long-term clients on Care Plans and retainers
+- Deep expertise in 3–5 industries (dental, church, local service, healthcare, startups)
+- A content engine driving consistent inbound leads without paid advertising
+- A team beginning to form — strategically, not hastily
+- A reputation that precedes the business in target industries
+
+### In 5 Years
+
+Roman Creative Studio has grown beyond project work into a complete digital growth platform:
+
+- **Agency:** A small, elite team executing premium projects across multiple industries
+- **Education:** Courses, guides, and resources that help business owners understand their digital presence
+- **Podcast:** A show that brings together business strategy, design thinking, and entrepreneurship
+- **Templates and Products:** Premium, strategy-backed website templates for specific industries
+- **Resource Hub:** The go-to destination for small business owners researching digital growth
+
+### In 10 Years
+
+Roman Creative Studio has become something larger than a service business:
+
+- An industry authority — referenced, cited, and respected in the spaces we serve
+- A software product or SaaS tool that scales our expertise beyond 1:1 client relationships
+- An AI-powered creative studio that delivers premium output with greater efficiency
+- A brand that trained, influenced, or employed some of the best designers and strategists in the independent agency space
+- A company that has measurably helped thousands of businesses reach more customers, serve more people, and build something lasting
+
+---
+
+## The Guiding Principle of Growth
+
+Roman Creative Studio will never grow faster than it can maintain quality.
+
+Every expansion — in team, in offerings, in geography — is preceded by documentation, systematization, and proof that the standard can be upheld. A larger, average company is not the goal. A smaller, exceptional one is.
 
 ---
 
 ## What Success Looks Like
 
-Not the number of clients. Not revenue alone.
+Not revenue alone. Not client count. Not press.
 
-Success is measured by how many businesses we've helped reach more customers, serve more people, and build something they're proud of.
+Success is measured by:
+- Clients who attribute real business growth to their work with Roman Creative Studio
+- A portfolio that makes prospects trust us before they've spoken to us
+- A reputation that attracts better clients, better talent, and better opportunities
+- A company that Alexander is proud of in 10 years
 
-The clearest sign we're on track: clients who refer us without being asked, because working with us changed something real in their business.
+---
+
+## Future Notes
+
+This vision should be revisited annually. As the company grows, the specific milestones will evolve — but the direction should remain consistent: premium quality, genuine partnership, industry authority, and expanding impact beyond 1:1 client relationships.
+
+---
+
+## Related Documents
+
+- [Mission.md](Mission.md) — Why we exist
+- [FutureVision.md](FutureVision.md) — Phase-by-phase expansion plan
+- [roadmap/v3.md](../roadmap/v3.md) — Current roadmap
+
+---
+
+*Roman Creative Studio Brand Bible | Version 1.0*
