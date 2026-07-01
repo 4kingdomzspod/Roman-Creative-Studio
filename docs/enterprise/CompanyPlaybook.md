@@ -1,7 +1,7 @@
 # Roman Creative Studio — Company Playbook
 ## The Master Operating System Index
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Last Updated:** 2026-07-01  
 **Owner:** Alexander Roman (Founder & CEO)  
 **Review Schedule:** Quarterly (January, April, July, October)  
@@ -31,7 +31,7 @@ This playbook does not contain the details — it contains the map. Every sectio
 
 1. **Find your phase** — The OS is organized into 12 phases below
 2. **Find your topic** — Each phase lists its documents with a one-line description
-3. **Click the document** — All docs live in `docs/` in the GitHub repository
+3. **Navigate to the folder** — All docs live in `docs/` in the GitHub repository
 4. **Execute the process** — Every document contains step-by-step guidance
 5. **Flag gaps** — If something is missing or outdated, flag it to the document Owner
 
@@ -41,71 +41,66 @@ This playbook does not contain the details — it contains the map. Every sectio
 
 ```
 Roman Creative Studio OS
-├── Phase 01 — Foundation & Brand Identity
-├── Phase 02 — Service Delivery System
-├── Phase 03 — Client Experience
-├── Phase 04 — Sales & Marketing
-├── Phase 05 — Financial System
-├── Phase 06 — Operations & Team
-├── Phase 07 — Technology Stack
-├── Phase 08 — Growth & Content
-├── Phase 09 — Partnerships & Community
-├── Phase 10 — Legal & Contracts
-├── Phase 11 — Innovation Lab & Products
-└── Phase 12 — Enterprise, Legacy & Scale
+├── docs/website-system-engine/      ← Phase 01-02: Website & Service Delivery
+├── docs/client-experience-system/   ← Phase 03: Client Experience
+├── docs/sales-system-engine/        ← Phase 04: Sales
+├── docs/marketing-engine-system/    ← Phase 04: Marketing
+├── docs/financial/                  ← Phase 05: Financial System
+├── docs/business-systems/           ← Phase 06-07: Operations & Technology
+├── docs/business-intelligence/      ← Phase 08: Growth & Analytics
+├── docs/team/                       ← Phase 06: Team & HR
+├── docs/growth/                     ← Phase 08: Growth Audit
+├── docs/innovation/                 ← Phase 11: Innovation Lab & Products
+└── docs/enterprise/                 ← Phase 12: Enterprise, Legacy & Scale
 ```
 
 ---
 
-## Phase 01 — Foundation & Brand Identity
+## Phase 01-02 — Website System & Service Delivery
 
-**Purpose:** Defines who we are, what we believe, and how we present ourselves to the world.
+**Purpose:** The website architecture, SEO standards, and service delivery frameworks that power every client project.
 
-| Document | Description | Owner | Review |
-|----------|-------------|-------|--------|
-| BrandIdentity.md | Logo, colors, typography, visual standards | Alexander | Annual |
-| BrandVoice.md | Tone, language, messaging, vocabulary | Alexander | Annual |
-| MissionVision.md | Purpose, vision, values, non-negotiables | Alexander | Annual |
-| PositioningStatement.md | Market position, ICP, differentiation | Alexander | Semi-annual |
-| NamingConventions.md | File naming, URL structure, naming standards | Alexander | Annual |
-
-**Path:** `docs/foundation/`
-
----
-
-## Phase 02 — Service Delivery System
-
-**Purpose:** How we do the work — every service, every step, every standard.
+**Path:** `docs/website-system-engine/`
 
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
-| ServiceCatalog.md | All services, packages, pricing, scope | Alexander | Quarterly |
-| WebDesignProcess.md | Discovery → Design → Build → Launch workflow | Alexander | Quarterly |
-| SEOProcess.md | Audit → Strategy → Implementation → Reporting | Alexander | Quarterly |
-| BrandingProcess.md | Brand discovery → identity → delivery workflow | Alexander | Quarterly |
-| QualityChecklist.md | Pre-delivery QA for every deliverable type | Alexander | Monthly |
-| ProjectTemplates.md | Notion templates for all project types | Alexander | Quarterly |
-| RevisionPolicy.md | Scope management, revision rounds, change orders | Alexander | Semi-annual |
-
-**Path:** `docs/services/`
+| Overview.md | Website system overview and navigation | Alexander | Quarterly |
+| WebsiteArchitectureAudit.md | Full audit of site architecture and structure | Alexander | Quarterly |
+| InformationArchitecture.md | Sitemap, navigation, page hierarchy | Alexander | Quarterly |
+| HomepageEngine.md | Homepage strategy, sections, CTA flow | Alexander | Monthly |
+| ServicePageSystem.md | Service page templates and structure | Alexander | Quarterly |
+| IndustryPageSystem.md | Industry landing page system | Alexander | Quarterly |
+| SEOArchitectureSystem.md | Technical SEO, on-page, schema, Core Web Vitals | Alexander | Monthly |
+| PerformanceSystem.md | Lighthouse targets, optimization, monitoring | Alexander | Monthly |
+| MobileExperienceSystem.md | Mobile-first standards, responsive design | Alexander | Quarterly |
+| ContentStrategySystem.md | Page content frameworks and copywriting | Alexander | Quarterly |
+| ConversionFlowSystem.md | Conversion paths, funnel optimization | Alexander | Monthly |
+| CTAStrategySystem.md | CTA placement, copy, testing | Alexander | Monthly |
+| TrustAuthoritySystem.md | Social proof, testimonials, trust signals | Alexander | Monthly |
 
 ---
 
-## Phase 03 — Client Experience
+## Phase 03 — Client Experience System
 
 **Purpose:** How clients feel at every touchpoint from first contact through long-term relationship.
 
+**Path:** `docs/client-experience-system/`
+
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
-| ClientJourney.md | Full journey map from awareness through advocacy | Alexander | Semi-annual |
-| OnboardingProcess.md | Welcome sequence, kickoff, portal setup | Alexander | Quarterly |
-| CommunicationStandards.md | Response times, channels, escalation paths | Alexander | Quarterly |
-| ClientPortalGuide.md | Portal features, client training, support | Alexander | Quarterly |
-| OffboardingProcess.md | Project close, handoff, retention system | Alexander | Semi-annual |
-| TestimonialSystem.md | Review requests, case studies, referral program | Alexander | Quarterly |
-| ClientSuccessMetrics.md | NPS, satisfaction scores, retention tracking | Alexander | Monthly |
-
-**Path:** `docs/clients/`
+| Overview.md | Client experience system overview | Alexander | Quarterly |
+| ClientExperienceOverview.md | Full journey overview and philosophy | Alexander | Semi-annual |
+| ClientJourneyMap.md | Full journey map from awareness through advocacy | Alexander | Semi-annual |
+| KickoffSystem.md | Project kickoff process and templates | Alexander | Quarterly |
+| DesignDevelopmentWorkflow.md | Design → build → review workflow | Alexander | Quarterly |
+| RevisionSystem.md | Revision rounds, scope management | Alexander | Quarterly |
+| QASystem.md | Pre-launch QA checklist and process | Alexander | Monthly |
+| LaunchSystem.md | Launch day process and handoff | Alexander | Quarterly |
+| CommunicationSystem.md | Response times, channels, escalation | Alexander | Quarterly |
+| ClientTrainingSystem.md | Client CMS training and documentation | Alexander | Quarterly |
+| ProjectManagementSystem.md | Notion-based PM system for client projects | Alexander | Quarterly |
+| MaintenanceRetentionSystem.md | Care plans, retention, upsell process | Alexander | Monthly |
+| ReferralExperienceSystem.md | Referral requests, reviews, case studies | Alexander | Monthly |
 
 ---
 
@@ -113,19 +108,41 @@ Roman Creative Studio OS
 
 **Purpose:** How we attract, convert, and retain clients.
 
+### Sales System
+**Path:** `docs/sales-system-engine/`
+
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
-| SalesProcess.md | Lead → Discovery → Proposal → Close workflow | Alexander | Quarterly |
-| ProposalSystem.md | Proposal templates, pricing, presentation | Alexander | Quarterly |
-| LeadQualification.md | ICP criteria, scoring, disqualification rules | Alexander | Quarterly |
-| DiscoveryCallScript.md | Questions, flow, objection handling | Alexander | Monthly |
-| PricingStrategy.md | BUILD/GROW/SCALE tiers, care plans, anchoring | Alexander | Semi-annual |
-| ContentStrategy.md | Content pillars, formats, calendar, repurposing | Alexander | Quarterly |
-| SEOStrategy.md | Keyword targets, on-page, link building, local | Alexander | Quarterly |
-| EmailMarketing.md | Sequences, newsletters, automation | Alexander | Quarterly |
-| ReferralProgram.md | Partner program, referral fees, tracking | Alexander | Semi-annual |
+| SalesSystemOverview.md | Sales system overview | Alexander | Quarterly |
+| Overview.md | Sales engine navigation | Alexander | Quarterly |
+| LeadGenerationSystem.md | Lead sources, channels, inbound/outbound | Alexander | Monthly |
+| ClientQualificationSystem.md | ICP criteria, scoring, disqualification | Alexander | Quarterly |
+| DiscoveryCallFramework.md | Discovery call script, questions, flow | Alexander | Monthly |
+| ProposalSystem.md | Proposal templates, pricing presentation | Alexander | Quarterly |
+| ObjectionHandlingSystem.md | Common objections and responses | Alexander | Monthly |
+| ClosingSystem.md | Closing process, next steps, contracts | Alexander | Quarterly |
+| FollowUpSystem.md | Follow-up sequences and timing | Alexander | Monthly |
+| SalesMessagingSystem.md | Value propositions, messaging hierarchy | Alexander | Quarterly |
+| PricingPhilosophySystem.md | Pricing rationale, anchoring, value communication | Alexander | Semi-annual |
+| ReferralSystem.md | Partner program, referral fees, tracking | Alexander | Monthly |
+| ClientOnboardingTransition.md | Sales-to-delivery handoff process | Alexander | Quarterly |
 
-**Path:** `docs/marketing/`
+### Marketing Engine
+**Path:** `docs/marketing-engine-system/`
+
+| Document | Description | Owner | Review |
+|----------|-------------|-------|--------|
+| Overview.md | Marketing engine overview | Alexander | Quarterly |
+| ContentStrategySystem.md | Content pillars, formats, calendar | Alexander | Quarterly |
+| BlogStrategySystem.md | Blog workflow, SEO optimization, publishing | Alexander | Monthly |
+| SEODominationSystem.md | Keyword strategy, local SEO, link building | Alexander | Monthly |
+| EmailMarketingSystem.md | Sequences, newsletters, list management | Alexander | Monthly |
+| SocialMediaSystem.md | Platform strategy, posting cadence, repurposing | Alexander | Monthly |
+| LeadMagnetSystem.md | Free resources, landing pages, lead capture | Alexander | Quarterly |
+| ContentRepurposingEngine.md | Cross-channel content repurposing workflow | Alexander | Monthly |
+| CaseStudySystem.md | Case study process, templates, publishing | Alexander | Quarterly |
+| IndustryAuthoritySystem.md | Niche authority building by industry | Alexander | Quarterly |
+| ConversionIntegrationSystem.md | Marketing-to-sales conversion integration | Alexander | Monthly |
 
 ---
 
@@ -133,117 +150,118 @@ Roman Creative Studio OS
 
 **Purpose:** How money flows in, out, and builds toward financial freedom.
 
+**Path:** `docs/financial/`
+
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
+| FinancialAudit.md | Full financial audit and baseline | Alexander | Annual |
 | RevenueModel.md | All revenue streams, MRR targets, projections | Alexander | Monthly |
-| PricingStructure.md | Package pricing, payment terms, deposit policy | Alexander | Quarterly |
-| InvoicingSystem.md | Stripe setup, invoice templates, payment flow | Alexander | Quarterly |
-| ExpensePolicy.md | Approved expenses, limits, reimbursement | Alexander | Annual |
-| CashFlowManagement.md | Operating reserve, runway, cash flow forecasting | Alexander | Monthly |
-| TaxStrategy.md | Quarterly estimates, deductions, entity structure | Accountant | Annual |
-| FinancialReporting.md | Monthly P&L, KPI dashboard, annual review | Alexander | Monthly |
-| ProfitDistribution.md | Owner pay, reinvestment, savings allocation | Alexander | Quarterly |
-
-**Path:** `docs/finance/`
-
----
-
-## Phase 06 — Operations & Team
-
-**Purpose:** How the studio runs day-to-day and how the team operates.
-
-| Document | Description | Owner | Review |
-|----------|-------------|-------|--------|
-| OperatingRhythm.md | Daily, weekly, monthly, quarterly rituals | Alexander | Quarterly |
-| TeamStructure.md | Roles, responsibilities, org chart by stage | Alexander | Semi-annual |
-| HiringSystem.md | When to hire, job postings, interview, onboarding | Alexander | As needed |
-| ContractorManagement.md | Vetting, contracts, payment, performance | Alexander | Semi-annual |
-| RemoteWorkPolicy.md | Hours, communication, availability, tools | Alexander | Annual |
-| PerformanceManagement.md | OKRs, reviews, feedback, growth paths | Alexander | Quarterly |
-| MeetingSystem.md | Meeting types, agendas, decision records | Alexander | Quarterly |
-| ToolsAndSystems.md | All tools, licenses, access management | Alexander | Quarterly |
-
-**Path:** `docs/operations/`
+| PricingStrategy.md | Package pricing, payment terms, deposit policy | Alexander | Quarterly |
+| Profitability.md | Margin analysis, profitability by service | Alexander | Monthly |
+| MRRArchitecture.md | MRR structure, care plans, recurring revenue | Alexander | Monthly |
+| FinancialDashboard.md | KPI dashboard setup and metrics | Alexander | Monthly |
+| FinancialKPIs.md | Key financial metrics and targets | Alexander | Monthly |
+| Budgeting.md | Annual budget, expense categories, limits | Alexander | Annual |
+| CashFlow.md | Cash flow forecasting and management | Alexander | Monthly |
+| BusinessScenarios.md | Conservative/base/optimistic scenarios | Alexander | Quarterly |
+| ClientLifetimeValue.md | LTV calculation, retention value | Alexander | Quarterly |
+| SoftwareCosts.md | All tool costs, licenses, subscriptions | Alexander | Quarterly |
+| FinancialRiskManagement.md | Financial risks and mitigation | Alexander | Quarterly |
+| FinancialDocumentation.md | Record-keeping, tax prep, accounting | Alexander | Annual |
+| FiveYearRoadmap.md | 5-year financial milestones | Alexander | Annual |
+| ImplementationRoadmap.md | Financial system implementation plan | Alexander | Annual |
 
 ---
 
-## Phase 07 — Technology Stack
+## Phase 06-07 — Operations, Team & Technology
 
-**Purpose:** Every tool, platform, and technical system we use and how they connect.
+**Purpose:** How the studio runs day-to-day, how the team operates, and the technology stack.
+
+### Business Systems
+**Path:** `docs/business-systems/`
 
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
-| TechStack.md | Full stack: Next.js, Supabase, Stripe, Vercel, etc. | Alexander | Quarterly |
-| DevelopmentStandards.md | Code quality, Git workflow, PR standards | Alexander | Quarterly |
-| DeploymentProcess.md | Vercel deployment, environment variables, rollback | Alexander | Quarterly |
-| DatabaseArchitecture.md | Supabase schema, naming, migrations, backups | Alexander | Quarterly |
-| APIIntegrations.md | All third-party APIs, keys, rate limits, fallbacks | Alexander | Monthly |
-| SecurityProtocols.md | Access control, secrets, MFA, incident response | Alexander | Quarterly |
-| PerformanceStandards.md | Lighthouse targets, Core Web Vitals, monitoring | Alexander | Monthly |
-| AccessibilityStandards.md | WCAG 2.1 AA requirements, testing tools | Alexander | Quarterly |
+| BusinessSystemsAudit.md | Full audit of all business systems | Alexander | Semi-annual |
+| CRMArchitecture.md | CRM structure, pipelines, automation | Alexander | Quarterly |
+| ClientPortalArchitecture.md | portal.romancreativestudio.co architecture | Alexander | Quarterly |
+| InternalDashboardArchitecture.md | admin.romancreativestudio.co architecture | Alexander | Quarterly |
+| DiscoveryCallSystem.md | Discovery call tooling and recording | Alexander | Quarterly |
+| ClientOnboardingSystem.md | Automated onboarding system | Alexander | Quarterly |
+| ProjectManagementFramework.md | Full PM framework: Notion setup, templates | Alexander | Quarterly |
+| DocumentManagement.md | File naming, storage, version control | Alexander | Quarterly |
+| KnowledgeBase.md | Internal knowledge base structure | Alexander | Quarterly |
+| CommunicationStandards.md | Tools, channels, response standards | Alexander | Quarterly |
+| AutomationRoadmap.md | Automation roadmap by phase | Alexander | Quarterly |
+| AIAutomationFramework.md | AI automation across all workflows | Alexander | Monthly |
+| SecurityPrivacy.md | Security policies, data handling | Alexander | Quarterly |
+| IntegrationReadiness.md | Third-party integration specs and status | Alexander | Monthly |
+| ReusableComponents.md | Reusable code and design components | Alexander | Monthly |
 
-**Path:** `docs/technology/`
+### Team & HR
+**Path:** `docs/team/`
+
+| Document | Description | Owner | Review |
+|----------|-------------|-------|--------|
+| OrganizationChart.md | Org chart by stage | Alexander | Semi-annual |
+| DepartmentStructure.md | Departments, responsibilities, interfaces | Alexander | Semi-annual |
+| RoleDescriptions.md | All role JDs with skills and responsibilities | Alexander | As needed |
+| HiringRoadmap.md | When to hire, sequence, budget | Alexander | Quarterly |
+| Onboarding.md | New hire/contractor onboarding process | Alexander | Quarterly |
+| Training.md | Training programs by role | Alexander | Quarterly |
+| CareerPaths.md | Growth paths for each role | Alexander | Semi-annual |
+| PromotionFramework.md | Promotion criteria and process | Alexander | Annual |
+| PerformanceReviews.md | Review cadence, format, scoring | Alexander | Quarterly |
+| EmployeeHandbook.md | Full employee handbook | Alexander | Annual |
+| ContractorHandbook.md | Contractor terms and expectations | Alexander | Annual |
+| CompanyCulture.md | Values, culture, ways of working | Alexander | Annual |
+| LeadershipPrinciples.md | Leadership standards and behaviors | Alexander | Annual |
+| MeetingStandards.md | Meeting types, agendas, decision records | Alexander | Quarterly |
+| CommunicationStandards.md | Internal communication standards | Alexander | Quarterly |
+| KnowledgeBase.md | Team knowledge base | Alexander | Monthly |
+| RecognitionProgram.md | Recognition and rewards program | Alexander | Quarterly |
+| SuccessionPlanning.md | Team succession planning | Alexander | Annual |
+| Offboarding.md | Offboarding checklist and process | Alexander | Semi-annual |
 
 ---
 
-## Phase 08 — Growth & Content
+## Phase 08 — Business Intelligence & Growth
 
-**Purpose:** The systems that fuel organic growth, visibility, and authority.
+**Purpose:** The data, dashboards, and growth systems that drive intelligent decisions.
+
+### Business Intelligence
+**Path:** `docs/business-intelligence/`
 
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
-| GrowthStrategy.md | 90-day sprints, growth levers, targets | Alexander | Quarterly |
-| ContentCalendar.md | Monthly content plan across all channels | Alexander | Monthly |
-| BlogSystem.md | Blog workflow, SEO optimization, publishing | Alexander | Monthly |
-| PodcastSystem.md | Episode planning, recording, distribution | Alexander | Monthly |
-| SocialMediaSystem.md | Platform strategy, posting cadence, repurposing | Alexander | Monthly |
-| LeadMagnetSystem.md | Free resources, landing pages, lead capture | Alexander | Quarterly |
-| WebsiteOptimization.md | CRO, A/B testing, heatmaps, analytics | Alexander | Monthly |
-| LocalSEOSystem.md | Google Business, local citations, reviews | Alexander | Monthly |
+| BusinessIntelligenceAudit.md | BI audit and baseline | Alexander | Annual |
+| BusinessIntelligence.md | BI framework and philosophy | Alexander | Quarterly |
+| ExecutiveDashboard.md | CEO dashboard: all KPIs in one view | Alexander | Monthly |
+| KPIDefinitions.md | Every KPI: definition, formula, target | Alexander | Quarterly |
+| MarketingAnalytics.md | Marketing KPIs and reporting | Alexander | Monthly |
+| ClientReporting.md | Client-facing reporting standards | Alexander | Monthly |
+| ForecastingModels.md | Revenue and growth forecasting | Alexander | Quarterly |
+| ScalingRoadmap.md | Scale milestones and triggers | Alexander | Quarterly |
+| TeamMetrics.md | Team performance and capacity metrics | Alexander | Monthly |
+| ProductRoadmap.md | BI product roadmap | Alexander | Quarterly |
+| RiskManagement.md | BI-level risk register | Alexander | Monthly |
+| InnovationLab.md | Innovation lab dashboard | Alexander | Monthly |
+| ImplementationReadiness.md | BI implementation checklist | Alexander | Quarterly |
 
+### Growth
 **Path:** `docs/growth/`
 
----
-
-## Phase 09 — Partnerships & Community
-
-**Purpose:** Strategic relationships that accelerate growth and extend impact.
-
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
-| PartnershipStrategy.md | Partner types, criteria, agreement templates | Alexander | Quarterly |
-| ReferralNetwork.md | Referral partners, tracking, compensation | Alexander | Monthly |
-| VendorManagement.md | Vendor vetting, contracts, performance reviews | Alexander | Semi-annual |
-| CommunityBuilding.md | Platform strategy, engagement, moderation | Alexander | Quarterly |
-| IndustryPresence.md | Speaking, conferences, associations, media | Alexander | Quarterly |
-| CollaborationFramework.md | Co-creation, white-label, joint ventures | Alexander | Semi-annual |
-
-**Path:** `docs/partnerships/`
-
----
-
-## Phase 10 — Legal & Contracts
-
-**Purpose:** Every legal document, policy, and protection that keeps the studio safe.
-
-| Document | Description | Owner | Review |
-|----------|-------------|-------|--------|
-| ClientAgreement.md | Master service agreement template | Attorney | Annual |
-| ProjectContract.md | Per-project contract with scope, timeline, payment | Attorney | Semi-annual |
-| NDATemplate.md | Non-disclosure agreement for prospects and partners | Attorney | Annual |
-| SubcontractorAgreement.md | Contractor terms, IP assignment, confidentiality | Attorney | Annual |
-| IntellectualProperty.md | IP ownership policy, licensing, work-for-hire | Attorney | Annual |
-| PrivacyPolicy.md | Website privacy policy, GDPR/CCPA compliance | Attorney | Annual |
-| TermsOfService.md | Website and product terms of service | Attorney | Annual |
-| LiabilityProtection.md | Insurance, indemnification, limitation of liability | Attorney | Annual |
-
-**Path:** `docs/legal/`
+| GrowthAudit.md | Full growth audit: channels, gaps, opportunities | Alexander | Quarterly |
 
 ---
 
 ## Phase 11 — Innovation Lab & Products
 
 **Purpose:** The product ecosystem that transforms Roman Creative Studio from agency to platform.
+
+**Path:** `docs/innovation/`
 
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
@@ -265,13 +283,13 @@ Roman Creative Studio OS
 | ProductLaunchFramework.md | 3 launch types, pre-launch checklist, email sequences | Alexander | Quarterly |
 | Roadmap2035.md | Year-by-year milestones 2026–2035, 5 pillars | Alexander | Annual |
 
-**Path:** `docs/innovation/`
-
 ---
 
 ## Phase 12 — Enterprise, Legacy & Scale
 
 **Purpose:** The governance, infrastructure, and long-term thinking that enables Roman Creative Studio to scale without losing its soul.
+
+**Path:** `docs/enterprise/`
 
 | Document | Description | Owner | Review |
 |----------|-------------|-------|--------|
@@ -297,8 +315,6 @@ Roman Creative Studio OS
 | SuccessionStrategy.md | 4 scenarios, pipeline, founder dependency audit | Alexander | Annual |
 | CompanyPlaybook.md | This document — master index of the entire OS | Alexander | Quarterly |
 | LegacyRoadmap.md | 1/3/5/10/20-year vision, social impact, legacy | Alexander | Annual |
-
-**Path:** `docs/enterprise/`
 
 ---
 
@@ -329,21 +345,21 @@ Roman Creative Studio OS
 ## Onboarding Path for New Team Members
 
 **Week 1 — Foundation**
-1. MissionVision.md — Who we are and why we exist
-2. BrandIdentity.md + BrandVoice.md — How we look and sound
-3. ClientJourney.md — How clients experience us
-4. CommunicationStandards.md — How we communicate
-5. SecurityFramework.md — How we stay secure
+1. `docs/enterprise/EnterpriseVision.md` — Who we are and why we exist
+2. `docs/team/CompanyCulture.md` + `docs/team/LeadershipPrinciples.md` — How we work
+3. `docs/client-experience-system/ClientJourneyMap.md` — How clients experience us
+4. `docs/business-systems/CommunicationStandards.md` — How we communicate
+5. `docs/enterprise/SecurityFramework.md` — How we stay secure
 
 **Week 2 — Service Delivery**
-1. ServiceCatalog.md — What we sell
-2. WebDesignProcess.md (or relevant service process)
-3. QualityChecklist.md — How we ensure quality
-4. ProjectTemplates.md — How we manage projects
-5. ToolsAndSystems.md — What tools we use
+1. `docs/website-system-engine/WebsiteArchitectureAudit.md` — What we build
+2. `docs/client-experience-system/DesignDevelopmentWorkflow.md` — How we deliver
+3. `docs/client-experience-system/QASystem.md` — How we ensure quality
+4. `docs/business-systems/ProjectManagementFramework.md` — How we manage projects
+5. `docs/business-systems/ClientPortalArchitecture.md` — Tools we use
 
 **Week 3 — Role-Specific**
-- Deep dive into Phase documents relevant to the role
+- Deep dive into the folder most relevant to your role
 - Shadow Alexander on one client project end-to-end
 - Complete first independent task with review
 
