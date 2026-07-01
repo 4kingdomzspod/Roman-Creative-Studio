@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>25-Point Website Audit Checklist — Roman Creative Studio</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/brand/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', Arial, sans-serif; background: #f0f2f4; color: #1f2937; }
+    .page { max-width: 820px; margin: 40px auto; background: #fff; box-shadow: 0 4px 32px rgba(0,0,0,0.12); }
+
+    /* COVER */
+    .cover { background: #121417; padding: 56px 56px 48px; }
+    .cover-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-name { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: #fff; }
+    .brand-sub { font-size: 10px; color: #D4AF37; letter-spacing: 1.5px; text-transform: uppercase; margin-top: 2px; }
+    .cover-tag { font-size: 10px; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; border: 1px solid rgba(212,175,55,0.3); padding: 4px 12px; border-radius: 20px; }
+    .cover-eyebrow { font-size: 11px; color: #D4AF37; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+    .cover-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 40px; font-weight: 800; color: #fff; line-height: 1.15; margin-bottom: 20px; }
+    .cover-title span { color: #D4AF37; }
+    .cover-desc { font-size: 15px; color: #9ca3af; line-height: 1.7; max-width: 540px; margin-bottom: 32px; }
+    .gold-bar { height: 3px; background: linear-gradient(90deg, #D4AF37, #f0d060, #D4AF37); }
+
+    /* BODY */
+    .body { padding: 48px 56px; }
+    .intro { font-size: 14px; color: #4b5563; line-height: 1.8; margin-bottom: 40px; padding: 20px 24px; background: #f9fafb; border-left: 3px solid #D4AF37; border-radius: 4px; }
+    .intro strong { color: #121417; }
+
+    .category { margin-bottom: 40px; }
+    .category-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .category-num { width: 32px; height: 32px; border-radius: 50%; background: #121417; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #D4AF37; flex-shrink: 0; }
+    .category-title { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; color: #121417; }
+    .category-sub { font-size: 12px; color: #9ca3af; margin-left: auto; letter-spacing: 0.5px; }
+
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .check-item { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px; border: 1px solid #e5e7eb; border-radius: 8px; transition: border-color 0.15s; cursor: pointer; }
+    .check-item:hover { border-color: #D4AF37; background: #fffdf5; }
+    .checkbox { width: 20px; height: 20px; border: 2px solid #d1d5db; border-radius: 4px; flex-shrink: 0; margin-top: 1px; position: relative; cursor: pointer; }
+    .checkbox.checked { background: #D4AF37; border-color: #D4AF37; }
+    .checkbox.checked::after { content: ''; position: absolute; top: 2px; left: 5px; width: 6px; height: 10px; border: 2px solid #fff; border-top: none; border-left: none; transform: rotate(45deg); }
+    .check-content { flex: 1; }
+    .check-title { font-size: 14px; font-weight: 600; color: #111827; margin-bottom: 3px; }
+    .check-desc { font-size: 12px; color: #6b7280; line-height: 1.5; }
+    .check-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; padding: 2px 8px; border-radius: 10px; margin-left: auto; flex-shrink: 0; align-self: flex-start; }
+    .badge-critical { background: #fee2e2; color: #b91c1c; }
+    .badge-important { background: #fef3c7; color: #92400e; }
+    .badge-quick { background: #d1fae5; color: #065f46; }
+
+    .divider { height: 1px; background: #f3f4f6; margin: 8px 0 32px; }
+
+    /* SCORE BOX */
+    .score-section { margin-top: 48px; background: #121417; border-radius: 12px; padding: 32px; }
+    .score-section h3 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .score-section p { font-size: 13px; color: #9ca3af; line-height: 1.7; margin-bottom: 24px; }
+    .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .score-band { padding: 16px; border-radius: 8px; text-align: center; }
+    .score-range { font-size: 22px; font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 4px; }
+    .score-label { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .score-desc { font-size: 11px; line-height: 1.5; }
+    .band-red { background: rgba(239,68,68,0.12); }
+    .band-red .score-range { color: #f87171; }
+    .band-red .score-label { color: #fca5a5; }
+    .band-red .score-desc { color: #6b7280; }
+    .band-yellow { background: rgba(212,175,55,0.12); }
+    .band-yellow .score-range { color: #D4AF37; }
+    .band-yellow .score-label { color: #fcd34d; }
+    .band-yellow .score-desc { color: #6b7280; }
+    .band-green { background: rgba(74,222,128,0.1); }
+    .band-green .score-range { color: #4ade80; }
+    .band-green .score-label { color: #86efac; }
+    .band-green .score-desc { color: #6b7280; }
+
+    /* FOOTER */
+    .doc-footer { background: #121417; padding: 20px 56px; display: flex; justify-content: space-between; align-items: center; margin-top: 0; }
+    .doc-footer p { font-size: 11px; color: #4b5563; }
+    .doc-footer a { color: #D4AF37; text-decoration: none; }
+    .print-note { text-align: center; padding: 16px; font-size: 12px; color: #9ca3af; background: #f9fafb; border-top: 1px solid #e5e7eb; }
+
+    /* Progress bar */
+    .progress-bar { height: 6px; background: #e5e7eb; border-radius: 3px; margin-bottom: 6px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #D4AF37; border-radius: 3px; width: 0%; transition: width 0.4s; }
+    .progress-label { font-size: 11px; color: #9ca3af; text-align: right; }
+
+    @media print {
+      body { background: none; }
+      .page { box-shadow: none; margin: 0; max-width: 100%; }
+      .check-item:hover { border-color: #e5e7eb; background: none; }
+      .print-note { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- COVER -->
+  <div class="cover">
+    <div class="cover-top">
+      <div class="brand">
+        <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="20,2 38,20 20,38 2,20" fill="rgba(212,175,55,0.1)" stroke="#D4AF37" stroke-width="1.5"/>
+          <text x="20" y="25" font-family="Georgia,serif" font-size="11" font-weight="700" fill="#D4AF37" text-anchor="middle" letter-spacing="1">RS</text>
+        </svg>
+        <div>
+          <div class="brand-name">Roman Creative Studio</div>
+          <div class="brand-sub">Free Resource</div>
+        </div>
+      </div>
+      <span class="cover-tag">Print or Save as PDF</span>
+    </div>
+    <div class="cover-eyebrow">Website Audit Tool</div>
+    <h1 class="cover-title">The <span>25-Point</span> Website<br>Audit Checklist</h1>
+    <p class="cover-desc">Run through every item on this list to find exactly what's holding your website back from generating leads, booking appointments, and growing your practice.</p>
+  </div>
+  <div class="gold-bar"></div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <div class="intro">
+      <strong>How to use this checklist:</strong> Go through each item and check it off if your site passes. Items marked <span style="background:#fee2e2;color:#b91c1c;font-size:10px;font-weight:700;padding:1px 6px;border-radius:8px;letter-spacing:0.5px;">CRITICAL</span> have the biggest impact on whether visitors book or leave. When you're done, count your score — the scoring guide is at the bottom.
+    </div>
+
+    <!-- CATEGORY 1 -->
+    <div class="category">
+      <div class="category-header">
+        <div class="category-num">1</div>
+        <div class="category-title">Technical Performance</div>
+        <div class="category-sub">5 items</div>
+      </div>
+      <ul class="checklist">
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Page loads in under 3 seconds on mobile</div>
+            <div class="check-desc">Test at pagespeed.web.dev. 53% of mobile visitors leave if a page takes longer than 3 seconds. Aim for under 2.5s.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Site is fully mobile-responsive</div>
+            <div class="check-desc">Over 60% of healthcare searches happen on mobile. Tap all buttons and forms on a real phone, not just a resized browser window.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Site runs on HTTPS (SSL certificate active)</div>
+            <div class="check-desc">Browsers show a "Not Secure" warning on HTTP sites, which kills trust instantly. Your URL should start with https://.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">No broken links or 404 errors</div>
+            <div class="check-desc">Use a free tool like Dead Link Checker. Broken links hurt SEO and erode trust with visitors.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Images are compressed and optimized</div>
+            <div class="check-desc">Large uncompressed images are the #1 cause of slow load times. Use WebP format where possible. Max 200KB per image.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+      </ul>
+    </div>
+    <div class="divider"></div>
+
+    <!-- CATEGORY 2 -->
+    <div class="category">
+      <div class="category-header">
+        <div class="category-num">2</div>
+        <div class="category-title">Design &amp; User Experience</div>
+        <div class="category-sub">5 items</div>
+      </div>
+      <ul class="checklist">
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">A clear call-to-action is visible above the fold</div>
+            <div class="check-desc">Visitors should know exactly what to do within 3 seconds of landing. "Book an Appointment" or "Call Now" should be visible without scrolling.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Navigation has 5–7 items maximum</div>
+            <div class="check-desc">Too many nav items cause decision paralysis. Every extra option reduces the chance a visitor takes the action you want.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Phone number is clickable and in the header</div>
+            <div class="check-desc">Mobile visitors should be able to call you with one tap. A phone number in the header alone increases calls by 25–40%.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Real photos are used (not generic stock)</div>
+            <div class="check-desc">Real photos of your office, team, and patients build trust 10x faster than stock photography. Visitors can tell the difference immediately.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Sufficient color contrast (text is readable)</div>
+            <div class="check-desc">Grey text on white backgrounds is one of the most common design mistakes. Test at webaim.org/resources/contrastchecker. Aim for 4.5:1 ratio.</div>
+          </div>
+          <span class="check-badge badge-quick">Quick Fix</span>
+        </li>
+      </ul>
+    </div>
+    <div class="divider"></div>
+
+    <!-- CATEGORY 3 -->
+    <div class="category">
+      <div class="category-header">
+        <div class="category-num">3</div>
+        <div class="category-title">Content &amp; Messaging</div>
+        <div class="category-sub">5 items</div>
+      </div>
+      <ul class="checklist">
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Homepage headline answers "what do you do and for whom"</div>
+            <div class="check-desc">Example: "Dental Care for Families in Austin, TX" is clearer than "Welcome to Our Practice." Clarity always beats cleverness.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Services are explained in plain language</div>
+            <div class="check-desc">Avoid clinical jargon. Write as if you're explaining a service to a patient at the front desk. Benefits over features.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Social proof appears near every CTA</div>
+            <div class="check-desc">Patient reviews, star ratings, or "Joined by 500+ patients" near your booking buttons dramatically increase conversions. Don't put reviews only on a dedicated page.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">A clear About/Team page exists with real bios</div>
+            <div class="check-desc">People choose healthcare providers based on trust. A real photo and genuine bio from the doctor or pastor goes further than any design element.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">No filler text or "Welcome to our website" copy</div>
+            <div class="check-desc">Every sentence should do a job: answer a question, build trust, or move the visitor toward booking. Delete anything that doesn't pass this test.</div>
+          </div>
+          <span class="check-badge badge-quick">Quick Fix</span>
+        </li>
+      </ul>
+    </div>
+    <div class="divider"></div>
+
+    <!-- CATEGORY 4 -->
+    <div class="category">
+      <div class="category-header">
+        <div class="category-num">4</div>
+        <div class="category-title">SEO Foundation</div>
+        <div class="category-sub">5 items</div>
+      </div>
+      <ul class="checklist">
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Every page has a unique title tag (under 60 characters)</div>
+            <div class="check-desc">Title tags are the #1 on-page SEO factor. Include your primary keyword and city. Example: "Family Dentist in Austin, TX | Bright Smile Dental"</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Google Business Profile is claimed and complete</div>
+            <div class="check-desc">GBP is your most powerful local SEO tool. Ensure name, address, phone, hours, photos, and category are all complete and accurate.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">NAP (Name, Address, Phone) is consistent everywhere</div>
+            <div class="check-desc">Your business name, address, and phone number must be identical on your website, GBP, Yelp, and all directories. Inconsistency confuses Google.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Google Search Console is set up and verified</div>
+            <div class="check-desc">GSC shows you exactly what search terms bring visitors to your site. Free, and essential for tracking SEO performance.</div>
+          </div>
+          <span class="check-badge badge-quick">Quick Fix</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Images have descriptive alt text</div>
+            <div class="check-desc">Alt text helps Google understand your images and improves accessibility. "Dr-Smith-Austin-family-dentist.jpg" is better than "IMG_4521.jpg".</div>
+          </div>
+          <span class="check-badge badge-quick">Quick Fix</span>
+        </li>
+      </ul>
+    </div>
+    <div class="divider"></div>
+
+    <!-- CATEGORY 5 -->
+    <div class="category">
+      <div class="category-header">
+        <div class="category-num">5</div>
+        <div class="category-title">Lead Generation &amp; Conversion</div>
+        <div class="category-sub">5 items</div>
+      </div>
+      <ul class="checklist">
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Online booking or contact form is working and tested</div>
+            <div class="check-desc">Fill out your own form right now. Is it easy? Does the confirmation email arrive? A broken form silently kills your lead flow.</div>
+          </div>
+          <span class="check-badge badge-critical">Critical</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Contact form asks for 5 fields or fewer</div>
+            <div class="check-desc">Every extra field reduces form completion by ~10%. Only ask for what you absolutely need: name, phone/email, and a brief message.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">Google Analytics (or similar) is installed</div>
+            <div class="check-desc">You can't improve what you don't measure. At minimum, you need to know how many visitors you get and which pages they visit.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">CTA buttons use action words (not just "Submit")</div>
+            <div class="check-desc">"Book My Appointment" converts 3–4x better than "Submit". "Get My Free Consultation" beats "Contact Us." Specificity and ownership language work.</div>
+          </div>
+          <span class="check-badge badge-quick">Quick Fix</span>
+        </li>
+        <li class="check-item" onclick="toggle(this)">
+          <div class="checkbox"></div>
+          <div class="check-content">
+            <div class="check-title">A FAQ section exists to handle common objections</div>
+            <div class="check-desc">Answering "Do you take insurance?", "How long does an appointment take?", and "Is parking available?" on your website reduces phone tag and pre-qualifies leads.</div>
+          </div>
+          <span class="check-badge badge-important">Important</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- SCORE BOX -->
+    <div class="score-section">
+      <h3>How Did You Score?</h3>
+      <p>Count how many items you checked off. Use the guide below to understand where you stand — and what to prioritize next.</p>
+      <div class="score-grid">
+        <div class="score-band band-red">
+          <div class="score-range">0–12</div>
+          <div class="score-label">Needs Work</div>
+          <div class="score-desc">Your site is likely losing leads every day. Focus on the Critical items first — those 8 fixes alone can double your conversion rate.</div>
+        </div>
+        <div class="score-band band-yellow">
+          <div class="score-range">13–19</div>
+          <div class="score-label">Getting There</div>
+          <div class="score-desc">Solid foundation with clear room to grow. Tackle the remaining "Important" items to close the gap and pull ahead of local competitors.</div>
+        </div>
+        <div class="score-band band-green">
+          <div class="score-range">20–25</div>
+          <div class="score-label">Strong Position</div>
+          <div class="score-desc">Your site is performing well. Focus on speed, A/B testing CTAs, and content to push from good to exceptional.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <p>&copy; 2025 Roman Creative Studio. Free to share with attribution.</p>
+    <p>Questions? <a href="mailto:Alexander@romancreativestudio.co">Alexander@romancreativestudio.co</a> &nbsp;&middot;&nbsp; <a href="https://romancreativestudio.co">romancreativestudio.co</a></p>
+  </div>
+  <div class="print-note">Tip: Print this page or save as PDF using Ctrl+P / Cmd+P &mdash; then select &ldquo;Save as PDF&rdquo; as your printer.</div>
+
+</div>
+
+<script>
+  function toggle(item) {
+    const cb = item.querySelector('.checkbox');
+    cb.classList.toggle('checked');
+    updateProgress();
+  }
+  function updateProgress() {
+    const total = document.querySelectorAll('.check-item').length;
+    const checked = document.querySelectorAll('.checkbox.checked').length;
+    document.title = '(' + checked + '/' + total + ') 25-Point Website Audit Checklist — RCS';
+  }
+</script>
+</body>
+</html>
