@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+
+# Internal pages — not for public indexing
 Disallow: /design-system.html
+Disallow: /docs/
+Disallow: /assets/brand/
 
 Sitemap: https://romancreativestudio.co/sitemap.xml

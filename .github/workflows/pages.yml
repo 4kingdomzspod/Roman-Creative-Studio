@@ -29,13 +29,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Build public site (exclude internal files)
+        run: |
+          mkdir -p _site
+
+          # Public HTML pages
+          for f in index.html about.html portfolio.html pricing.html blog.html \
+                   contact.html book.html process.html privacy.html terms.html \
+                   404.html sitemap.xml robots.txt CNAME .nojekyll; do
+            [ -f "$f" ] && cp "$f" _site/
+          done
+
+          # Public asset folders (CSS, JS, images — NOT assets/brand which is internal)
+          mkdir -p _site/assets
+          [ -d assets/css ]    && cp -r assets/css    _site/assets/
+          [ -d assets/js ]     && cp -r assets/js     _site/assets/
+          [ -d assets/images ] && cp -r assets/images _site/assets/
+
+          # Client-facing resource guides
+          [ -d resources ] && cp -r resources _site/
+
+          # Service landing pages
+          [ -d services ] && cp -r services _site/
+
+          # Intentionally excluded from public site:
+          #   docs/          — internal company OS (93 documents)
+          #   assets/brand/  — invoice, letterhead, proposal templates
+          #   README.md      — internal project notes
+          #   ROADMAP.md     — internal roadmap
+          #   .github/       — workflow files
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -48,15 +78,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: List changed files
+      - name: List changed public files
         id: changed
         run: |
           git fetch origin main --depth=1
-          CHANGED=$(git diff --name-only origin/main...HEAD | head -50)
+          # Only show changes to files that actually get deployed
+          CHANGED=$(git diff --name-only origin/main...HEAD | grep -v '^docs/' | grep -v '^assets/brand/' | grep -v '^README' | grep -v '^ROADMAP' | head -50)
           echo "files<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          COUNT=$(git diff --name-only origin/main...HEAD | wc -l | tr -d ' ')
+          COUNT=$(git diff --name-only origin/main...HEAD | grep -v '^docs/' | grep -v '^assets/brand/' | grep -v '^README' | grep -v '^ROADMAP' | wc -l | tr -d ' ')
           echo "count=$COUNT" >> $GITHUB_OUTPUT
 
       - name: Post PR preview comment
@@ -71,14 +102,16 @@ jobs:
             const body = [
               '## GitHub Pages Preview',
               '',
-              '> This PR targets `main`. Once merged, the live site at **romancreativestudio.co** will update automatically via GitHub Pages.',
+              '> This PR targets `main`. Once merged, the live site at **romancreativestudio.co** will update automatically.',
               '',
               `**Branch:** \`${branch}\`  `,
               `**Commit:** \`${sha}\`  `,
-              `**Changed files:** ${count}`,
+              `**Public files changing:** ${count}`,
+              '',
+              '> **Note:** Internal files (`docs/`, `assets/brand/`, `README.md`, `ROADMAP.md`) are stored in the repo but are **not deployed** to the public website.',
               '',
               '<details>',
-              '<summary>View changed files</summary>',
+              '<summary>View changed public files</summary>',
               '',
               '```',
               changedFiles,
@@ -87,7 +120,7 @@ jobs:
               '</details>',
               '',
               '---',
-              '_Powered by GitHub Pages — not Netlify._'
+              '_Powered by GitHub Pages. Internal docs are private — team access via GitHub only._'
             ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
