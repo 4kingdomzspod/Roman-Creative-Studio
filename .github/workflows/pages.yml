@@ -1,0 +1,185 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build public site
+        run: |
+          mkdir -p _site
+
+          # ── Phase 1: If public/ folder exists and has content, use it as base
+          if [ -d public ] && [ "$(ls -A public 2>/dev/null)" ]; then
+            cp -r public/. _site/
+          fi
+
+          # ── Phase 2: Copy root-level public HTML pages (transition — will move to public/ over time)
+          for f in \
+            index.html about.html portfolio.html pricing.html blog.html \
+            contact.html book.html process.html privacy.html terms.html \
+            404.html sitemap.xml robots.txt CNAME .nojekyll; do
+            [ -f "$f" ] && cp "$f" _site/
+          done
+
+          # ── Phase 3: Copy public asset folders
+          # CSS, JS, and images are public — copy them
+          mkdir -p _site/assets
+          [ -d assets/css ]    && cp -r assets/css    _site/assets/
+          [ -d assets/js ]     && cp -r assets/js     _site/assets/
+          [ -d assets/images ] && cp -r assets/images _site/assets/
+
+          # Public brand assets (logos and favicon used by the website)
+          mkdir -p _site/assets/brand
+          for svg in \
+            favicon.svg \
+            logo-icon.svg logo-monogram.svg \
+            logo-primary.svg logo-primary-white.svg \
+            logo-stacked.svg logo-stacked-white.svg \
+            logo-wordmark.svg; do
+            [ -f "assets/brand/$svg" ] && cp "assets/brand/$svg" _site/assets/brand/
+          done
+
+          # ── Phase 4: Client-facing resource guides
+          [ -d resources ] && cp -r resources _site/
+
+          # ── Phase 5: Service landing pages
+          [ -d services ]  && cp -r services  _site/
+
+          # ── NEVER DEPLOYED (stays in repo for team access only):
+          #   agency/          — internal company OS, SOPs, finances, HR
+          #   docs/            — legacy internal docs location (migrating to agency/)
+          #   assets/brand/invoice-template.html, letterhead.html, proposal-template.html
+          #   assets/brand/email-signature.html, BRAND-GUIDELINES.md
+          #   README.md, ROADMAP.md
+          #   .github/
+
+          echo "Public site built successfully."
+          ls -la _site/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  preview:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: List changed public files
+        id: changed
+        run: |
+          git fetch origin main --depth=1
+          CHANGED=$(git diff --name-only origin/main...HEAD \
+            | grep -v '^agency/' \
+            | grep -v '^docs/' \
+            | grep -v '^assets/brand/invoice' \
+            | grep -v '^assets/brand/letterhead' \
+            | grep -v '^assets/brand/proposal' \
+            | grep -v '^assets/brand/email-signature' \
+            | grep -v '^assets/brand/BRAND-GUIDELINES' \
+            | grep -v '^assets/brand/brand-kit-index' \
+            | grep -v '^assets/brand/social-templates' \
+            | grep -v '^assets/brand/business-card' \
+            | grep -v '^README' \
+            | grep -v '^ROADMAP' \
+            | head -50)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          COUNT=$(echo "$CHANGED" | grep -c . || true)
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+      - name: Post PR preview comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changedFiles = `${{ steps.changed.outputs.files }}`;
+            const count = `${{ steps.changed.outputs.count }}`;
+            const branch = context.payload.pull_request.head.ref;
+            const sha = context.payload.pull_request.head.sha.substring(0, 7);
+
+            const body = [
+              '## GitHub Pages Preview',
+              '',
+              '> This PR targets `main`. Once merged, the live site at **romancreativestudio.co** will update automatically via GitHub Pages.',
+              '',
+              `**Branch:** \`${branch}\`  `,
+              `**Commit:** \`${sha}\`  `,
+              `**Public files changing:** ${count}`,
+              '',
+              '> **Note:** Internal files (`agency/`, `docs/`, internal brand templates) are stored in the repo for team access but are **never deployed** to the public website.',
+              '',
+              '<details>',
+              '<summary>View changed public files</summary>',
+              '',
+              '```',
+              changedFiles,
+              '```',
+              '',
+              '</details>',
+              '',
+              '---',
+              '_Powered by GitHub Pages. Internal docs are private — team access via GitHub only._'
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('GitHub Pages Preview')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
