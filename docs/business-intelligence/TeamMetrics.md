@@ -1,0 +1,321 @@
+# Team Metrics
+
+**Owner:** Alexander Roman / CEO  
+**Version:** 1.0  
+**Last Updated:** 2026-07-01  
+**Status:** Framework Defined — Team Not Yet Hired
+
+---
+
+## Purpose
+
+Define the metrics framework for measuring team performance, utilization, capacity, delivery quality, and growth across all future RCS departments. This document is designed for implementation when the first hire is made (Stage 2+) and scales through Stage 5.
+
+---
+
+## Business Value
+
+Team metrics prevent the two most common agency failures: overworked teams that produce declining quality, and underutilized teams that erode margin. Clear metrics create accountability, surface performance issues early, and ensure every team member knows what "excellent" looks like in their role.
+
+---
+
+## Guiding Principles
+
+1. **Measure outcomes, not activity.** Hours logged matter less than deliverables shipped on time at quality.
+2. **Context before judgment.** A metric in the Red zone starts a conversation, not a disciplinary action.
+3. **Metrics serve people.** Use metrics to help team members improve, not to surveil them.
+4. **Regular cadence.** Metrics without regular review are useless. Build review into weekly/monthly rhythms.
+5. **Baseline before benchmarking.** Establish a baseline before setting targets for any new hire.
+
+---
+
+## Department Structure (Future)
+
+```
+RCS Organization (Stage 4+)
+├── Leadership (Alexander)
+├── Design Team
+├── Development Team
+├── Marketing
+├── Sales
+├── Client Success / Support
+└── Operations
+```
+
+---
+
+## 1. Design Team Metrics
+
+### When to Track
+Activate when first design contractor or designer is hired.
+
+### Utilization
+
+| Metric | Definition | Target | Frequency |
+|--------|------------|--------|----------|
+| Billable Utilization | Billable hours / Total available hours | 70–80% | Weekly |
+| Capacity Usage | Active projects / Max concurrent projects | <90% | Weekly |
+| Design Hours per Project | Actual vs estimated hours | Within 20% of estimate | Per project |
+
+### Capacity
+- Full-time designer capacity: 28 billable hours/week
+- Sustainable max: 3 active projects simultaneously
+- Overflow threshold: 2+ consecutive weeks at 90%+ capacity = hire or redistribute
+
+### Performance
+
+| Metric | Definition | Target |
+|--------|------------|--------|
+| Design Approval Rate (Round 1) | % of designs approved without major revisions | 60%+ |
+| Avg Revision Rounds | Rounds needed before client approval | ≤2 |
+| Client Satisfaction (Design) | Post-project design score (1–10) | 9.0+ |
+| On-Time Design Delivery | % of design milestones delivered on/before due date | 85%+ |
+
+### Delivery Quality Checklist
+Every design deliverable must pass before client delivery:
+- [ ] Matches brand guidelines in approved brief
+- [ ] All specified pages/screens designed
+- [ ] Responsive design considered (mobile viewport reviewed)
+- [ ] Exported in correct formats
+- [ ] Accessibility: contrast ratios checked
+- [ ] Peer-reviewed (when team size >1)
+
+### Growth
+- Quarterly: Review portfolio for design quality improvement
+- Annually: Identify 1 skill gap per designer; provide training budget
+- Track: New design tools, techniques adopted
+
+---
+
+## 2. Development Team Metrics
+
+### When to Track
+Activate when first developer contractor or employee is hired.
+
+### Utilization
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| Billable Utilization | 70–80% | Weekly |
+| Development Hours per Project (Actual vs Est) | Within 25% | Per project |
+| Bug Fix Time (post-launch) | <4 hours per bug | Per incident |
+
+### Delivery
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| On-Time Development Delivery | 80%+ | Monthly |
+| Post-Launch Bug Count | <3 per project | Per project |
+| Accessibility Score Achieved | 95+ Lighthouse | Per project |
+| Performance Score Achieved | 90+ Lighthouse mobile | Per project |
+| Cross-Browser Pass Rate | 100% (Chrome, Safari, Firefox, Edge) | Per project |
+
+### Quality Standards
+Every development deliverable must pass before launch:
+- [ ] Lighthouse performance: 90+ mobile
+- [ ] Lighthouse accessibility: 95+
+- [ ] All pages tested: Chrome, Safari, Firefox, Edge
+- [ ] All pages tested: iPhone 12+, Samsung Galaxy S
+- [ ] Forms tested: submit, validation, success state
+- [ ] All links checked (no 404s)
+- [ ] Security headers verified
+- [ ] SSL valid
+- [ ] Google Analytics confirmed firing
+
+### Growth
+- Track new languages/frameworks learned
+- Performance improvement over time (Lighthouse scores improving per project)
+- Code review participation rate (when team size >1)
+
+---
+
+## 3. Marketing Team Metrics
+
+### When to Track
+Activate when first marketing hire is made (Stage 4).
+
+### Utilization
+- Content calendar adherence: % of planned content published on schedule (Target: 85%+)
+- Campaign execution rate: % of planned campaigns launched (Target: 90%+)
+
+### Performance
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| Leads Generated by Marketing | 8+/month | Monthly |
+| Organic Traffic Growth | 10%+/month | Monthly |
+| Email List Growth | 10%+/month | Monthly |
+| Email Open Rate | 35%+ | Per campaign |
+| Content Pieces Published | 4+/month | Monthly |
+| SEO Keyword Improvements | 5+ positions improved | Monthly |
+
+### Delivery
+- First draft to published: <5 business days per piece
+- Campaign setup to live: <3 business days
+- Report delivery: by 5th of month
+
+### Growth
+- New channel tested per quarter (1 experiment)
+- Marketing attribution improving (% of leads with known source)
+- Monthly benchmark vs prior month across all KPIs
+
+---
+
+## 4. Sales Team Metrics
+
+### When to Track
+Activate when sales responsibility is shared (Stage 3+, account manager hire).
+
+### Activity Metrics
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| Discovery Calls Held | 6+/month | Weekly |
+| Proposals Sent | 4+/month | Monthly |
+| Follow-ups Completed | 100% of proposals followed up | Weekly |
+| CRM Updated | Same-day entry | Daily |
+
+### Outcome Metrics
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| Proposal Win Rate | 40%+ | Monthly |
+| Close Rate (Lead to Client) | 20%+ | Monthly |
+| Avg Deal Size | $5,000+ | Monthly |
+| Sales Cycle Length | <21 days (lead to signed contract) | Monthly |
+| Care Plan Pitch Rate | 80%+ of closed projects pitched | Per project |
+
+### Quality Standards
+- Proposal sent within 48 hours of discovery call
+- Follow-up cadence: Day 3, Day 7, Day 14 (per `DiscoveryCallSystem.md`)
+- CRM stage updated within 24 hours of any change
+
+---
+
+## 5. Client Success / Support Team Metrics
+
+### When to Track
+Activate when client support is delegated from Alexander (Stage 3+).
+
+### Response & Resolution
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| First Response Time | ≤4 business hours | Weekly |
+| Resolution Time (simple issues) | ≤24 hours | Weekly |
+| Resolution Time (complex issues) | ≤5 business days | Weekly |
+| Ticket Backlog | <5 open tickets | Daily |
+| Escalation Rate | <10% of tickets escalated | Monthly |
+
+### Satisfaction
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| CSAT (post-ticket) | 4.5+/5 | Monthly |
+| Care Plan Renewal Rate | 80%+ | Monthly |
+| Churn Rate | <3%/month | Monthly |
+| Upsell Conversion (Support-initiated) | 10%+ of interactions | Monthly |
+
+### Delivery
+- Monthly reports delivered by 5th of month: 100%
+- Client check-in calls completed on schedule: 90%+
+- Action items from calls completed on time: 85%+
+
+---
+
+## 6. Operations Team Metrics
+
+### When to Track
+Activate when operations/admin role is hired (Stage 3).
+
+### Process Compliance
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| SOPs followed (audit sample) | 95%+ | Monthly |
+| Documents filed correctly | 100% | Ongoing |
+| Invoices sent on schedule | 100% | Per milestone |
+| Payments followed up on time | 100% | Weekly |
+| Contractor payments processed | By 5th of month | Monthly |
+
+### System Health
+- Tool subscription renewals managed: 100% (no unexpected expirations)
+- Backup verification: monthly
+- Security audit items completed on schedule: 100%
+
+---
+
+## 7. Leadership Metrics (Alexander)
+
+### Strategic
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| Quarterly OKR completion rate | 70%+ Key Results achieved | Quarterly |
+| Strategic decisions documented | 100% | Per decision |
+| Annual plan published | By Jan 15 each year | Annual |
+| Stage advancement review completed | Quarterly | Quarterly |
+
+### Operational
+
+| Metric | Target | Frequency |
+|--------|--------|----------|
+| Weekly BI review completed | Weekly | Weekly |
+| Monthly business review completed | Monthly | Monthly |
+| Team 1:1s held (when team exists) | Weekly per direct report | Weekly |
+| New client onboarding personally handled | 100% (Stage 1–2) | Per client |
+
+### Personal Development
+- 1 book or course completed per quarter
+- 1 industry event or conference per year
+- 1 new skill or tool explored per quarter
+
+---
+
+## Metrics Review Cadence
+
+| Level | Frequency | Format | Owner |
+|-------|-----------|--------|-------|
+| Daily | Per day | Dashboard glance | Alexander |
+| Weekly | Monday morning | BI dashboard review | Alexander |
+| Monthly | First Monday | Full KPI review | Alexander |
+| Quarterly | End of quarter | OKR scoring + team review | Alexander |
+| Annually | December | Full team + business review | Alexander |
+
+---
+
+## Metrics Storage
+
+- Team metrics tracked in Supabase `team_metrics` table (when team exists)
+- Individual performance data: private (1Password or HR system), not in shared repo
+- Department metrics: visible to Alexander + department head
+- Business metrics (KPIs): visible to Alexander only (admin dashboard)
+
+---
+
+## Technical Notes
+
+- Team metrics not tracked in public codebase
+- Utilization tracked via project time logging (tool TBD at Stage 3 — options: Harvest, Toggl, Linear)
+- Satisfaction scores collected via Typeform or embedded portal surveys
+- Team metrics dashboard built as an admin dashboard section when team size reaches 3+
+
+---
+
+## Future Enhancements
+
+- [ ] 360-degree feedback system (Stage 4+)
+- [ ] Skills matrix for each department
+- [ ] Training budget tracker per employee
+- [ ] Capacity planning dashboard showing all team members' current load
+- [ ] Automated utilization alerts when any team member exceeds 85% capacity for 2+ weeks
+
+---
+
+## Related Documents
+
+- `ScalingRoadmap.md` — team size and structure per stage
+- `ForecastingModels.md` — hiring triggers and capacity models
+- `KPIDefinitions.md` — business KPIs (separate from team metrics)
+- `ProjectManagementFramework.md` — delivery standards team metrics are evaluated against
+- `CommunicationStandards.md` — meeting cadences and communication expectations
