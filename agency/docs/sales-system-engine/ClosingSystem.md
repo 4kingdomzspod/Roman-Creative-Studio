@@ -10,9 +10,9 @@ Closing is not a moment. It is a process that begins in the discovery call and c
 Agencies that struggle to close usually have one of three problems:
 1. They haven't qualified the prospect sufficiently
 2. They haven't built enough trust and authority throughout the process
-3. They treat the "close" as a single high-pressure moment rather than a natural conclusion
+3. They treat the “close” as a single high-pressure moment rather than a natural conclusion
 
-When the discovery call, qualification, proposal, and objection handling are done correctly — the close is not a hard push. It is a simple question: "Are you ready to move forward?"
+When the discovery call, qualification, proposal, and objection handling are done correctly — the close is not a hard push. It is a simple question: “Are you ready to move forward?”
 
 ---
 
@@ -60,7 +60,7 @@ today, you sign and submit the deposit, and I'll schedule our
 kickoff call for early next week."
 ```
 
-The assumptive close works when all buying signals are present. It removes the hesitation of the explicit "are you in?" question.
+The assumptive close works when all buying signals are present. It removes the hesitation of the explicit “are you in?” question.
 
 ### 2.2 The Summary Close (For Thoughtful Prospects)
 
@@ -114,7 +114,7 @@ Real urgency examples:
 
 ### 3.1 The Direct Ask
 
-Most salespeople avoid asking directly for fear of hearing "no." This avoidance creates ambiguity that kills deals.
+Most salespeople avoid asking directly for fear of hearing “no.” This avoidance creates ambiguity that kills deals.
 
 Ask directly:
 ```
@@ -149,7 +149,7 @@ An indecision loop is when a prospect keeps delaying without ever committing or 
 
 Signs you're in an indecision loop:
 - More than 3 follow-ups without a clear answer
-- Repeated "we need a bit more time" responses
+- Repeated “we need a bit more time” responses
 - Rescheduled calls that keep getting rescheduled
 - Engagement without commitment for more than 3 weeks post-proposal
 
@@ -180,7 +180,7 @@ works for you.
 If things shift, I'm one email away."
 ```
 
-Closing the loop is not losing the deal. It is protecting your time and maintaining professional dignity. Many "closed" prospects come back 3–6 months later when the timing is right.
+Closing the loop is not losing the deal. It is protecting your time and maintaining professional dignity. Many “closed” prospects come back 3–6 months later when the timing is right.
 
 ---
 

@@ -30,7 +30,7 @@ Every prospect is evaluated across five dimensions before a proposal is prepared
 |---|---|
 | Has stated a real budget range that aligns with RCS minimums | +2 |
 | Has not mentioned budget but hasn't objected to price anchors | +1 |
-| Has asked "how much?" as first question but is still engaged | 0 |
+| Has asked “how much?” as first question but is still engaged | 0 |
 | Has explicitly asked for lowest possible price | -1 |
 | Has compared RCS to a $500 Fiverr option | -2 |
 
@@ -48,7 +48,7 @@ Every prospect is evaluated across five dimensions before a proposal is prepared
 | Partner who has budget authority | +1 |
 | Manager who needs sign-off but has influence | 0 |
 | Contact who must present to committee | -1 |
-| "I'll run it by my boss" (unknown authority) | -1 |
+| “I'll run it by my boss” (unknown authority) | -1 |
 
 **Rule:** If the decision-maker is not on the call, require their presence before sending a proposal. A proposal presented to a non-DM is a proposal that dies.
 
@@ -64,7 +64,7 @@ Every prospect is evaluated across five dimensions before a proposal is prepared
 | Growing business investing in infrastructure | +2 |
 | New business with funding or validated concept | +1 |
 | New business, no revenue yet, no funding | 0 |
-| Pre-idea / "I'm thinking about starting" | -2 |
+| Pre-idea / “I'm thinking about starting” | -2 |
 
 **Rule:** Pre-revenue businesses with no funding are not RCS clients. They need a DIY solution first. Re-engage when they have revenue and a real problem to solve.
 
@@ -72,17 +72,17 @@ Every prospect is evaluated across five dimensions before a proposal is prepared
 
 ### Dimension 4: Urgency
 
-**Question:** Is there a genuine reason to act now, or is this a "nice to have someday"?
+**Question:** Is there a genuine reason to act now, or is this a “nice to have someday”?
 
 | Signal | Score |
 |---|---|
 | Active pain (losing leads, embarrassed by current site, competitive threat) | +2 |
 | Growth milestone (rebrand, expansion, opening, campaign launch) | +2 |
-| "We've needed to do this for a while" (delayed but real) | +1 |
-| "Eventually we'd like to" | -1 |
+| “We’ve needed to do this for a while” (delayed but real) | +1 |
+| “Eventually we’d like to” | -1 |
 | No stated urgency or timeline | -1 |
 
-**Rule:** Urgency is not about pressure tactics. It's about whether the business problem is real and active. A prospect with no urgency is not yet in buying mode.
+**Rule:** Urgency is not about pressure tactics. It’s about whether the business problem is real and active. A prospect with no urgency is not yet in buying mode.
 
 ---
 
@@ -91,16 +91,16 @@ Every prospect is evaluated across five dimensions before a proposal is prepared
 **Question:** Does this prospect think like a business investor or a cost minimizer?
 
 **Investor mindset signals:**
-- "What kind of ROI do your clients typically see?"
-- "We've lost clients to competitors with better sites — this is costing us"
-- "We want to scale and our website doesn't reflect where we're going"
-- "We've already tried the cheap version — it didn't work"
+- “What kind of ROI do your clients typically see?”
+- “We’ve lost clients to competitors with better sites — this is costing us”
+- “We want to scale and our website doesn’t reflect where we’re going”
+- “We’ve already tried the cheap version — it didn’t work”
 - Asks about outcomes, not just deliverables
 
 **Cost minimizer signals:**
-- "We just need something simple"
-- "Can you do it for less?"
-- "We had a previous agency and it was a nightmare" (immediately)
+- “We just need something simple”
+- “Can you do it for less?”
+- “We had a previous agency and it was a nightmare” (immediately)
 - Negotiates before understanding scope
 - Asks about ownership, control, and DIY editing before asking about results
 
@@ -170,9 +170,9 @@ engagement than what we typically take on. I don't want to set
 either of us up for friction."
 ```
 
-### 3.2 The "Not Yet" File
+### 3.2 The “Not Yet” File
 
-Declined prospects are not deleted. They are placed in a "Not Yet" follow-up file with:
+Declined prospects are not deleted. They are placed in a “Not Yet” follow-up file with:
 - Reason for declining
 - What condition would change the outcome
 - Follow-up date (3–6 months)
@@ -187,13 +187,13 @@ The following behaviors are red flags that warrant heightened caution:
 
 | Red Flag | What It Often Predicts |
 |---|---|
-| "I've had bad experiences with agencies" (first sentence) | Difficult to satisfy; often the common denominator |
+| “I've had bad experiences with agencies” (first sentence) | Difficult to satisfy; often the common denominator |
 | Negotiates price before seeing scope | Will negotiate every invoice and change order |
-| "My nephew does web design but..." | Will second-guess every decision |
-| "Just make it look like [competitor]" | No respect for strategic input |
+| “My nephew does web design but...” | Will second-guess every decision |
+| “Just make it look like [competitor]” | No respect for strategic input |
 | Vague on what their business does | May not have a viable business model |
-| Urgency that's artificially extreme ("Need it in 2 weeks") | Often a setup for blame |
-| Wants to see work "for free" before committing | Low respect for professional work |
-| "We'll pay after launch" (refuses deposit) | Financial instability or bad faith |
+| Urgency that's artificially extreme (“Need it in 2 weeks”) | Often a setup for blame |
+| Wants to see work “for free” before committing | Low respect for professional work |
+| “We'll pay after launch” (refuses deposit) | Financial instability or bad faith |
 
 **Rule:** One red flag does not disqualify. Three red flags in one conversation — walk away.

@@ -49,7 +49,7 @@ Alexander@romancreativestudio.co
 
 **Contract must include:**
 - [ ] Full scope of work (as written in proposal)
-- [ ] "Not Included" list
+- [ ] “Not Included” list
 - [ ] Payment schedule and amounts
 - [ ] Timeline with milestone dates
 - [ ] Revision policy (e.g., up to 2 rounds of design revisions included)
@@ -190,8 +190,8 @@ Not multiple back-and-forth messages over several days.
 Here's how to give great feedback:
   ✓ "I'd like the header text larger"
   ✓ "Can we try a darker background on this section?"
-  ✘ "I don't know, something just feels off" (not actionable)
-  ✘ "My spouse doesn't like it" (not your target customer's opinion)
+  ✗ "I don't know, something just feels off" (not actionable)
+  ✗ "My spouse doesn't like it" (not your target customer's opinion)
 ```
 
 ### 2.3 The Golden Rule of Client Management

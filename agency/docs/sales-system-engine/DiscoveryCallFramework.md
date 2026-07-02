@@ -14,7 +14,7 @@ The call has three phases:
 
 **Call duration:** 30–45 minutes
 **Call format:** Video call (Zoom, Google Meet) — camera on for both parties
-**Who should be on the call:** Decision-maker. If the decision-maker isn't present, reschedule.
+**Who should be on the call:** Decision-maker. If the decision-maker isn’t present, reschedule.
 
 ---
 
@@ -45,7 +45,7 @@ See you tomorrow at [time].
 — Alexander
 ```
 
-This primes the prospect to arrive thinking about outcomes, not features. It also surfaces disqualifiers early (if they answer "just want something that looks nice" — expectation-setting is needed).
+This primes the prospect to arrive thinking about outcomes, not features. It also surfaces disqualifiers early (if they answer “just want something that looks nice” — expectation-setting is needed).
 
 ---
 
@@ -70,7 +70,7 @@ real opportunity here. Does that work?"
 
 **Why this opener works:**
 - Takes control without being aggressive
-- Removes the prospect's guard ("not a pitch")
+- Removes the prospect's guard (“not a pitch”)
 - Sets a diagnostic tone, not a selling tone
 - Creates permission for honest conversation
 
@@ -83,23 +83,23 @@ real opportunity here. Does that work?"
 **Questions to ask (choose 4–5, don't read from a list):**
 
 **Business context:**
-- "Tell me about [Business Name] — what do you do and who do you serve?"
-- "How long have you been in business? How has the business grown?"
-- "What's your primary way of getting new [patients/clients/members] right now?"
+- “Tell me about [Business Name] — what do you do and who do you serve?”
+- “How long have you been in business? How has the business grown?”
+- “What’s your primary way of getting new [patients/clients/members] right now?”
 
 **Current digital situation:**
-- "When you look at your website today, what's it doing well — and what's clearly not working?"
-- "How many leads or inquiries do you get from your website per month roughly?"
-- "When a potential [client/patient] finds you online, what do you want them to do?"
+- “When you look at your website today, what’s it doing well — and what’s clearly not working?”
+- “How many leads or inquiries do you get from your website per month roughly?”
+- “When a potential [client/patient] finds you online, what do you want them to do?”
 
 **Business goals:**
-- "If we were talking a year from now and everything went right — what would your digital presence look like?"
-- "Is growth the goal, or is it more about professionalism and positioning?"
-- "Are there competitors in your space whose online presence you respect? Who and why?"
+- “If we were talking a year from now and everything went right — what would your digital presence look like?”
+- “Is growth the goal, or is it more about professionalism and positioning?”
+- “Are there competitors in your space whose online presence you respect? Who and why?”
 
 **Listening priorities:**
 - What specific result are they chasing? (more leads, better positioning, specific campaign)
-- What's the cost of NOT solving this? (missed leads, losing to competitors, embarrassment)
+- What’s the cost of NOT solving this? (missed leads, losing to competitors, embarrassment)
 - What have they tried already? (DIY, previous agency, templates)
 
 **Rule:** Listen more than you talk in this phase. Every detail they share is ammunition for a precise prescription in Phase 3.
@@ -108,7 +108,7 @@ real opportunity here. Does that work?"
 
 ### Phase 3: Gap Identification (5–7 minutes)
 
-**Purpose:** Reflect back what you've heard — with professional analysis added. This is where RCS demonstrates expertise.
+**Purpose:** Reflect back what you’ve heard — with professional analysis added. This is where RCS demonstrates expertise.
 
 **Structure:**
 ```
@@ -146,7 +146,7 @@ This invites them to add detail and signals that you're listening, not pitching.
 
 ### Phase 4: Solution Positioning (5–7 minutes)
 
-**Purpose:** Describe RCS's approach in terms of their specific problem. Not a general pitch — a tailored prescription.
+**Purpose:** Describe RCS’s approach in terms of their specific problem. Not a general pitch — a tailored prescription.
 
 **Structure:**
 ```
@@ -188,7 +188,7 @@ Is that a range your business can work with?"
 
 **If yes:** Move to next steps (proposal).
 **If hesitation:** Do not drop price. Explore the gap (see Objection Handling System, Document 7).
-**If clear no:** "I appreciate your honesty. There are great options at lower investment levels — they just won't have the strategic depth we bring. I don't want to waste your time or ours."
+**If clear no:** “I appreciate your honesty. There are great options at lower investment levels — they just won't have the strategic depth we bring. I don't want to waste your time or ours.”
 
 ---
 
@@ -215,7 +215,7 @@ call for [2–3 days after proposal send date] to review it?"
 ```
 
 **Always schedule the proposal review call BEFORE ending the discovery call.**
-Never send a proposal and say "let me know what you think." The proposal dies in their inbox.
+Never send a proposal and say “let me know what you think.” The proposal dies in their inbox.
 
 **If not yet qualified but has potential:**
 ```
