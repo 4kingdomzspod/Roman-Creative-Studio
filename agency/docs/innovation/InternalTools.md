@@ -267,7 +267,7 @@ Notify team in #team-announcements
 
 ### Year 1 Stack (Pre-Custom Build)
 | Function | Tool | Monthly Cost |
-|----------|------|-------------|
+|----------|------|--------------|
 | Project Management | Notion | $16 |
 | Client Communication | Email + Notion portal | $0 |
 | Proposals | Notion template + PDF export | $0 |
@@ -282,7 +282,7 @@ Notify team in #team-announcements
 
 ### Year 2 Stack (With Custom Tools)
 | Function | Tool | Monthly Cost |
-|----------|------|-------------|
+|----------|------|--------------|
 | Client Portal | Custom (portal.romancreativestudio.co) | ~$30 (Vercel + Supabase) |
 | Admin Dashboard | Custom (admin.romancreativestudio.co) | ~$20 (Vercel) |
 | All Year 1 tools | Continued | ~$162–222 |
