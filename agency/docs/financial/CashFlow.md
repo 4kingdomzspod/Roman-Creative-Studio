@@ -124,7 +124,7 @@ Monthly Billing Cycle:
 **Assumptions:**
 - Projects close: 1 BUILD/month starting Month 3, 1 GROW at Month 5, 1 SCALE at Month 9
 - MRR: $197 per client starting Month 3 (converts from project)
-- Expenses: $2,000–2,500/month (owner pay $2,000 + operations ~$300–500)
+- Expenses: $2,000–$2,500/month (owner pay $2,000 + operations ~$300–$500)
 
 | Month | Project Revenue | MRR Revenue | Total In | Expenses | Net Cash Flow | Cumulative |
 |-------|----------------|------------|---------|----------|---------------|------------|
@@ -142,8 +142,7 @@ Monthly Billing Cycle:
 | M12 | $3,500 (new) | $1,973 | $5,473 | $3,000 | +$2,473 | +$27,259 |
 | **TOTAL** | **~$40,450** | **~$10,859** | **~$51,309** | **~$27,100** | **~$24,209** | |
 
-*M5 includes GROW project deposit $3,250 + BUILD completion $1,750 + BUILD deposit $250  
-**Note:** This is a simplified model; actual month-to-month varies based on close timing*
+*M5 includes GROW project deposit $3,250 + BUILD completion $1,750 + BUILD deposit $250
 
 ---
 
@@ -200,7 +199,7 @@ Monthly Billing Cycle:
 │                                                         │
 │  BUCKET 1: OPERATING ACCOUNT                            │
 │  Purpose: Day-to-day income and expenses                │
-│  Balance: 1–2 months operating expenses (~$3,000–6,000) │
+│  Balance: 1–2 months operating expenses (~$3,000–$6,000) │
 │  Bank: Primary business checking                        │
 │                                                         │
 │  BUCKET 2: TAX RESERVE                                  │

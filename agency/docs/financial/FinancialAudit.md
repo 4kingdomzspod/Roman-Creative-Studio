@@ -154,13 +154,13 @@ Offering 10-month pricing for 12 months of Care Plan ($197 × 10 = $1,970 prepai
 ## Cost Reduction Opportunities
 
 ### COST-01 — Start with Free Tiers, Upgrade Only When Justified
-MailerLite (free to 1k subscribers), Supabase (free tier), HubSpot (free CRM), Calendly (free tier for 1 event type) all have functional free versions. **Opportunity: Delay $300–500/month in software costs by using free tiers until revenue justifies upgrades.**
+MailerLite (free to 1k subscribers), Supabase (free tier), HubSpot (free CRM), Calendly (free tier for 1 event type) all have functional free versions. **Opportunity: Delay $300–$500/month in software costs by using free tiers until revenue justifies upgrades.**
 
 ### COST-02 — Batch Design Asset Purchases
-Stock photography, icon sets, and font licenses purchased per-project are more expensive than buying once. **Opportunity: Purchase Envato Elements or similar ($200/year) covering unlimited assets vs $20–50 per project = positive ROI at 5+ projects.**
+Stock photography, icon sets, and font licenses purchased per-project are more expensive than buying once. **Opportunity: Purchase Envato Elements or similar ($200/year) covering unlimited assets vs $20–$50 per project = positive ROI at 5+ projects.**
 
 ### COST-03 — AI-Powered Work Reduces Contractor Dependency
-Contractor cost ($50–80/hour) can be deferred by using Claude API to accelerate copy writing, brief creation, and report generation. **Opportunity: Delay first contractor hire by 3–6 months through AI augmentation = $5,000–15,000 in deferred labor costs.**
+Contractor cost ($50–$80/hour) can be deferred by using Claude API to accelerate copy writing, brief creation, and report generation. **Opportunity: Delay first contractor hire by 3–6 months through AI augmentation = $5,000–$15,000 in deferred labor costs.**
 
 ### COST-04 — Tax Deductions: Document Everything
 As a business owner, significant operating expenses are tax-deductible: home office, internet, software, equipment, education, conferences, health insurance (self-employed). **Opportunity: Proper deduction tracking reduces effective tax rate by 5–10%.**

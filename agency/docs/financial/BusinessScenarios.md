@@ -154,8 +154,8 @@ Every scenario is modeled across 3 tracks:
 **Financial impact:**
 - Month 1: MRR only (e.g., $2,000 at Year 1 mid-point)
 - Month 2: MRR only ($2,000)
-- Gap vs. operating costs: ~$1,500–2,000/month deficit
-- Total 60-day cash impact: ~$3,000–4,000 shortfall
+- Gap vs. operating costs: ~$1,500–$2,000/month deficit
+- Total 60-day cash impact: ~$3,000–$4,000 shortfall
 
 **Response protocol:**
 1. **Week 1:** Activate lead generation (LinkedIn, email past clients, referral ask)
@@ -222,7 +222,7 @@ Every scenario is modeled across 3 tracks:
 ## Scenario Monitoring Triggers
 
 | Trigger | Scenario Shift |
-|---------|---------------|
+|---------|----------------|
 | Monthly revenue <70% of target for 2 months | Move to Conservative protocol |
 | Monthly revenue >130% of target for 2 months | Move to Optimistic protocol |
 | MRR churn >5%/month | Churn response protocol |

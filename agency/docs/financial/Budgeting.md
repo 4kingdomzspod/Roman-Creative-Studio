@@ -99,7 +99,7 @@ All SaaS subscriptions, software licenses, and digital tool costs. Full list tra
 | Notion (Personal) | $0–$8 | $0–$96 | PM |
 | Loom (Starter) | $0–$8 | $0–$96 | Video |
 | LastPass/1Password | $3–$5 | $36–$60 | Security |
-| **Subtotal** | **~$113–143** | **~$1,356–1,716** | |
+| **Subtotal** | **~$113–143** | **~$1,356–$1,716** | |
 
 **Budget buffer for trials/annual upgrades: $50–150/month**
 

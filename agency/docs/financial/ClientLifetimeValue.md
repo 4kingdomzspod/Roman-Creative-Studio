@@ -167,8 +167,6 @@ Example (Growth Partner client):
 | Year 3 | $22,000 | $750 | 29:1 |
 | Year 5 | $35,000 | $1,500 | 23:1 |
 
-**Note:** High LTV:CAC ratios at Year 1–3 reflect low marketing spend (referral-driven). As paid acquisition begins (Year 3+), CAC rises but LTV should rise faster through higher-tier clients.
-
 ---
 
 ## LTV Improvement Roadmap
