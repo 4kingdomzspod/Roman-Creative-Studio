@@ -468,7 +468,7 @@ RCS AI Products are purpose-built AI tools that solve specific problems for our 
 ### Technical Architecture (Standard per Product)
 
 ```
-Frontend: Next.js 14+
+Frontend: Next.js 14+ (App Router)
 Auth: Supabase Auth
 Database: Supabase PostgreSQL
 AI Engine: Anthropic Claude API (claude-sonnet-5 for quality, claude-haiku-4-5-20251001 for fast/routine)
