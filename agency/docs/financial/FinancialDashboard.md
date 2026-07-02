@@ -35,7 +35,7 @@ The Financial Dashboard is the executive command center for all money-related de
 │  $6k │                                                              │
 │  $4k │                                                              │
 │  $2k │                                                              │
-│   $0 │────────────────────────────────────────────────────────── │
+│   $0 │──────────────────────────────────────────────────────────── │
 │       Jul Aug Sep Oct Nov Dec Jan Feb Mar Apr May Jun               │
 ├─────────────────────────┬───────────────────────────────────────────┤
 │   MRR BREAKDOWN         │   EXPENSE BREAKDOWN                       │
@@ -74,7 +74,7 @@ The Financial Dashboard is the executive command center for all money-related de
 | **Value** | Total revenue collected this calendar month |
 | **Source** | Stripe payments received |
 | **Sub-label** | vs. monthly target ($5,000 Year 1) |
-| **RAG** | Green ≥$5k / Yellow $3–$5k / Red <$3k |
+| **RAG** | Green ≥$5k / Yellow $3–5k / Red <$3k |
 | **Refresh** | Daily |
 
 #### Widget 2: Annual Revenue
@@ -94,7 +94,7 @@ The Financial Dashboard is the executive command center for all money-related de
 | **Value** | Sum of all active recurring subscription charges |
 | **Source** | Stripe subscriptions |
 | **Sub-label** | vs. MRR target |
-| **RAG** | Green ≥$3k / Yellow $1–$3k / Red <$1k |
+| **RAG** | Green ≥$3k / Yellow $1–3k / Red <$1k |
 | **Refresh** | Daily |
 
 #### Widget 4: ARR
@@ -239,7 +239,7 @@ The Financial Dashboard is the executive command center for all money-related de
 | **Label** | Owner Compensation (MTD) |
 | **Value** | Total paid to self this month (draws + salary) |
 | **Note** | Separate from business operating expenses |
-| **Target** | Year 1: $2,000–$3,000/month minimum viable |
+| **Target** | Year 1: $2,000–3,000/month minimum viable |
 | **Refresh** | Monthly |
 
 #### Widget 17: Software Costs

@@ -222,7 +222,7 @@ Identify, assess, and mitigate the financial risks facing Roman Creative Studio 
 ## Financial Risk Dashboard (Monthly Check)
 
 | Metric | Green | Yellow | Red | Current |
-|--------|-------|--------|-----|---------|
+|--------|-------|--------|-----|--------|
 | Revenue concentration (max client %) | <20% | 20–25% | >25% | Track |
 | Tax reserve ratio | ≥25% | 20–24% | <20% | Track |
 | Cash runway | ≥90 days | 60–89 days | <60 days | Track |
