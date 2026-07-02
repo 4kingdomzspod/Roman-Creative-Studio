@@ -55,7 +55,7 @@ Step 4: Frame pricing in terms of the investment, not the cost
 ### Value Framing by Industry
 
 | Industry | Avg Client Value | Annual Value Target | Suggested Tier |
-|----------|-----------------|--------------------|----------------|
+|----------|-----------------|--------------------|---------------|
 | Dental Practice | $800–$2,000/patient | $50,000–$200,000 | GROW or SCALE |
 | Medical Practice | $500–$3,000/patient | $50,000–$300,000 | GROW or SCALE |
 | Construction | $5,000–$50,000/project | Variable | BUILD or GROW |

@@ -196,7 +196,7 @@ Define the phased implementation plan for the Roman Creative Studio Financial Op
 ## Operating System Phase Completion Summary
 
 | Phase | Status | Documents |
-|-------|--------|-----------|
+|-------|--------|----------|
 | Phase 8A | In Progress | Website work (deferred) |
 | Phase 8B | Complete | 15/15 business systems |
 | Phase 8C | Complete | 13/13 BI documents |
