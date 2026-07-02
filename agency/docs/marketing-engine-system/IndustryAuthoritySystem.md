@@ -74,7 +74,7 @@ The landing page is the hub. Everything else links back to it and feeds traffic 
 - The church feels invisible to people searching for a church home
 
 **Key features to emphasize:**
-- Clear "Plan Your Visit" pathway
+- Clear “Plan Your Visit” pathway
 - Service times and location prominence
 - Sermon and media library
 - Online giving integration
