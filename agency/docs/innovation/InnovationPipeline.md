@@ -125,7 +125,7 @@ STAGE 8: Scaling / Optimizing
 
 ### Decision Authority
 | Decision | Authority |
-|----------|-----------|
+|----------|---------|
 | Add idea to pipeline | Anyone — log in Notion |
 | Score idea (Stage 1) | CIO |
 | Design experiment (Stage 2) | CIO |
@@ -169,7 +169,7 @@ STAGE 8: Scaling / Optimizing
 ## Innovation Velocity Targets
 
 | Year | Products Launched | Experiments Run | Ideas Scored |
-|------|------------------|-----------------|-------------- |
+|------|------------------|-----------------|______________|
 | Year 1 | 3–5 | 4–6 | 10–15 |
 | Year 2 | 5–8 | 6–8 | 15–20 |
 | Year 3 | 8–12 | 8–12 | 20–30 |

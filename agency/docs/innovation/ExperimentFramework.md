@@ -197,7 +197,7 @@ Every experiment, regardless of outcome, generates organizational learning. This
 ## Experiment Budget Tracker
 
 | Quarter | Budget | Spent | Remaining |
-|---------|--------|-------|-----------|
+|---------|--------|-------|----------|
 | Q1 2026 | $500 | TBD | TBD |
 | Q2 2026 | $500 | TBD | TBD |
 | Q3 2026 | $500 | TBD | TBD |
