@@ -170,7 +170,7 @@ Research Lab
 
 ### RSS & Newsletter Stack
 | Category | Tool | Frequency |
-|----------|------|-----------|
+|----------|------|----------|
 | News aggregation | Feedly (or Readwise Reader) | Daily (15 min) |
 | Newsletters | Dedicated email inbox | Weekly review |
 | Social monitoring | X/Twitter lists by domain | Daily (10 min) |

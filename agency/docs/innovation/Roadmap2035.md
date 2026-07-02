@@ -61,14 +61,14 @@ We have evolved from a web design agency into a full creative ecosystem:
 **Agency:**
 - First employee or primary contractor hired
 - 5–8 active clients at any given time
-- Care Plan MRR: $2,000–$3,000/mo
+- Care Plan MRR: $2,000–3,000/mo
 - Agency revenue: $120,000–$180,000
 
 **Products:**
 - Client Portal launched (portal.romancreativestudio.co)
 - 2–3 courses live on Teachable
 - Community soft launch (Slack → Circle.so)
-- Product + course revenue: $3,000–$5,000/mo
+- Product + course revenue: $3,000–5,000/mo
 
 **SaaS:**
 - SAAS-03 (Website Grader) live as free lead-gen tool
@@ -85,17 +85,17 @@ We have evolved from a web design agency into a full creative ecosystem:
 
 **Agency:**
 - 2–3 team members
-- Recurring revenue (Care Plans + retainers): $5,000–$8,000/mo
+- Recurring revenue (Care Plans + retainers): $5,000–8,000/mo
 - Agency revenue: $200,000–$280,000
 
 **Products:**
 - 15–20 digital product SKUs
 - 4–5 courses (including first cohort program)
 - Community: 200–400 members
-- Product + course + community revenue: $10,000–$18,000/mo
+- Product + course + community revenue: $10,000–18,000/mo
 
 **SaaS:**
-- First SaaS product at $2,000–$5,000 MRR
+- First SaaS product at $2,000–5,000 MRR
 - Evaluating second SaaS opportunity
 
 **Financial:**
@@ -116,10 +116,10 @@ We have evolved from a web design agency into a full creative ecosystem:
 - 25–35 digital products
 - 6–8 courses, 2 cohorts/year
 - Community: 500–1,000 members
-- Revenue: $20,000–$35,000/mo
+- Revenue: $20,000–35,000/mo
 
 **SaaS:**
-- 1–2 profitable SaaS products at $10,000–$20,000 MRR total
+- 1–2 profitable SaaS products at $10,000–20,000 MRR total
 
 **Financial:**
 - Total revenue: $600,000–$900,000
@@ -139,14 +139,14 @@ We have evolved from a web design agency into a full creative ecosystem:
 - 40+ digital products
 - 10+ courses, 4 cohorts/year
 - Community: 1,000–1,500 members
-- Revenue: $40,000–$60,000/mo
+- Revenue: $40,000–60,000/mo
 
 **SaaS:**
 - 2–3 SaaS products
-- Total SaaS MRR: $20,000–$40,000/mo
+- Total SaaS MRR: $20,000–40,000/mo
 
 **Financial:**
-- Total all-stream revenue: $1,000,000–$1,500,000
+- Total all-stream revenue: $1,000,000–1,500,000
 - First year at $1M+
 - Owner's compensation: $400,000–$600,000
 
@@ -170,7 +170,7 @@ We have evolved from a web design agency into a full creative ecosystem:
 - Annual in-person event or summit
 
 **Financial:**
-- Total revenue: $2,000,000–$3,500,000
+- Total revenue: $2,000,000–3,500,000
 - Owner's compensation: $600,000–$1,000,000+
 
 ---
@@ -181,7 +181,7 @@ We have evolved from a web design agency into a full creative ecosystem:
 **Agency:**
 - Agency operates largely without founder involvement
 - President/COO role filled by non-founder leader
-- Agency revenue: $2,000,000–$3,000,000
+- Agency revenue: $2,000,000–3,000,000
 
 **Platform:**
 - Platform revenue equals or exceeds agency revenue
@@ -196,8 +196,8 @@ We have evolved from a web design agency into a full creative ecosystem:
 - Possible IPO or private equity at $10M+ ARR stage
 
 **Financial:**
-- Total revenue: $5,000,000–$10,000,000+
-- Founder net worth impact (from equity, distributions, possible sale): $3,000,000–$10,000,000
+- Total revenue: $5,000,000–10,000,000+
+- Founder net worth impact (from equity, distributions, possible sale): $3,000,000–10,000,000
 
 ---
 
@@ -217,10 +217,10 @@ RCS must be recognized as a thought leader in creative business building, not ju
 Every year, the percentage of RCS revenue that recurs (MRR) must increase. By 2030, target: >60% of revenue is recurring.
 
 **MRR Sources by 2030:**
-- Care Plans: $10,000–$20,000/mo
-- Community memberships: $20,000–$40,000/mo
-- SaaS subscriptions: $20,000–$40,000/mo
-- Course subscriptions: $5,000–$10,000/mo
+- Care Plans: $10,000–20,000/mo
+- Community memberships: $20,000–40,000/mo
+- SaaS subscriptions: $20,000–40,000/mo
+- Course subscriptions: $5,000–10,000/mo
 
 ### Pillar 3: Systems Over People
 RCS must be able to operate without depending on any single person — including the founder. This means:
@@ -248,9 +248,9 @@ The RCS community is not a feature — it is a core asset. Community creates:
 ## What Success Looks Like in 2035
 
 **Financially:**
-- $5M–$10M annual revenue
+- $5M–10M annual revenue
 - >60% recurring revenue
-- Founder personal net worth: $3M–$10M
+- Founder personal net worth: $3M–10M
 - Team of 20–40 people (employees + contractors)
 
 **In the Market:**
