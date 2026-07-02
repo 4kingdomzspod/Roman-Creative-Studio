@@ -94,7 +94,7 @@ DIY / Website Builders    Wix, Squarespace, GoDaddy        $0–$500/year
 Freelancers               Fiverr, Upwork, local designers  $500–$3,000
 Budget Agencies           Template shops, offshore builds  $1,500–$5,000
 
-── PREMIUM THRESHOLD ──────────────────────────────────────────────
+── PREMIUM THRESHOLD ───────────────────────────────────────────────────────────────────
 
 Roman Creative Studio     Strategy-led, conversion-focused  $5,000–$25,000+
 Top-tier agencies         Full-service, large teams         $25,000–$100,000+
