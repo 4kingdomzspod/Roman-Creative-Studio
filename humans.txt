@@ -1,0 +1,15 @@
+/* TEAM */
+Founder & Creative Director: Alexander Roman
+Contact: Alexander@romancreativestudio.co
+From: United States
+
+/* SITE */
+Last update: 2026/07/04
+Language: English
+Doctype: HTML5
+Standards: HTML5, CSS3, WCAG 2.1
+Components: Inter, Plus Jakarta Sans (Google Fonts)
+Software: Handcrafted, no framework
+
+/* THANKS */
+Thank you for reading. Reach out if you'd like to work together.

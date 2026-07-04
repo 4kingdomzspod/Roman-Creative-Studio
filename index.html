@@ -8,30 +8,88 @@
 <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
 <meta name="description" content="Roman Creative Studio — Premium digital agency helping businesses build, grow, and scale through strategy, design, and technology." />
 <meta name="keywords" content="digital agency, web design, website development, SEO, local business, startup, dental website, church website" />
+<link rel="canonical" href="https://romancreativestudio.co/" />
+<meta name="robots" content="index, follow" />
 
 <!-- Open Graph -->
-<meta property="og:title" content="Roman Creative Studio | Premium Digital Agency" />
-<meta property="og:description" content="We build digital experiences that grow businesses. Strategy, design, and development under one roof." />
+<meta property="og:site_name" content="Roman Creative Studio" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="https://romancreativestudio.com" />
-<meta property="og:image" content="assets/img/og-image.jpg" />
+<meta property="og:url" content="https://romancreativestudio.co/" />
+<meta property="og:title" content="Roman Creative Studio | Digital Agency — Design. Strategy. Growth." />
+<meta property="og:description" content="Roman Creative Studio — Premium digital agency helping businesses build, grow, and scale through strategy, design, and technology." />
+<meta property="og:image" content="https://romancreativestudio.co/assets/brand/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Roman Creative Studio — Design. Strategy. Growth." />
+<meta property="og:locale" content="en_US" />
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Roman Creative Studio" />
-<meta name="twitter:description" content="Premium digital agency building experiences that grow businesses." />
+<meta name="twitter:url" content="https://romancreativestudio.co/" />
+<meta name="twitter:title" content="Roman Creative Studio | Digital Agency — Design. Strategy. Growth." />
+<meta name="twitter:description" content="Roman Creative Studio — Premium digital agency helping businesses build, grow, and scale through strategy, design, and technology." />
+<meta name="twitter:image" content="https://romancreativestudio.co/assets/brand/og-image.jpg" />
+<meta name="twitter:image:alt" content="Roman Creative Studio — Design. Strategy. Growth." />
+
+<!-- PWA / Icons -->
+<link rel="manifest" href="/site.webmanifest" />
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/assets/brand/favicon-16x16.png" />
+<meta name="theme-color" content="#121417" />
 
 <!-- Schema.org -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "ProfessionalService",
-  "name": "Roman Creative Studio",
-  "description": "Premium digital agency helping businesses build, grow, and scale their digital presence.",
-  "url": "https://romancreativestudio.com",
-  "serviceType": "Web Design",
-  "areaServed": "United States",
-  "priceRange": "$$$"
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://romancreativestudio.co/#organization",
+      "name": "Roman Creative Studio",
+      "url": "https://romancreativestudio.co/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://romancreativestudio.co/assets/brand/android-chrome-512x512.png",
+        "width": 512,
+        "height": 512
+      },
+      "email": "mailto:Alexander@romancreativestudio.co",
+      "founder": {
+        "@type": "Person",
+        "name": "Alexander Roman"
+      },
+      "description": "Roman Creative Studio is a premium digital agency helping businesses build, grow, and scale their digital presence through strategy, design, and technology."
+    },
+    {
+      "@type": ["LocalBusiness", "ProfessionalService"],
+      "@id": "https://romancreativestudio.co/#localbusiness",
+      "name": "Roman Creative Studio",
+      "url": "https://romancreativestudio.co/",
+      "image": "https://romancreativestudio.co/assets/brand/og-image.jpg",
+      "description": "Premium digital agency helping businesses build, grow, and scale their digital presence.",
+      "priceRange": "$$",
+      "areaServed": {
+        "@type": "Country",
+        "name": "United States"
+      },
+      "email": "mailto:Alexander@romancreativestudio.co",
+      "parentOrganization": { "@id": "https://romancreativestudio.co/#organization" },
+      "makesOffer": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Website Design & Development" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "SEO & Local Visibility" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Digital Strategy & Automation" } }
+      ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://romancreativestudio.co/#website",
+      "url": "https://romancreativestudio.co/",
+      "name": "Roman Creative Studio",
+      "publisher": { "@id": "https://romancreativestudio.co/#organization" },
+      "inLanguage": "en-US"
+    }
+  ]
 }
 </script>
 
@@ -76,7 +134,7 @@
       <!-- Brand -->
       <a href="index.html" class="nav-brand" aria-label="Roman Creative Studio home">
         <div class="nav-brand-mark" aria-hidden="true">
-          <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" />
+          <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" width="72" height="72" />
         </div>
         <span class="nav-brand-text">Roman Creative Studio</span>
       </a>
@@ -137,7 +195,7 @@
     <div class="nav-drawer-header">
       <a href="index.html" class="nav-brand">
         <div class="nav-brand-mark">
-          <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" />
+          <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" width="72" height="72" />
         </div>
         <span class="nav-brand-text">Roman Creative Studio</span>
       </a>
@@ -607,7 +665,7 @@
     <div class="container">
       <div class="founder-grid">
         <div style="max-width:380px;">
-          <img src="assets/images/founder.jpg" alt="Alexander Roman, Founder of Roman Creative Studio" style="width:100%;border-radius:var(--radius-3xl);display:block;object-fit:cover;aspect-ratio:3/4;" />
+          <img src="assets/images/founder.jpg" alt="Alexander Roman, Founder of Roman Creative Studio" width="760" height="978" loading="lazy" decoding="async" style="width:100%;border-radius:var(--radius-3xl);display:block;object-fit:cover;aspect-ratio:3/4;" />
         </div>
         <div data-animate>
           <span class="eyebrow">A Note from the Founder</span>
@@ -654,7 +712,7 @@
       <div class="footer-brand">
         <a href="index.html" class="nav-brand" aria-label="Roman Creative Studio home">
           <div class="nav-brand-mark" aria-hidden="true">
-            <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" />
+            <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" width="72" height="72" />
           </div>
           <span class="nav-brand-text">Roman Creative Studio</span>
         </a>
