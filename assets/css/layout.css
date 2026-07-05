@@ -141,4 +141,13 @@
 
 @media (max-width: 640px) {
   .grid-2 { grid-template-columns: 1fr; }
+
+  /* Many pages (process.html, portfolio.html, book.html, blog.html, both
+     service pages, etc.) lay out one-off sections with an inline
+     grid-template-columns and never had a responsive fallback, so on
+     phones they hold their desktop column count and push content off
+     the right edge of the viewport. None of these are meant to stay
+     multi-column at phone widths, so collapse any of them uniformly
+     rather than patching each inline style individually. */
+  [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
 }

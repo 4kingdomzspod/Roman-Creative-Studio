@@ -35,6 +35,15 @@
 
 .btn:active { transform: translateY(1px); }
 
+/* Long CTA copy ("Book a Free Discovery Call", "Book My Free Church Site
+   Audit", etc.) combined with white-space: nowrap above overflows the
+   viewport on narrow phones since the button refuses to break onto a
+   second line. Only relax that below the width where it actually starts
+   happening — every wider screen keeps the single-line button as-is. */
+@media (max-width: 400px) {
+  .btn { white-space: normal; text-align: center; }
+}
+
 /* Primary */
 .btn-primary {
   background: var(--color-brand);
