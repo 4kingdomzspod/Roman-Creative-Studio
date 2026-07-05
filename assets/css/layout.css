@@ -135,8 +135,13 @@
   /* contact.html's info/form layout is a hard-coded inline two-column grid
      (1fr 1.4fr) with no responsive fallback, so the form column sits
      entirely off-screen on phones/small tablets. Collapse it to a single
-     column to match every other two-column section on the site. */
+     column to match every other two-column section on the site. Grid
+     tracks default to min-width: auto, so an unbreakable string inside
+     (e.g. the email address) can still force the single 1fr track wider
+     than the viewport unless the items are allowed to shrink below their
+     content's intrinsic width. */
   .contact-grid { grid-template-columns: 1fr !important; }
+  .contact-grid > * { min-width: 0; }
 }
 
 @media (max-width: 640px) {
