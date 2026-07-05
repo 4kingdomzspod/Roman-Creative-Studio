@@ -445,6 +445,7 @@
   background: rgba(0,0,0,0.65);
   z-index: calc(var(--z-overlay) - 1);
   opacity: 0;
+  pointer-events: none;
   transition: opacity var(--transition-slow);
 }
 
@@ -464,7 +465,7 @@
   border-left: 1px solid rgba(212,175,55,0.15);
 }
 
-.nav-overlay.open { opacity: 1; }
+.nav-overlay.open { opacity: 1; pointer-events: auto; }
 .nav-drawer.open  { right: 0; }
 
 .nav-drawer-header {
@@ -513,11 +514,19 @@
 
 @media (max-width: 1024px) {
   .nav-links,
-  .nav-actions .btn-secondary { display: none; }
+  .nav-actions { display: none; }
   .nav-dropdown { display: none; }
   .nav-hamburger { display: flex; align-items: center; }
   .nav-overlay,
   .nav-drawer  { display: block; }
+}
+
+/* Below ~480px the full "Roman Creative Studio" wordmark next to the logo
+   mark no longer fits alongside the menu button without overflowing the
+   viewport. The logo mark itself already carries the studio name, so drop
+   the redundant text label rather than shrink/crop the mark. */
+@media (max-width: 480px) {
+  .nav-brand-text { display: none; }
 }
 
 
@@ -794,6 +803,15 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--space-8);
+}
+
+/* index.html and about.html force this to a fixed 2-column layout via an
+   inline style for the desktop design. At narrow phone widths that fixed
+   2-column grid doesn't leave enough room for the large stat numbers and
+   overflows the viewport, so collapse it back to a single column below
+   the point where the two-column layout stops fitting. */
+@media (max-width: 520px) {
+  .metrics-grid { grid-template-columns: 1fr !important; }
 }
 
 .metric-item { text-align: center; }

@@ -131,6 +131,12 @@
   .grid-3,
   .grid-4 { grid-template-columns: 1fr; }
   .section-header { margin-bottom: var(--space-10); }
+
+  /* contact.html's info/form layout is a hard-coded inline two-column grid
+     (1fr 1.4fr) with no responsive fallback, so the form column sits
+     entirely off-screen on phones/small tablets. Collapse it to a single
+     column to match every other two-column section on the site. */
+  .contact-grid { grid-template-columns: 1fr !important; }
 }
 
 @media (max-width: 640px) {
