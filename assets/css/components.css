@@ -1606,3 +1606,240 @@
   line-height: 1;
   margin-bottom: var(--space-3);
 }
+
+
+/* ════════════════════════════════════════════════════════════
+   PORTFOLIO — INDUSTRY TILES
+   Used on the portfolio hub (portfolio.html) to route visitors
+   into an industry-specific case study page.
+   ════════════════════════════════════════════════════════════ */
+
+.industry-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-6);
+}
+
+.industry-tile {
+  display: block;
+  padding: var(--space-8);
+  border-radius: var(--radius-2xl);
+  background: var(--color-surface);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-decoration: none;
+  transition:
+    box-shadow var(--transition-slow),
+    transform var(--transition-slow),
+    border-color var(--transition-slow);
+}
+
+.industry-tile:hover,
+.industry-tile:focus-visible {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-3px);
+  border-color: var(--color-brand-border);
+}
+
+.industry-tile-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--color-brand-subtle);
+  color: var(--color-brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-5);
+}
+
+.industry-tile h3 {
+  font-size: var(--text-xl);
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.industry-tile p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.industry-tile-count {
+  display: inline-block;
+  margin-top: var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-brand);
+}
+
+.industry-tile.is-coming-soon .industry-tile-count { color: var(--color-text-muted); }
+
+
+/* ════════════════════════════════════════════════════════════
+   CASE STUDY — reusable component
+   One canonical card layout for every industry category page.
+   Keeps Business name / Industry / Before / Solution / Results /
+   Features / CTA consistent site-wide as new industries are added.
+   ════════════════════════════════════════════════════════════ */
+
+.case-study-grid {
+  display: grid;
+  /* Stays below the narrowest supported viewport (320px) minus container
+     padding so a single column never forces horizontal overflow. */
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: var(--space-8);
+}
+
+.case-study-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--color-surface);
+  transition:
+    box-shadow var(--transition-slow),
+    transform var(--transition-slow),
+    border-color var(--transition-slow);
+}
+
+.case-study-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-brand-border);
+}
+
+.case-study-thumb {
+  aspect-ratio: 16/10;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.case-study-tag {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.case-study-body {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+}
+
+.case-study-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.case-study-meta .badge { font-size: 12px; }
+
+.case-study-location {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.case-study-body h3 {
+  font-size: var(--text-xl);
+  color: var(--color-text);
+}
+
+.case-study-field-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-brand);
+  margin-bottom: var(--space-1);
+}
+
+.case-study-field p {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--leading-relaxed);
+}
+
+.case-study-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.case-study-feature-tag {
+  padding: 0.2rem 0.6rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 9999px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.case-study-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: var(--space-4);
+  margin-top: auto;
+}
+
+.case-study-stat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.case-study-stat strong {
+  color: var(--color-brand);
+  font-weight: 700;
+}
+
+.case-study-cta {
+  margin-top: var(--space-2);
+}
+
+/* Coming-soon state for industries without a published case study yet */
+.case-study-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-16) var(--space-8);
+  border-radius: var(--radius-2xl);
+  border: 1px dashed rgba(255,255,255,0.18);
+  background: var(--color-surface);
+}
+
+.case-study-empty h3 {
+  font-size: var(--text-2xl);
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+}
+
+.case-study-empty p {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  max-width: 480px;
+  margin-inline: auto;
+  margin-bottom: var(--space-6);
+  line-height: var(--leading-relaxed);
+}

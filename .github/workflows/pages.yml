@@ -78,6 +78,9 @@ jobs:
           # ── Phase 5: Service landing pages
           [ -d services ]  && cp -r services  _site/
 
+          # ── Phase 6: Portfolio hub + industry case study pages
+          [ -d portfolio ]  && cp -r portfolio  _site/
+
           # ── NEVER DEPLOYED (stays in repo for team access only):
           #   agency/          — internal company OS, SOPs, finances, HR
           #   docs/            — legacy internal docs location (migrating to agency/)
