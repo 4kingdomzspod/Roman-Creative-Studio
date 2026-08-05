@@ -5,9 +5,61 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portfolio — Roman Creative Studio</title>
   <link rel="icon" type="image/svg+xml" href="assets/brand/favicon.svg">
-  <meta name="description" content="See the websites we've built for dental practices and churches. Real projects, real results." />
-  <meta property="og:title" content="Portfolio — Roman Creative Studio" />
+  <meta name="description" content="Browse Roman Creative Studio's portfolio by industry — church, dental, restaurant, and home services websites built to convert." />
+  <link rel="canonical" href="https://romancreativestudio.co/portfolio.html" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph -->
+  <meta property="og:site_name" content="Roman Creative Studio" />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://romancreativestudio.co/portfolio.html" />
+  <meta property="og:title" content="Portfolio — Roman Creative Studio" />
+  <meta property="og:description" content="Browse Roman Creative Studio's portfolio by industry — church, dental, restaurant, and home services websites built to convert." />
+  <meta property="og:image" content="https://romancreativestudio.co/assets/brand/og-image.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Roman Creative Studio — Design. Strategy. Growth." />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://romancreativestudio.co/portfolio.html" />
+  <meta name="twitter:title" content="Portfolio — Roman Creative Studio" />
+  <meta name="twitter:description" content="Browse Roman Creative Studio's portfolio by industry — church, dental, restaurant, and home services websites built to convert." />
+  <meta name="twitter:image" content="https://romancreativestudio.co/assets/brand/og-image.jpg" />
+  <meta name="twitter:image:alt" content="Roman Creative Studio — Design. Strategy. Growth." />
+
+  <!-- PWA / Icons -->
+  <link rel="manifest" href="/site.webmanifest" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/brand/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/brand/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/brand/favicon-16x16.png" />
+  <meta name="theme-color" content="#121417" />
+
+  <!-- Schema.org -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Portfolio — Roman Creative Studio",
+    "url": "https://romancreativestudio.co/portfolio.html",
+    "description": "Browse Roman Creative Studio's portfolio by industry — church, dental, restaurant, and home services websites built to convert.",
+    "isPartOf": { "@id": "https://romancreativestudio.co/#website" },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://romancreativestudio.co/" },
+        { "@type": "ListItem", "position": 2, "name": "Portfolio", "item": "https://romancreativestudio.co/portfolio.html" }
+      ]
+    },
+    "hasPart": [
+      { "@type": "CollectionPage", "name": "Church Website Case Studies", "url": "https://romancreativestudio.co/portfolio/churches.html" },
+      { "@type": "CollectionPage", "name": "Dental Website Case Studies", "url": "https://romancreativestudio.co/portfolio/dentists.html" },
+      { "@type": "CollectionPage", "name": "Restaurant Website Case Studies", "url": "https://romancreativestudio.co/portfolio/restaurants.html" },
+      { "@type": "CollectionPage", "name": "Home Services Website Case Studies", "url": "https://romancreativestudio.co/portfolio/home-services.html" }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
@@ -15,28 +67,6 @@
   <link rel="stylesheet" href="assets/css/base.css" />
   <link rel="stylesheet" href="assets/css/layout.css" />
   <link rel="stylesheet" href="assets/css/components.css" />
-  <style>
-    .portfolio-filter { display: flex; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-10); }
-    .filter-btn { padding: var(--space-2) var(--space-5); border-radius: 9999px; border: 1.5px solid rgba(255,255,255,0.12); background: #1B1E23; color: rgba(240,239,233,0.70); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all var(--duration-200) var(--ease-out); }
-    .filter-btn:hover { border-color: rgba(212,175,55,0.40); color: #D4AF37; }
-    .filter-btn.active { background: #D4AF37; border-color: #D4AF37; color: #0C0E11; }
-    .portfolio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-8); }
-    @media (max-width: 768px) { .portfolio-grid { grid-template-columns: 1fr; } }
-    .portfolio-card { border-radius: var(--radius-2xl); overflow: hidden; border: 1px solid rgba(255,255,255,0.08); background: #151719; transition: transform var(--duration-300) var(--ease-out), box-shadow var(--duration-300) var(--ease-out); }
-    .portfolio-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-xl); border-color: rgba(212,175,55,0.28); }
-    .portfolio-thumb { aspect-ratio: 16/10; background: #0C0E11; position: relative; overflow: hidden; }
-    .portfolio-thumb-inner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-    .browser-mockup { background: white; border-radius: 8px; width: 85%; box-shadow: 0 8px 32px rgba(0,0,0,0.35); overflow: hidden; }
-    .browser-bar { background: #f1f1f1; padding: 8px 12px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e0e0e0; }
-    .browser-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .browser-url { flex: 1; background: white; border-radius: 4px; padding: 3px 8px; font-size: 10px; color: #777; border: 1px solid #e0e0e0; }
-    .browser-content { aspect-ratio: 16/9; overflow: hidden; }
-    .portfolio-tag { position: absolute; top: var(--space-4); left: var(--space-4); background: rgba(255,255,255,0.12); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 9999px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: white; }
-    .portfolio-info { padding: var(--space-6); }
-    .portfolio-meta { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
-    .portfolio-stat { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: rgba(240,239,233,0.50); }
-    .portfolio-stat strong { color: #D4AF37; font-weight: 700; }
-  </style>
 </head>
 <body>
 
@@ -48,7 +78,7 @@
       <div class="nav-inner">
         <a href="index.html" class="nav-brand">
           <div class="nav-brand-mark">
-            <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" />
+            <img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" width="72" height="72" />
           </div>
           <span class="nav-brand-text">Roman Creative Studio</span>
         </a>
@@ -90,7 +120,7 @@
     <div class="nav-drawer" id="nav-drawer" role="dialog" aria-modal="true" aria-label="Navigation menu">
       <div class="nav-drawer-header">
         <a href="index.html" class="nav-brand">
-          <div class="nav-brand-mark"><img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" /></div>
+          <div class="nav-brand-mark"><img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" width="72" height="72" /></div>
           <span class="nav-brand-text">Roman Creative Studio</span>
         </a>
         <button class="nav-drawer-close" aria-label="Close navigation menu">
@@ -123,7 +153,7 @@
           <span class="eyebrow" style="color: #D4AF37;">Our Work</span>
           <h1 class="h1" style="color: #F0EFE9; margin-top: var(--space-3);">Websites That Work as Hard as You Do</h1>
           <p style="color: rgba(240,239,233,0.55); font-size: var(--text-lg); margin-top: var(--space-4); line-height: 1.7;">
-            Every project here was built with one goal: measurable growth for the client. Not just good-looking — genuinely effective.
+            Every project here was built with one goal: measurable growth for the client. Browse case studies by industry to see results from businesses like yours.
           </p>
         </div>
         <!-- Stats bar -->
@@ -144,237 +174,52 @@
       </div>
     </section>
 
-    <!-- PORTFOLIO GRID -->
-    <section class="section" style="background: #121417;">
+    <!-- INDUSTRY TILES -->
+    <section class="section" aria-label="Browse portfolio by industry" style="background: #121417;">
       <div class="container">
-
-        <div class="portfolio-filter" role="group" aria-label="Filter portfolio by type">
-          <button class="filter-btn active" data-filter="all">All Projects</button>
-          <button class="filter-btn" data-filter="dental">Dental</button>
-          <button class="filter-btn" data-filter="church">Church</button>
+        <div class="section-header" data-animate="fade-up">
+          <span class="eyebrow">Browse by Industry</span>
+          <h2 class="h2" style="color: #F0EFE9;">Find Work From Businesses Like Yours</h2>
+          <p style="color: rgba(240,239,233,0.65);">Every industry has different visitors, different objections, and different goals. See how we've solved for each one.</p>
         </div>
 
-        <div class="portfolio-grid">
+        <div class="industry-tile-grid" data-animate="fade-up">
 
-          <!-- Project 1: Dental -->
-          <div class="portfolio-card" data-category="dental" data-animate="fade-up">
-            <div class="portfolio-thumb" style="background: linear-gradient(135deg, #0f2044 0%, #1e4080 100%);">
-              <span class="portfolio-tag">Dental</span>
-              <div class="portfolio-thumb-inner">
-                <div class="browser-mockup">
-                  <div class="browser-bar">
-                    <span class="browser-dot" style="background:#ff5f57;"></span>
-                    <span class="browser-dot" style="background:#ffbd2e;"></span>
-                    <span class="browser-dot" style="background:#28c840;"></span>
-                    <span class="browser-url">brightsmile-dental.com</span>
-                  </div>
-                  <div class="browser-content" style="background: linear-gradient(180deg, #1a3a6e 0%, #2563eb 100%); display: flex; align-items: center; justify-content: center; padding: 16px;">
-                    <div style="text-align: center;">
-                      <div style="width: 40px; height: 40px; border-radius: 50%; background: white; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#2563eb" stroke-width="1.5"/><path d="M7 11.5s1 2 4 2 4-2 4-2" stroke="#2563eb" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-                      <p style="color: white; font-weight: 700; font-size: 11px; margin: 0;">Bright Smile Dental</p>
-                      <p style="color: rgba(255,255,255,0.6); font-size: 9px; margin: 4px 0 0;">Your Smile, Our Priority</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <a href="portfolio/churches.html" class="industry-tile">
+            <div class="industry-tile-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3v4M9 5h4M6 9h10l1.5 10H4.5L6 9z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <div class="portfolio-info">
-              <div class="portfolio-meta">
-                <span style="background: rgba(212,175,55,0.12); color: #D4AF37; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
-                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Atlanta, GA</span>
-              </div>
-              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Bright Smile Dental</h3>
-              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Complete rebrand and new website for a family practice wanting to attract higher-value cosmetic cases. New patient inquiries doubled within 60 days.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
-                <div class="portfolio-stat"><strong>+112%</strong> New Patients</div>
-                <div class="portfolio-stat"><strong>0.8s</strong> Load Time</div>
-                <div class="portfolio-stat"><strong>4.6&times;</strong> ROI</div>
-              </div>
-            </div>
-          </div>
+            <h3>Churches</h3>
+            <p>Visitor-focused websites that help first-time guests feel welcome before they walk in the door.</p>
+            <span class="industry-tile-count">3 Case Studies</span>
+          </a>
 
-          <!-- Project 2: Church -->
-          <div class="portfolio-card" data-category="church" data-animate="fade-up" style="animation-delay: 0.1s;">
-            <div class="portfolio-thumb" style="background: linear-gradient(135deg, #2d1b69 0%, #7c3aed 100%);">
-              <span class="portfolio-tag">Church</span>
-              <div class="portfolio-thumb-inner">
-                <div class="browser-mockup">
-                  <div class="browser-bar">
-                    <span class="browser-dot" style="background:#ff5f57;"></span>
-                    <span class="browser-dot" style="background:#ffbd2e;"></span>
-                    <span class="browser-dot" style="background:#28c840;"></span>
-                    <span class="browser-url">gracecommunity.church</span>
-                  </div>
-                  <div class="browser-content" style="background: linear-gradient(180deg, #3b0764 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; padding: 16px;">
-                    <div style="text-align: center;">
-                      <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3v4M9 5h4M6 9h10l1.5 10H4.5L6 9z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-                      <p style="color: white; font-weight: 700; font-size: 11px; margin: 0;">Grace Community Church</p>
-                      <p style="color: rgba(255,255,255,0.6); font-size: 9px; margin: 4px 0 0;">All Are Welcome Here</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <a href="portfolio/dentists.html" class="industry-tile">
+            <div class="industry-tile-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M7.5 11.5s1 2 3.5 2 3.5-2 3.5-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </div>
-            <div class="portfolio-info">
-              <div class="portfolio-meta">
-                <span style="background: rgba(124,58,237,0.15); color: #a78bfa; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
-                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Nashville, TN</span>
-              </div>
-              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Grace Community Church</h3>
-              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Modern redesign focused on helping first-time visitors feel welcomed before they even walk through the door. Online giving increased 67% in the first quarter.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
-                <div class="portfolio-stat"><strong>+67%</strong> Online Giving</div>
-                <div class="portfolio-stat"><strong>+89%</strong> New Visitors</div>
-                <div class="portfolio-stat"><strong>4.8&#9733;</strong> Review</div>
-              </div>
-            </div>
-          </div>
+            <h3>Dentists</h3>
+            <p>Patient-first sites with online booking built to turn searches into scheduled appointments.</p>
+            <span class="industry-tile-count">3 Case Studies</span>
+          </a>
 
-          <!-- Project 3: Dental -->
-          <div class="portfolio-card" data-category="dental" data-animate="fade-up" style="animation-delay: 0.15s;">
-            <div class="portfolio-thumb" style="background: linear-gradient(135deg, #064e3b 0%, #059669 100%);">
-              <span class="portfolio-tag">Dental</span>
-              <div class="portfolio-thumb-inner">
-                <div class="browser-mockup">
-                  <div class="browser-bar">
-                    <span class="browser-dot" style="background:#ff5f57;"></span>
-                    <span class="browser-dot" style="background:#ffbd2e;"></span>
-                    <span class="browser-dot" style="background:#28c840;"></span>
-                    <span class="browser-url">parkfamilydental.com</span>
-                  </div>
-                  <div class="browser-content" style="background: linear-gradient(180deg, #065f46 0%, #10b981 100%); display: flex; align-items: center; justify-content: center; padding: 16px;">
-                    <div style="text-align: center;">
-                      <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="white" stroke-width="1.5"/><path d="M8 11.5s1 2 3 2 3-2 3-2" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg></div>
-                      <p style="color: white; font-weight: 700; font-size: 11px; margin: 0;">Park Family Dental</p>
-                      <p style="color: rgba(255,255,255,0.6); font-size: 9px; margin: 4px 0 0;">Gentle Care for Every Age</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <a href="portfolio/restaurants.html" class="industry-tile is-coming-soon">
+            <div class="industry-tile-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M6 2v7a2 2 0 002 2v9M6 2v5M8 2v5M4 2v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 2s-2 2-2 6 2 6 2 6v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <div class="portfolio-info">
-              <div class="portfolio-meta">
-                <span style="background: rgba(212,175,55,0.12); color: #D4AF37; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
-                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Phoenix, AZ</span>
-              </div>
-              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Park Family Dental</h3>
-              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">High-converting landing page funnel built to capture new patient leads from Google Ads. Cost-per-lead dropped from $87 to $31 within 45 days.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
-                <div class="portfolio-stat"><strong>-64%</strong> Cost/Lead</div>
-                <div class="portfolio-stat"><strong>+203%</strong> Conversions</div>
-                <div class="portfolio-stat"><strong>97</strong> PageSpeed</div>
-              </div>
-            </div>
-          </div>
+            <h3>Restaurants</h3>
+            <p>Menu-forward, mobile-first websites built to fill tables and grow online ordering.</p>
+            <span class="industry-tile-count">Coming Soon</span>
+          </a>
 
-          <!-- Project 4: Church -->
-          <div class="portfolio-card" data-category="church" data-animate="fade-up" style="animation-delay: 0.2s;">
-            <div class="portfolio-thumb" style="background: linear-gradient(135deg, #7c2d12 0%, #ea580c 100%);">
-              <span class="portfolio-tag">Church</span>
-              <div class="portfolio-thumb-inner">
-                <div class="browser-mockup">
-                  <div class="browser-bar">
-                    <span class="browser-dot" style="background:#ff5f57;"></span>
-                    <span class="browser-dot" style="background:#ffbd2e;"></span>
-                    <span class="browser-dot" style="background:#28c840;"></span>
-                    <span class="browser-url">riveroflifechurch.org</span>
-                  </div>
-                  <div class="browser-content" style="background: linear-gradient(180deg, #92400e 0%, #f97316 100%); display: flex; align-items: center; justify-content: center; padding: 16px;">
-                    <div style="text-align: center;">
-                      <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.15); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3v4M9 5h4M6 9h10l1.5 10H4.5L6 9z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-                      <p style="color: white; font-weight: 700; font-size: 11px; margin: 0;">River of Life Church</p>
-                      <p style="color: rgba(255,255,255,0.6); font-size: 9px; margin: 4px 0 0;">Flowing in Faith &amp; Community</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          <a href="portfolio/home-services.html" class="industry-tile is-coming-soon">
+            <div class="industry-tile-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 11l8-7 8 7M5.5 9.5V19a1 1 0 001 1h11a1 1 0 001-1V9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </div>
-            <div class="portfolio-info">
-              <div class="portfolio-meta">
-                <span style="background: rgba(234,88,12,0.15); color: #fb923c; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
-                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Dallas, TX</span>
-              </div>
-              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">River of Life Church</h3>
-              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Full website with sermon library, event calendar, and integrated online giving. Streaming attendance grew 140% after launch thanks to improved discoverability.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
-                <div class="portfolio-stat"><strong>+140%</strong> Stream Views</div>
-                <div class="portfolio-stat"><strong>+82%</strong> Giving</div>
-                <div class="portfolio-stat"><strong>4.9&#9733;</strong> Review</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Project 5: Dental -->
-          <div class="portfolio-card" data-category="dental" data-animate="fade-up" style="animation-delay: 0.05s;">
-            <div class="portfolio-thumb" style="background: linear-gradient(135deg, #1e3a5f 0%, #0ea5e9 100%);">
-              <span class="portfolio-tag">Dental</span>
-              <div class="portfolio-thumb-inner">
-                <div class="browser-mockup">
-                  <div class="browser-bar">
-                    <span class="browser-dot" style="background:#ff5f57;"></span>
-                    <span class="browser-dot" style="background:#ffbd2e;"></span>
-                    <span class="browser-dot" style="background:#28c840;"></span>
-                    <span class="browser-url">coastalsmilesdental.com</span>
-                  </div>
-                  <div class="browser-content" style="background: linear-gradient(180deg, #0c4a6e 0%, #38bdf8 100%); display: flex; align-items: center; justify-content: center; padding: 16px;">
-                    <div style="text-align: center;">
-                      <p style="color: white; font-weight: 700; font-size: 11px; margin: 0;">Coastal Smiles</p>
-                      <p style="color: rgba(255,255,255,0.7); font-size: 9px; margin: 4px 0 0;">Cosmetic &amp; Implant Specialists</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="portfolio-info">
-              <div class="portfolio-meta">
-                <span style="background: rgba(212,175,55,0.12); color: #D4AF37; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Dental</span>
-                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">San Diego, CA</span>
-              </div>
-              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Coastal Smiles Dental</h3>
-              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Cosmetic and implant specialist site with detailed service pages, before/after gallery, and virtual consultation booking. Positioned them as the premium choice in their market.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
-                <div class="portfolio-stat"><strong>+156%</strong> Implant Leads</div>
-                <div class="portfolio-stat"><strong>+44%</strong> Avg Case Value</div>
-                <div class="portfolio-stat"><strong>5&#9733;</strong> Review</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Project 6: Church -->
-          <div class="portfolio-card" data-category="church" data-animate="fade-up" style="animation-delay: 0.1s;">
-            <div class="portfolio-thumb" style="background: linear-gradient(135deg, #0f172a 0%, #334155 100%);">
-              <span class="portfolio-tag">Church</span>
-              <div class="portfolio-thumb-inner">
-                <div class="browser-mockup">
-                  <div class="browser-bar">
-                    <span class="browser-dot" style="background:#ff5f57;"></span>
-                    <span class="browser-dot" style="background:#ffbd2e;"></span>
-                    <span class="browser-dot" style="background:#28c840;"></span>
-                    <span class="browser-url">hopebridgechurch.com</span>
-                  </div>
-                  <div class="browser-content" style="background: linear-gradient(180deg, #1e293b 0%, #475569 100%); display: flex; align-items: center; justify-content: center; padding: 16px;">
-                    <div style="text-align: center;">
-                      <p style="color: white; font-weight: 700; font-size: 11px; margin: 0;">Hope Bridge Church</p>
-                      <p style="color: rgba(255,255,255,0.6); font-size: 9px; margin: 4px 0 0;">Building Bridges, Spreading Hope</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="portfolio-info">
-              <div class="portfolio-meta">
-                <span style="background: rgba(71,85,105,0.25); color: #94a3b8; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 9999px;">Church</span>
-                <span style="color: rgba(240,239,233,0.50); font-size: var(--text-sm);">Chicago, IL</span>
-              </div>
-              <h3 class="h4" style="color: #F0EFE9; margin-bottom: var(--space-2);">Hope Bridge Church</h3>
-              <p style="color: rgba(240,239,233,0.65); font-size: var(--text-sm); line-height: 1.6; margin-bottom: var(--space-4);">Multi-campus church with location finder, events, small groups directory, and full media library. Volunteer sign-ups tripled in the first month.</p>
-              <div style="display: flex; gap: var(--space-6); border-top: 1px solid rgba(255,255,255,0.08); padding-top: var(--space-4);">
-                <div class="portfolio-stat"><strong>3&times;</strong> Volunteers</div>
-                <div class="portfolio-stat"><strong>+91%</strong> Event Sign-ups</div>
-                <div class="portfolio-stat"><strong>4.9&#9733;</strong> Review</div>
-              </div>
-            </div>
-          </div>
+            <h3>Home Services</h3>
+            <p>Local-SEO-driven sites built for plumbers, electricians, HVAC, and contractors to win more calls.</p>
+            <span class="industry-tile-count">Coming Soon</span>
+          </a>
 
         </div>
       </div>
@@ -386,7 +231,7 @@
         <div class="section-header" data-animate="fade-up">
           <h2 class="h2" style="color: #F0EFE9;">What Our Clients Say</h2>
         </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6);">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--space-6);">
           <div data-animate="fade-up" class="card" style="padding: var(--space-6);">
             <div style="display: flex; gap: 2px; margin-bottom: var(--space-4);">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="#D4AF37" aria-hidden="true"><path d="M8 1.5l1.9 3.8 4.2.6-3 3 .7 4.2L8 11l-3.8 2 .7-4.2-3-3 4.2-.6z"/></svg>
@@ -439,7 +284,7 @@
         <div data-animate="fade-up">
           <span class="eyebrow" style="color: #C9A84C;">Ready to Get Results Like These?</span>
           <h2 class="h2" style="color: white; margin-top: var(--space-3); margin-bottom: var(--space-4);">Your Website Could Be Next</h2>
-          <p style="color: rgba(255,255,255,0.75); margin-bottom: var(--space-8);">Book a free 30-minute call. We'll audit your current site and show you exactly where you're leaving patients — or congregation members — on the table.</p>
+          <p style="color: rgba(255,255,255,0.75); margin-bottom: var(--space-8);">Book a free 30-minute call. We'll audit your current site and show you exactly where you're leaving customers on the table — whatever industry you're in.</p>
           <div style="display: flex; gap: var(--space-4); justify-content: center; flex-wrap: wrap;">
             <a href="book.html" class="btn btn-primary" style="font-size: var(--text-lg); padding: var(--space-4) var(--space-8);">Book a Free Discovery Call</a>
             <a href="pricing.html" class="btn btn-ghost-dark" style="font-size: var(--text-lg); padding: var(--space-4) var(--space-8);">See Pricing</a>
@@ -456,7 +301,7 @@
       <div class="footer-top">
         <div>
           <a href="index.html" class="nav-brand" style="margin-bottom: var(--space-4); display: inline-flex;">
-            <div class="nav-brand-mark"><img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" /></div>
+            <div class="nav-brand-mark"><img src="assets/images/image-1782772947464.jpg" alt="Roman Creative Studio logo" width="72" height="72" /></div>
             <span class="nav-brand-text">Roman Creative Studio</span>
           </a>
           <p style="color: rgba(240,239,233,0.55); font-size: var(--text-sm); line-height: 1.7; max-width: 280px; margin-top: var(--space-3);">Premium digital agency. We help businesses build, grow, and scale their digital presence.</p>
@@ -464,11 +309,11 @@
         <div>
           <p style="font-weight: 600; color: #F0EFE9; margin-bottom: var(--space-4);">Industries</p>
           <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--space-2);">
-            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Healthcare &amp; Dental</a></li>
-            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Churches &amp; Nonprofits</a></li>
-            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Startups &amp; Tech</a></li>
-            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Local Businesses</a></li>
-            <li><a href="#" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">See All &rarr;</a></li>
+            <li><a href="portfolio/churches.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Churches</a></li>
+            <li><a href="portfolio/dentists.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Dentists</a></li>
+            <li><a href="portfolio/restaurants.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Restaurants</a></li>
+            <li><a href="portfolio/home-services.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">Home Services</a></li>
+            <li><a href="portfolio.html" style="color: rgba(240,239,233,0.55); text-decoration: none; font-size: var(--text-sm);">See All &rarr;</a></li>
           </ul>
         </div>
         <div>
@@ -506,23 +351,5 @@
   </footer>
 
   <script src="assets/js/main.js"></script>
-  <script>
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const portfolioCards = document.querySelectorAll('.portfolio-card');
-    filterBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const filter = btn.dataset.filter;
-        portfolioCards.forEach(card => {
-          if (filter === 'all' || card.dataset.category === filter) {
-            card.style.display = '';
-          } else {
-            card.style.display = 'none';
-          }
-        });
-      });
-    });
-  </script>
 </body>
 </html>

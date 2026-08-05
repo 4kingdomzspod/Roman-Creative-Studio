@@ -173,11 +173,19 @@
   --text-xl:   1.25rem;
   --text-2xl:  1.5rem;
   --text-3xl:  1.875rem;
-  --text-4xl:  2.25rem;
-  --text-5xl:  3rem;
-  --text-6xl:  3.75rem;
-  --text-7xl:  4.5rem;
-  --text-8xl:  6rem;
+
+  /* These large display sizes had no responsive scaling anywhere in the
+     codebase — a fixed 4.5-6rem (72-96px) heading doesn't fit a 320-375px
+     phone screen, and since hero/section wrappers use overflow: hidden
+     for their decorative background effects, the excess text was being
+     silently clipped instead of visibly overflowing. clamp() keeps the
+     exact desktop size (the max value, unchanged from before) and scales
+     down smoothly on narrower viewports instead. */
+  --text-4xl:  clamp(1.75rem, 1.523rem + 1.14vw, 2.25rem);
+  --text-5xl:  clamp(2rem,    1.545rem + 2.27vw, 3rem);
+  --text-6xl:  clamp(2.25rem, 1.568rem + 3.41vw, 3.75rem);
+  --text-7xl:  clamp(2.5rem,  1.591rem + 4.55vw, 4.5rem);
+  --text-8xl:  clamp(2.75rem, 1.273rem + 7.39vw, 6rem);
 
   --weight-regular:   400;
   --weight-medium:    500;

@@ -42,9 +42,14 @@ jobs:
           for f in \
             index.html about.html portfolio.html pricing.html blog.html \
             contact.html book.html process.html privacy.html terms.html \
-            404.html sitemap.xml robots.txt CNAME .nojekyll; do
+            404.html sitemap.xml robots.txt CNAME .nojekyll \
+            site.webmanifest humans.txt security.txt _headers; do
             [ -f "$f" ] && cp "$f" _site/
           done
+
+          # SEO / security well-known files
+          mkdir -p _site/.well-known
+          [ -f .well-known/security.txt ] && cp .well-known/security.txt _site/.well-known/
 
           # ── Phase 3: Copy public asset folders
           # CSS, JS, and images are public — copy them
@@ -53,14 +58,17 @@ jobs:
           [ -d assets/js ]     && cp -r assets/js     _site/assets/
           [ -d assets/images ] && cp -r assets/images _site/assets/
 
-          # Public brand assets (logos and favicon used by the website)
+          # Public brand assets (logos, favicon, and social/PWA icons used by the website)
           mkdir -p _site/assets/brand
           for svg in \
             favicon.svg \
             logo-icon.svg logo-monogram.svg \
             logo-primary.svg logo-primary-white.svg \
             logo-stacked.svg logo-stacked-white.svg \
-            logo-wordmark.svg; do
+            logo-wordmark.svg \
+            favicon-16x16.png favicon-32x32.png apple-touch-icon.png \
+            android-chrome-192x192.png android-chrome-512x512.png \
+            og-image.jpg; do
             [ -f "assets/brand/$svg" ] && cp "assets/brand/$svg" _site/assets/brand/
           done
 
@@ -69,6 +77,9 @@ jobs:
 
           # ── Phase 5: Service landing pages
           [ -d services ]  && cp -r services  _site/
+
+          # ── Phase 6: Portfolio hub + industry case study pages
+          [ -d portfolio ]  && cp -r portfolio  _site/
 
           # ── NEVER DEPLOYED (stays in repo for team access only):
           #   agency/          — internal company OS, SOPs, finances, HR

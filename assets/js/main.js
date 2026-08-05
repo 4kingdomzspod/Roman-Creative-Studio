@@ -28,23 +28,33 @@
   function openDrawer() {
     drawer?.classList.add('open');
     overlay?.classList.add('open');
+    hamburger?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
     closeBtn?.focus();
   }
 
-  function closeDrawer() {
+  function closeDrawer(returnFocus = true) {
     drawer?.classList.remove('open');
     overlay?.classList.remove('open');
+    hamburger?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
-    hamburger?.focus();
+    if (returnFocus) hamburger?.focus();
   }
 
   hamburger?.addEventListener('click', openDrawer);
-  closeBtn?.addEventListener('click', closeDrawer);
-  overlay?.addEventListener('click', closeDrawer);
+  closeBtn?.addEventListener('click', () => closeDrawer());
+  overlay?.addEventListener('click', () => closeDrawer());
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && drawer?.classList.contains('open')) closeDrawer();
+  });
+
+  /* Close the drawer as soon as a nav link inside it is activated, so it
+     doesn't stay visibly open during the page transition (or on bfcache
+     restore when navigating back). Don't steal focus back to the
+     hamburger here — the browser is navigating away. */
+  document.querySelectorAll('.nav-drawer-links a, .nav-drawer-cta a').forEach(link => {
+    link.addEventListener('click', () => closeDrawer(false));
   });
 
   /* ── NAV DROPDOWN (keyboard) ──────────────────────────────── */
