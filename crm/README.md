@@ -1,6 +1,6 @@
 # RCS CRM Builder v1
 
-A single Google Apps Script that turns a blank Google Sheet into the Roman Creative Studio outreach/sales CRM: 11 sheets, formatted headers, filters, alternating rows, and dropdown validation pulled from a shared Settings sheet.
+A single Google Apps Script that turns a blank Google Sheet into the Roman Creative Studio outreach/sales CRM: 11 sheets, formatted headers, filters, alternating rows, dropdown validation pulled from a shared Settings sheet, and a live formula-driven Dashboard.
 
 Script: [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs)
 
@@ -8,7 +8,7 @@ Script: [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs)
 
 | Sheet | Purpose | Columns |
 |---|---|---|
-| Dashboard | Reserved for a future KPI/summary view — intentionally left blank in v1 | — |
+| Dashboard | Live KPI/pipeline/activity view — see below | — (formula-driven, no headers) |
 | Prospects | Master prospect list | Business, Industry, City, Website, Phone, Email, Contact, Priority, Status, Website Score, Last Contact, Next Follow Up, Notes |
 | Outreach Pipeline | Per-contact outreach stage tracking | Business, Stage, Contacted, Method, Response, Next Action, Owner, Notes |
 | Follow Ups | Due/overdue follow-up queue | Business, Due, Priority, Status, Reminder, Notes |
@@ -42,6 +42,34 @@ Applied validation dropdowns:
 
 Columns without an obvious matching list (e.g. Meetings.Type, Meetings.Outcome) are left as free text rather than forcing a dropdown that isn't backed by a real category.
 
+## Dashboard v1
+
+Unlike every other sheet, Dashboard holds no manually-entered records — every cell is a label or a live formula pulling from the other 10 sheets. Because of that, `buildDashboard_()` clears and redraws the whole sheet on every run instead of trying to detect what changed; the end state is always identical for the same underlying data, so this can never produce duplicate sections and never touches the real records on Prospects/Clients/Revenue/etc.
+
+**Key Metrics (8 cards)**, all `COUNTA`/`COUNTIF`/`COUNTIFS`/`SUMIFS` formulas against the other sheets — nothing hardcoded:
+
+| Card | Formula source |
+|---|---|
+| Total Prospects | Count of all rows in Prospects |
+| New Leads | Prospects where Status = "New" |
+| Contacted | Prospects where Status = "Contacted" |
+| Follow Ups Due | Follow Ups rows with a Due date on or before today |
+| Meetings Booked | Count of all logged rows in Meetings |
+| Proposals Sent | Count of Proposals with a Sent date filled in |
+| Active Clients | Clients where Status = "Active" |
+| Monthly Revenue | Sum of Revenue.Amount where Payment Date falls in the current calendar month and Paid is checked, using `EOMONTH(TODAY(), ...)` so the window always tracks the current month |
+
+**Pipeline Summary** — one row per value currently listed under Settings!Lead Status, each with a live `COUNTIF` against Prospects.Status. Reads the list length dynamically (blank-guarded up to 30 rows), so adding a new status in Settings is picked up on the next rebuild without any code change.
+
+**Recent Activity** — the 10 most recent Outreach Pipeline rows, sorted by Contacted date descending, via `SORT(FILTER(...))` wrapped in `IFERROR(...,"No outreach activity logged yet")` so an empty pipeline shows a message instead of a formula error.
+
+**Conversion & Client Metrics:**
+- **Outreach Conversion %** — Meetings Booked ÷ total rows logged in Outreach Pipeline (of everyone we logged a touch for, how many turned into a booked meeting).
+- **Proposal Close %** — Proposals with Status "Accepted" ÷ Proposals with a Sent date filled in.
+- **Client Count** — total rows in Clients, regardless of status (a companion to the Active Clients KPI card above, which is filtered to Active only).
+
+Both percentage formulas are wrapped in `IFERROR(...,0)` so an empty CRM shows 0% instead of a `#DIV/0!` error.
+
 ## Install steps
 
 1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data).
@@ -57,9 +85,10 @@ Re-running is always safe: it only creates sheets/headers/settings values that a
 ## Validation performed before delivery
 
 - Syntax-checked with `node --check` (Apps Script's V8 runtime is standard ES2015+ JavaScript).
-- Dry-run against a mocked Sheets API (Node) covering two full `buildRCSCRM()` runs back to back:
-  - Run 1 on a blank spreadsheet (default `Sheet1`) produced exactly 11 sheets, correctly renaming the default sheet to `Dashboard` instead of leaving an orphan tab.
-  - Manually inserted a row of data into Prospects, then ran `buildRCSCRM()` a second time.
-  - Confirmed: sheet count stayed at 11 (no duplicates), the inserted row's values were untouched, headers were unchanged, and validation rules were applied to the correct columns on Prospects and Proposals.
-  - No exceptions thrown in either run.
-- Because Apps Script's `SpreadsheetApp` API only exists inside Google's runtime, this dry run is the closest verification possible outside of actually running it in Sheets — final confirmation should happen on first real run per the install steps above.
+- Dry-run against a mocked Sheets API (Node), extended to cover `merge`/`breakApart`/`clear`/column-width calls the Dashboard build uses, across three back-to-back `buildRCSCRM()` runs:
+  1. **Blank CRM.** Produced exactly 11 sheets (default `Sheet1` renamed to `Dashboard`). Verified all 8 KPI formulas landed in the correct cells in the requested order, the Pipeline Summary block correctly reads `Settings!A2:A31`, the Recent Activity spill formula is in place with its `IFERROR` guard, and the row-40 spacer between Pipeline Summary and the metrics section is blank (no bleed-through between sections).
+  2. **Immediate re-run, no data changes.** Merge count and total populated-cell count on Dashboard were identical before and after (28 merges, 97 cells both times) — confirms nothing is duplicated or drifting on repeat runs.
+  3. **Added real rows to Prospects and Outreach Pipeline, then rebuilt.** Confirmed those rows were untouched by the dashboard rebuild, sheet count stayed at 11, and scanning column A for the "Key Metrics" header string found exactly one occurrence — no duplicate sections.
+  - No exceptions thrown across any of the three runs.
+- **Empty-CRM zero-value behavior** is verified by formula semantics rather than a live run (see caveat below): `COUNTA`/`COUNTIF`/`COUNTIFS`/`SUMIFS` all evaluate to `0` on empty ranges by definition, and the two percentage formulas and the Recent Activity spill are explicitly wrapped in `IFERROR` to turn what would otherwise be `#DIV/0!` or `#N/A` into `0`/a friendly message.
+- Because Apps Script's `SpreadsheetApp` API and its formula engine only exist inside Google's runtime, this dry run (structure, cell placement, idempotency, data preservation) is the closest verification possible outside of actually running it in Sheets — confirm live formula output on first real run per the install steps above.
