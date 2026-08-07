@@ -70,6 +70,22 @@ Unlike every other sheet, Dashboard holds no manually-entered records — every 
 
 Both percentage formulas are wrapped in `IFERROR(...,0)` so an empty CRM shows 0% instead of a `#DIV/0!` error.
 
+## Import Prospects v1
+
+**RCS CRM > Import Prospects...** opens a dialog with a file picker for a CSV of leads. The CSV is read client-side (`FileReader`) and its raw text is sent to `importProspectsFromCsv_` via `google.script.run` — no Drive API or Picker setup required, and no extra OAuth scopes beyond what the CRM already needs.
+
+**How it matches columns:** each CSV header is matched to a Prospects header by exact name (case-insensitive), plus three aliases grounded in the real column names used by `outreach/prospects.csv` — `Business Name` → `Business`, `Owner/Contact` → `Contact`, `Website Quality (1-10)` → `Website Score`. Any CSV column that still doesn't match anything (e.g. `Google Rating`, `Pain Points`, `Personalized Opening`, `Contacted`, `Follow-up Date` from `prospects.csv`) is skipped and listed back in the report as "not imported" — nothing is silently dropped without being surfaced, and nothing is force-mapped into the wrong field.
+
+**Duplicate detection:** a row is a duplicate if its Business + Website (both trimmed, case-insensitive) already exists in Prospects — checked against both the existing sheet data and other rows earlier in the same file, so importing the same file twice, or a file with repeated rows, only ever adds each business once.
+
+**What gets reported**, shown directly in the dialog after import:
+- **Imported** — new rows appended.
+- **Skipped** — duplicates (already in the sheet, or repeated within the file).
+- **Errors** — rows missing a Business Name (can't import a nameless prospect); each gets a row-numbered message.
+- Any CSV columns that couldn't be matched to a Prospects header.
+
+**Why it's safe to rerun:** duplicate checks are rebuilt from the live sheet on every call, so re-importing the same file (or a file with overlapping rows) only ever adds what's genuinely new. New rows are appended below the existing data with a single `setValues` call — nothing is cleared or rewritten, so existing rows, headers, banding, and validation dropdowns (all pre-applied by `buildRCSCRM()` across a generous future-proofed range) are untouched. The only formatting call the import re-runs is the Prospects filter, which is removed and recreated over the new full range so it actually covers the newly imported rows instead of going stale.
+
 ## Install steps
 
 1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data).
@@ -78,7 +94,7 @@ Both percentage formulas are wrapped in `IFERROR(...,0)` so an empty CRM shows 0
 4. **Save** the project (e.g. name it "RCS CRM Builder").
 5. In the function dropdown at the top of the editor, select **`buildRCSCRM`** and click **Run**.
 6. The first run will prompt for authorization — this is Google's standard OAuth consent for a script to edit its own spreadsheet. Review and click **Allow**.
-7. Switch back to the spreadsheet tab and refresh the page. An **RCS CRM** menu now appears in the menu bar — use **RCS CRM > Build / Update CRM** any time you want to re-run it (e.g. after adding a new sheet manually, or to re-apply formatting).
+7. Switch back to the spreadsheet tab and refresh the page. An **RCS CRM** menu now appears in the menu bar, with two items: **Build / Update CRM** (re-run any time to add missing sheets or re-apply formatting) and **Import Prospects...** (see above).
 
 Re-running is always safe: it only creates sheets/headers/settings values that are missing, never deletes or overwrites existing row data, and reformatting (freeze/filter/resize/colors/banding/validation) is reapplied cleanly every time.
 
@@ -92,3 +108,12 @@ Re-running is always safe: it only creates sheets/headers/settings values that a
   - No exceptions thrown across any of the three runs.
 - **Empty-CRM zero-value behavior** is verified by formula semantics rather than a live run (see caveat below): `COUNTA`/`COUNTIF`/`COUNTIFS`/`SUMIFS` all evaluate to `0` on empty ranges by definition, and the two percentage formulas and the Recent Activity spill are explicitly wrapped in `IFERROR` to turn what would otherwise be `#DIV/0!` or `#N/A` into `0`/a friendly message.
 - Because Apps Script's `SpreadsheetApp` API and its formula engine only exist inside Google's runtime, this dry run (structure, cell placement, idempotency, data preservation) is the closest verification possible outside of actually running it in Sheets — confirm live formula output on first real run per the install steps above.
+
+**Import Prospects** was dry-run separately (20 assertions, all passing) directly against `parseCsv_`/`importProspectsFromCsv_` with a mocked Sheets API:
+- The CSV parser was checked against a quoted field with an embedded comma, an escaped `""` quote, and a multi-line quoted field — all parsed correctly rather than breaking on a naive `split('\n')`.
+- **Blank CSV** (empty string) and **header-only CSV** both returned `imported: 0, skipped: 0, errors: 0` with no exception — the "blank CSV imports correctly" requirement.
+- A `prospects.csv`-shaped file (real header names, aliases and all) imported 2 valid rows correctly mapped through the three aliases, flagged 1 row with a missing Business Name as an error, and listed the 5 unmatched columns (`Google Rating`, `Pain Points`, `Personalized Opening`, `Contacted`, `Follow-up Date`) as not imported.
+- **Re-importing the exact same file** afterward produced `imported: 0, skipped: 2` and left the sheet at exactly the same row count — confirms rerun safety and duplicate skipping against existing data.
+- A file with the same business listed twice produced `imported: 1, skipped: 1` — within-batch duplicates are caught too, not just duplicates against the sheet.
+- A file with no recognizable Business column returned a clear error message and imported nothing, instead of guessing.
+- After all of the above, Prospects' filter, banding, and validation rules (captured from the original `buildRCSCRM()` run) were confirmed still present and untouched — appending rows doesn't disturb existing formatting.
