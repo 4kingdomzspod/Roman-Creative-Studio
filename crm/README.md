@@ -1,6 +1,6 @@
 # RCS CRM Builder v1
 
-A single Google Apps Script that turns a blank Google Sheet into the Roman Creative Studio outreach/sales CRM: 11 sheets, formatted headers, filters, alternating rows, dropdown validation pulled from a shared Settings sheet, a live formula-driven Dashboard, one-click CSV import, and menu-driven lead workflow actions (Move to Outreach / Convert to Client / Archive Lead).
+A single Google Apps Script that turns a blank Google Sheet into the Roman Creative Studio outreach/sales CRM: 11 sheets, formatted headers, filters, alternating rows, dropdown validation pulled from a shared Settings sheet, a live formula-driven Dashboard, one-click CSV import, menu-driven lead workflow actions (Move to Outreach / Convert to Client / Archive Lead), and a GitHub sync that pulls `outreach/prospects.csv` straight from this repo.
 
 Script: [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs)
 
@@ -121,6 +121,22 @@ Duplicates are matched on Business + Website, same convention as everywhere else
 
 **Schema evolution note:** Archive Lead needed two things that didn't exist before this version — an `Archived` option in the Lead Status dropdown, and an `Archived Date` column on Prospects. Both `ensureHeaders_()` and `buildSettingsSheet_()` were upgraded to *append* whatever's missing (new header columns at the end, new canonical Settings values after whatever's already listed) instead of only acting on a completely blank sheet/column. That's what lets a CRM built with an earlier version of this script pick up new fields on the next **Build / Update CRM** run without losing anything — existing column positions and Settings customizations are never reordered or removed. One trade-off worth knowing: if a canonical Settings value is deliberately deleted, the next Build/Update CRM run will add it back, since that same repair logic can't distinguish "missing because it's new" from "missing because it was removed on purpose." Settings customization in v1 is additive-only.
 
+## GitHub Sync v1
+
+**RCS CRM > Sync Prospects** pulls the latest `outreach/prospects.csv` straight from this repo's `main` branch and runs it through the exact same `importProspectsFromCsv_()` that powers manual CSV import — same column matching (including the `Business Name`/`Owner/Contact`/`Website Quality (1-10)` aliases), same duplicate skipping, same append-only appending, same reporting shape. Nothing about how a row gets imported differs between "upload a file" and "sync from GitHub" — only where the CSV text comes from.
+
+**How change detection works (avoiding unnecessary imports):** each sync first makes one lightweight call to GitHub's commits API for the latest commit that touched `outreach/prospects.csv`, and compares that commit SHA to the one stored from the last sync. If it's unchanged, the sync stops right there — it never fetches the file itself or re-runs the import — and reports "Already up to date." Only when the SHA differs does it fetch the raw file content (pinned to that exact commit SHA, so there's no race with something else being pushed in between the two calls) and hand it to the importer. This is a real commit SHA from GitHub's commit history for that path, not a blob hash or an ETag guess.
+
+**What's stored, and where:** a small panel on the **Settings** sheet, columns H:I (separate from the six dropdown-list columns in A:F) — `Auto Sync Enabled` (a checkbox, unchecked by default), `Last Sync Time`, `Last Commit SHA`, and `Last Sync Result`. This is the single source of truth for sync state; nothing is hidden in Apps Script's PropertiesService or anywhere else, so what's on the sheet is the whole story and it's visible to anyone who opens the spreadsheet, not just whoever has Apps Script editor access.
+
+**What gets reported**, both in the alert after a manual sync and in the Settings panel: Imported, Skipped (duplicates), Errors, and Last Sync (timestamp) — plus up to 10 row-level error messages if any rows were skipped for missing a Business Name, same as manual import.
+
+**Auto Sync:** `RCS CRM > Auto Sync > Enable Auto Sync` creates an hourly time-based trigger and checks the Settings checkbox; `Disable Auto Sync` removes the trigger and unchecks it. Both remove any existing sync trigger before doing anything else, so clicking Enable twice never results in two triggers double-syncing every hour. The hourly trigger itself (`hourlySyncTrigger_`) re-checks the Enabled checkbox before doing anything (rather than trusting that the trigger's mere existence means it should run) and is wrapped in a try/catch that logs instead of throwing — an unattended trigger that throws repeatedly is how Google ends up silently disabling it. **Don't toggle the checkbox directly** — editing Settings!I2 by hand doesn't create or remove the actual trigger (Apps Script's permission model doesn't allow a simple sheet-edit trigger to manage installable triggers), so it would leave the checkbox out of sync with reality. Always use the Auto Sync submenu.
+
+**Failure handling:** a network error, a non-200 response from GitHub, and a 403 rate limit (more likely on Google's shared outbound IP pool for unauthenticated requests — `GITHUB_TOKEN` at the top of the script can be set for a private repo or a higher rate limit) are all caught and reported as a clear message, whether the sync was triggered manually (an alert) or by the hourly trigger (a log entry, since there's no UI to alert in an unattended context) — never an uncaught exception either way.
+
+**Self-healing:** if `Sync Prospects` runs against a sheet where the CRM scaffold doesn't exist yet or was cleared (Prospects or Settings missing), it calls `buildRCSCRM()` first — already idempotent and safe to call anytime — before doing anything else, so an hourly sync can't get stuck failing forever just because something upstream reset a sheet.
+
 ## Install steps
 
 1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data).
@@ -128,8 +144,8 @@ Duplicates are matched on Business + Website, same convention as everywhere else
 3. Delete any placeholder code in `Code.gs`, then paste in the full contents of [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs).
 4. **Save** the project (e.g. name it "RCS CRM Builder").
 5. In the function dropdown at the top of the editor, select **`buildRCSCRM`** and click **Run**.
-6. The first run will prompt for authorization — this is Google's standard OAuth consent for a script to edit its own spreadsheet. Review and click **Allow**.
-7. Switch back to the spreadsheet tab and refresh the page. An **RCS CRM** menu now appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected (see Workflow Automation above).
+6. The first run will prompt for authorization — this is Google's standard OAuth consent for a script to edit its own spreadsheet. Review and click **Allow**. The first time **Sync Prospects** or **Auto Sync** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync, "manage your triggers" — both standard Apps Script consent prompts, not anything specific to this script.
+7. Switch back to the spreadsheet tab and refresh the page. An **RCS CRM** menu now appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected (see Workflow Automation above).
 
 Re-running is always safe: it only creates sheets/headers/settings values that are missing, never deletes or overwrites existing row data, and reformatting (freeze/filter/resize/colors/banding/validation) is reapplied cleanly every time.
 
@@ -160,3 +176,13 @@ Re-running is always safe: it only creates sheets/headers/settings values that a
 - **Archive Lead:** confirmed Status becomes `Archived` and Archived Date is stamped with today's date on the selected row only — a different row was checked and confirmed untouched.
 - **Edge cases:** a row with a blank Business Name produced an error count with no exception; declining the Yes/No confirmation dialog (mocked "No" response) appended nothing; running an action while a non-Prospects sheet is active shows a guard alert instead of throwing.
 - Prospects/Clients/Outreach Pipeline filters, banding, and validation rules were all still present at the end — none of the three actions touch formatting beyond refreshing the destination sheet's filter range.
+
+**GitHub Sync** was dry-run separately (27 assertions, all passing) against `runProspectsSync_`/`enableAutoSync_`/`disableAutoSync_`/`hourlySyncTrigger_` with `UrlFetchApp` and `ScriptApp` mocked alongside the Sheets API:
+- **Network/API failure handling** — a thrown network exception, a non-200 response (404), and a 403 rate-limit response were each reported as a clear, specific message with no uncaught exception, and none of them wrote a Last Commit SHA (a failed check shouldn't look like a successful one).
+- **Empty CSV** — GitHub returning a 200 with an empty file body flowed through the same `importProspectsFromCsv_` empty-CSV handling already covered under Import Prospects: `Imported: 0`, no crash, and the SHA was still recorded (the check itself succeeded, even though the source file happened to be empty).
+- **New prospects import correctly** — a 2-row CSV (using the real `prospects.csv` header shape) imported both rows, and the Prospects sheet was confirmed to actually contain them, not just the reported count.
+- **No new prospects / avoiding unnecessary imports** — syncing again with an unchanged commit SHA reported "Already up to date" and — verified directly, not just inferred from the report — never even made the raw-file fetch call, let alone re-ran the importer.
+- **Duplicate protection** — a new commit SHA whose CSV re-listed the 2 already-imported businesses plus 1 genuinely new one produced `Imported: 1, Skipped: 2`, and the sheet grew by exactly 1 row.
+- **Auto Sync idempotency** — calling `enableAutoSync_` twice in a row left exactly one trigger in place (not two); calling `disableAutoSync_` twice was a harmless no-op both times.
+- **Unattended context** — `hourlySyncTrigger_` was called directly (simulating an actual trigger firing, no UI available) both while disabled (does nothing, no throw) and while enabled (runs the sync via `Logger.log` instead of an alert, no throw).
+- Prospects' filter, banding, and validation rules were confirmed still present after all of the above.
