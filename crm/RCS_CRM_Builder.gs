@@ -1,5 +1,6 @@
 /**
- * RCS CRM Builder v1 (+ Dashboard v1)
+ * RCS CRM Builder v1 (+ Dashboard v1, Import Prospects v1, Workflow
+ * Automation v1)
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Safe to run repeatedly: sheets, headers, and Settings
@@ -7,6 +8,11 @@
  * overwritten. The Dashboard sheet is the one exception: every cell on it is
  * a live formula derived from the other sheets, so it's fully redrawn on
  * every run (see buildDashboard_ for why that's still safe/idempotent).
+ *
+ * The "RCS CRM" menu also has three actions that act on the selected
+ * Prospects row(s) — Move to Outreach, Convert to Client, Archive Lead —
+ * plus Import Prospects for one-click CSV import. All are documented in
+ * crm/README.md alongside the install steps.
  *
  * Install: see crm/README.md in the repo for step-by-step setup.
  * Run:     open the sheet, use the "RCS CRM" menu > "Build / Update CRM",
@@ -25,7 +31,7 @@ const SETTINGS_LISTS = {
   'Lead Status': [
     'New', 'Contacted', 'Follow-up 1 Sent', 'Follow-up 2 Sent', 'No Response',
     'Call Booked', 'Proposal Pending', 'Proposal Sent', 'Won',
-    'Closed — Lost', 'Nurture', 'Closed — Not Interested', 'Do Not Contact'
+    'Closed — Lost', 'Nurture', 'Closed — Not Interested', 'Do Not Contact', 'Archived'
   ],
   'Priority': ['High', 'Medium', 'Low'],
   'Industry': [
@@ -64,8 +70,11 @@ const SHEET_DEFS = [
   },
   {
     name: 'Prospects',
+    // "Archived Date" was added after v1 to support the Archive Lead workflow
+    // action — appended at the end so it never shifts the position of any
+    // earlier column (several formulas/lookups reference columns by index).
     headers: ['Business', 'Industry', 'City', 'Website', 'Phone', 'Email', 'Contact',
-      'Priority', 'Status', 'Website Score', 'Last Contact', 'Next Follow Up', 'Notes'],
+      'Priority', 'Status', 'Website Score', 'Last Contact', 'Next Follow Up', 'Notes', 'Archived Date'],
     validations: { 'Industry': 'Industry', 'Priority': 'Priority', 'Status': 'Lead Status' }
   },
   {
@@ -118,6 +127,7 @@ const SHEET_DEFS = [
 const HEADER_BG = '#1a1a2e';   // dark header background
 const HEADER_FG = '#ffffff';  // white bold header text
 const BANDING_FUTURE_ROWS = 300; // pre-band this many data rows so new rows stay styled
+const SETTINGS_SCAN_ROWS = 50;   // headroom per Settings column for canonical + user-added values
 
 // ---------------------------------------------------------------------------
 // Entry points
@@ -128,6 +138,10 @@ function onOpen() {
     .createMenu('RCS CRM')
     .addItem('Build / Update CRM', 'buildRCSCRM')
     .addItem('Import Prospects...', 'showImportDialog_')
+    .addSeparator()
+    .addItem('Move to Outreach', 'menuMoveToOutreach_')
+    .addItem('Convert to Client', 'menuConvertToClient_')
+    .addItem('Archive Lead', 'menuArchiveLead_')
     .addToUi();
 }
 
@@ -193,17 +207,35 @@ function maybeRepurposeDefaultSheet_(ss) {
   }
 }
 
+// Writes the full header row on a brand-new sheet. On a sheet that already
+// has headers, it only appends whichever headers from the target list are
+// missing — added to the end, after whatever is already there. That's what
+// lets a schema addition (e.g. Prospects' "Archived Date", added for the
+// Archive Lead workflow action) reach a CRM that was already built with an
+// older version of this script, without disturbing any existing column's
+// position, name, or data.
 function ensureHeaders_(sheet, headers) {
   if (headers.length === 0) return;
 
-  const firstRow = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-  const isBlank = firstRow.every(function (cell) { return cell === '' || cell === null; });
+  const scanWidth = Math.max(headers.length, sheet.getLastColumn());
+  const currentRow = scanWidth > 0 ? sheet.getRange(1, 1, 1, scanWidth).getValues()[0] : [];
+  const existingHeaders = currentRow
+    .map(function (h) { return String(h).trim(); })
+    .filter(function (h) { return h !== ''; });
 
-  if (isBlank) {
+  if (existingHeaders.length === 0) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    return;
   }
-  // If row 1 already has content, leave it untouched — preserves whatever
-  // is already there instead of assuming it's safe to overwrite.
+
+  const existingSet = {};
+  existingHeaders.forEach(function (h) { existingSet[h.toLowerCase()] = true; });
+
+  const missing = headers.filter(function (h) { return !existingSet[h.toLowerCase()]; });
+  if (missing.length === 0) return;
+
+  const startCol = existingHeaders.length + 1;
+  sheet.getRange(1, startCol, 1, missing.length).setValues([missing]);
 }
 
 // ---------------------------------------------------------------------------
@@ -436,27 +468,36 @@ function autoResizeColumns_(sheet, numCols) {
 // Settings sheet + validation
 // ---------------------------------------------------------------------------
 
+// Seeds each Settings column the first time, then on later runs only
+// appends whichever canonical values (e.g. "Archived", added for the
+// Archive Lead workflow action) aren't already present in that column —
+// after whatever's already there, never reordering or removing anything.
+// That's how a new canonical status reaches a CRM built with an older
+// version of this script. Trade-off, stated plainly: if a canonical value
+// is deliberately deleted from a list, the next Build/Update CRM run will
+// add it back — this sheet is additive-only in v1, not a place to
+// permanently retire a default option.
 function buildSettingsSheet_(sheet) {
   const listNames = Object.keys(SETTINGS_LISTS);
 
   listNames.forEach(function (listName, i) {
     const col = i + 1;
     const headerCell = sheet.getRange(1, col);
+    if (headerCell.getValue() === '') headerCell.setValue(listName);
 
-    if (headerCell.getValue() === '') {
-      headerCell.setValue(listName);
-    }
+    const existingValues = sheet.getRange(2, col, SETTINGS_SCAN_ROWS, 1).getValues()
+      .map(function (row) { return row[0]; })
+      .filter(function (v) { return v !== '' && v !== null; });
 
-    const values = SETTINGS_LISTS[listName];
-    const existingBelow = sheet.getRange(2, col, values.length, 1).getValues()
-      .some(function (row) { return row[0] !== '' && row[0] !== null; });
+    const existingSet = {};
+    existingValues.forEach(function (v) { existingSet[String(v).trim()] = true; });
 
-    // Only seed default values the first time — never stomp on a list the
-    // team has already customized in the sheet.
-    if (!existingBelow) {
-      sheet.getRange(2, col, values.length, 1)
-        .setValues(values.map(function (v) { return [v]; }));
-    }
+    const missing = SETTINGS_LISTS[listName].filter(function (v) { return !existingSet[v]; });
+    if (missing.length === 0) return;
+
+    const startRow = 2 + existingValues.length;
+    sheet.getRange(startRow, col, missing.length, 1)
+      .setValues(missing.map(function (v) { return [v]; }));
   });
 }
 
@@ -469,8 +510,10 @@ function applyValidations_(sheet, headers, validationMap, settingsSheet) {
     const listColIndex = Object.keys(SETTINGS_LISTS).indexOf(listName) + 1;
     if (listColIndex === 0) return;
 
-    const listLength = SETTINGS_LISTS[listName].length;
-    const sourceRange = settingsSheet.getRange(2, listColIndex, listLength, 1);
+    // Same generous range buildSettingsSheet_ seeds into, not just the
+    // canonical list's own length — so a value the team appends manually in
+    // Settings also becomes a selectable dropdown option elsewhere.
+    const sourceRange = settingsSheet.getRange(2, listColIndex, SETTINGS_SCAN_ROWS, 1);
 
     const rule = SpreadsheetApp.newDataValidation()
       .requireValueInRange(sourceRange, true)
@@ -691,6 +734,228 @@ const IMPORT_DIALOG_HTML = '<!DOCTYPE html><html><head><base target="_top">' +
   '  reader.readAsText(fileInput.files[0]);' +
   '});' +
   '</script></body></html>';
+
+// ---------------------------------------------------------------------------
+// Workflow Automation (Move to Outreach / Convert to Client / Archive Lead)
+// ---------------------------------------------------------------------------
+// Three menu actions that act on whatever row(s) are currently selected in
+// Prospects. Each confirms before doing anything, reports what happened,
+// and only ever copies data forward or edits the Prospects row in place —
+// nothing is deleted, so these are all safe to run again.
+
+function getHeaders_(sheetName) {
+  const def = SHEET_DEFS.find(function (d) { return d.name === sheetName; });
+  return def ? def.headers : [];
+}
+
+// Reads whichever rows are selected on the active sheet, provided that
+// sheet is Prospects. Returns null (after alerting) if the selection isn't
+// usable, so callers can just check for null and bail.
+function getSelectedProspectRows_() {
+  const ui = SpreadsheetApp.getUi();
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  if (sheet.getName() !== 'Prospects') {
+    ui.alert('Select one or more rows in the Prospects sheet first.');
+    return null;
+  }
+
+  const range = sheet.getActiveRange();
+  if (!range) {
+    ui.alert('Select one or more rows in the Prospects sheet first.');
+    return null;
+  }
+
+  const startRow = range.getRow();
+  const numRows = range.getNumRows();
+  const rows = [];
+  for (let r = startRow; r < startRow + numRows; r++) {
+    if (r >= 2) rows.push(r); // skip the header row if it's part of the selection
+  }
+
+  if (rows.length === 0) {
+    ui.alert('Select a data row (not just the header) in Prospects.');
+    return null;
+  }
+  return rows;
+}
+
+// Builds a set of dedupeKey_() values from a sheet's existing rows, for
+// duplicate checks. Pass websiteColIndex -1 for a target sheet (like
+// Outreach Pipeline) that has no Website column — the key then falls back
+// to Business name alone, which is the only shared identifier available.
+function buildExistingKeySet_(sheet, businessColIndex, websiteColIndex) {
+  const count = Math.max(sheet.getLastRow() - 1, 0);
+  const keys = {};
+  if (count === 0) return keys;
+
+  const businessValues = sheet.getRange(2, businessColIndex + 1, count, 1).getValues();
+  const websiteValues = websiteColIndex !== -1
+    ? sheet.getRange(2, websiteColIndex + 1, count, 1).getValues()
+    : null;
+
+  for (let i = 0; i < count; i++) {
+    const business = businessValues[i][0];
+    const website = websiteValues ? websiteValues[i][0] : '';
+    keys[dedupeKey_(business, website)] = true;
+  }
+  return keys;
+}
+
+function menuMoveToOutreach_() {
+  const rows = getSelectedProspectRows_();
+  if (!rows) return;
+
+  const ui = SpreadsheetApp.getUi();
+  const question = rows.length === 1
+    ? 'Copy this prospect into Outreach Pipeline?'
+    : 'Copy these ' + rows.length + ' prospects into Outreach Pipeline?';
+  if (ui.alert('Move to Outreach', question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const prospects = ss.getSheetByName('Prospects');
+  const pipeline = ss.getSheetByName('Outreach Pipeline');
+  const pHeaders = getHeaders_('Prospects');
+  const oHeaders = getHeaders_('Outreach Pipeline');
+
+  const bIdx = pHeaders.indexOf('Business');
+  const statusIdx = pHeaders.indexOf('Status');
+  const lastContactIdx = pHeaders.indexOf('Last Contact');
+  const notesIdx = pHeaders.indexOf('Notes');
+
+  const oBusinessIdx = oHeaders.indexOf('Business');
+  const oStageIdx = oHeaders.indexOf('Stage');
+  const oContactedIdx = oHeaders.indexOf('Contacted');
+  const oNotesIdx = oHeaders.indexOf('Notes');
+
+  // Outreach Pipeline has no Website column, so the duplicate key here is
+  // Business name alone (websiteColIndex -1) — the only field both sheets share.
+  const existingKeys = buildExistingKeySet_(pipeline, oBusinessIdx, -1);
+  const batchKeys = {};
+  const newRows = [];
+  let moved = 0, skipped = 0, errors = 0;
+
+  rows.forEach(function (r) {
+    const rowValues = prospects.getRange(r, 1, 1, pHeaders.length).getValues()[0];
+    const business = String(rowValues[bIdx] || '').trim();
+    if (business === '') { errors++; return; }
+
+    const key = dedupeKey_(business, '');
+    if (existingKeys[key] || batchKeys[key]) { skipped++; return; }
+    batchKeys[key] = true;
+
+    const newRow = new Array(oHeaders.length).fill('');
+    newRow[oBusinessIdx] = business;
+    if (oStageIdx !== -1 && statusIdx !== -1) newRow[oStageIdx] = rowValues[statusIdx];
+    if (oContactedIdx !== -1 && lastContactIdx !== -1) newRow[oContactedIdx] = rowValues[lastContactIdx];
+    if (oNotesIdx !== -1 && notesIdx !== -1) newRow[oNotesIdx] = rowValues[notesIdx];
+
+    newRows.push(newRow);
+    moved++;
+  });
+
+  if (newRows.length > 0) {
+    pipeline.getRange(pipeline.getLastRow() + 1, 1, newRows.length, oHeaders.length).setValues(newRows);
+    applyBasicFilter_(pipeline, oHeaders.length);
+    autoResizeColumns_(pipeline, oHeaders.length);
+  }
+
+  ui.alert('Move to Outreach', 'Moved: ' + moved + '\nSkipped (duplicate): ' + skipped +
+    '\nErrors (missing Business Name): ' + errors, ui.ButtonSet.OK);
+}
+
+function menuConvertToClient_() {
+  const rows = getSelectedProspectRows_();
+  if (!rows) return;
+
+  const ui = SpreadsheetApp.getUi();
+  const question = rows.length === 1
+    ? 'Convert this prospect into a Client? Start Date will be set to today.'
+    : 'Convert these ' + rows.length + ' prospects into Clients? Start Date will be set to today.';
+  if (ui.alert('Convert to Client', question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const prospects = ss.getSheetByName('Prospects');
+  const clients = ss.getSheetByName('Clients');
+  const pHeaders = getHeaders_('Prospects');
+  const cHeaders = getHeaders_('Clients');
+
+  const bIdx = pHeaders.indexOf('Business');
+  const websiteIdx = pHeaders.indexOf('Website');
+  const notesIdx = pHeaders.indexOf('Notes');
+
+  const cBusinessIdx = cHeaders.indexOf('Business');
+  const cStartIdx = cHeaders.indexOf('Start');
+  const cStatusIdx = cHeaders.indexOf('Status');
+  const cWebsiteIdx = cHeaders.indexOf('Website');
+  const cNotesIdx = cHeaders.indexOf('Notes');
+
+  const existingKeys = buildExistingKeySet_(clients, cBusinessIdx, cWebsiteIdx);
+  const batchKeys = {};
+  const newRows = [];
+  const today = new Date();
+  let converted = 0, skipped = 0, errors = 0;
+
+  rows.forEach(function (r) {
+    const rowValues = prospects.getRange(r, 1, 1, pHeaders.length).getValues()[0];
+    const business = String(rowValues[bIdx] || '').trim();
+    if (business === '') { errors++; return; }
+
+    const website = websiteIdx !== -1 ? String(rowValues[websiteIdx] || '').trim() : '';
+    const key = dedupeKey_(business, website);
+    if (existingKeys[key] || batchKeys[key]) { skipped++; return; }
+    batchKeys[key] = true;
+
+    const newRow = new Array(cHeaders.length).fill('');
+    newRow[cBusinessIdx] = business;
+    if (cStartIdx !== -1) newRow[cStartIdx] = today;
+    // "Discovery" is the first stage of the real build workflow documented
+    // in process.html — the natural starting Project Status on conversion.
+    if (cStatusIdx !== -1) newRow[cStatusIdx] = 'Discovery';
+    if (cWebsiteIdx !== -1) newRow[cWebsiteIdx] = website;
+    if (cNotesIdx !== -1 && notesIdx !== -1) newRow[cNotesIdx] = rowValues[notesIdx];
+
+    newRows.push(newRow);
+    converted++;
+  });
+
+  if (newRows.length > 0) {
+    const startRow = clients.getLastRow() + 1;
+    clients.getRange(startRow, 1, newRows.length, cHeaders.length).setValues(newRows);
+    if (cStartIdx !== -1) clients.getRange(startRow, cStartIdx + 1, newRows.length, 1).setNumberFormat('yyyy-mm-dd');
+    applyBasicFilter_(clients, cHeaders.length);
+    autoResizeColumns_(clients, cHeaders.length);
+  }
+
+  ui.alert('Convert to Client', 'Converted: ' + converted + '\nSkipped (duplicate): ' + skipped +
+    '\nErrors (missing Business Name): ' + errors, ui.ButtonSet.OK);
+}
+
+function menuArchiveLead_() {
+  const rows = getSelectedProspectRows_();
+  if (!rows) return;
+
+  const ui = SpreadsheetApp.getUi();
+  const question = rows.length === 1
+    ? 'Mark this prospect as Archived?'
+    : 'Mark these ' + rows.length + ' prospects as Archived?';
+  if (ui.alert('Archive Lead', question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
+
+  const prospects = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Prospects');
+  const headers = getHeaders_('Prospects');
+  const statusIdx = headers.indexOf('Status');
+  const archivedDateIdx = headers.indexOf('Archived Date');
+  const today = new Date();
+
+  rows.forEach(function (r) {
+    if (statusIdx !== -1) prospects.getRange(r, statusIdx + 1).setValue('Archived');
+    if (archivedDateIdx !== -1) {
+      prospects.getRange(r, archivedDateIdx + 1).setValue(today).setNumberFormat('yyyy-mm-dd');
+    }
+  });
+
+  ui.alert('Archive Lead', (rows.length === 1 ? '1 prospect' : rows.length + ' prospects') + ' archived.', ui.ButtonSet.OK);
+}
 
 // ---------------------------------------------------------------------------
 // Utilities

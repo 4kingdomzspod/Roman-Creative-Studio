@@ -1,6 +1,6 @@
 # RCS CRM Builder v1
 
-A single Google Apps Script that turns a blank Google Sheet into the Roman Creative Studio outreach/sales CRM: 11 sheets, formatted headers, filters, alternating rows, dropdown validation pulled from a shared Settings sheet, and a live formula-driven Dashboard.
+A single Google Apps Script that turns a blank Google Sheet into the Roman Creative Studio outreach/sales CRM: 11 sheets, formatted headers, filters, alternating rows, dropdown validation pulled from a shared Settings sheet, a live formula-driven Dashboard, one-click CSV import, and menu-driven lead workflow actions (Move to Outreach / Convert to Client / Archive Lead).
 
 Script: [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs)
 
@@ -9,7 +9,7 @@ Script: [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs)
 | Sheet | Purpose | Columns |
 |---|---|---|
 | Dashboard | Live KPI/pipeline/activity view — see below | — (formula-driven, no headers) |
-| Prospects | Master prospect list | Business, Industry, City, Website, Phone, Email, Contact, Priority, Status, Website Score, Last Contact, Next Follow Up, Notes |
+| Prospects | Master prospect list | Business, Industry, City, Website, Phone, Email, Contact, Priority, Status, Website Score, Last Contact, Next Follow Up, Notes, Archived Date |
 | Outreach Pipeline | Per-contact outreach stage tracking | Business, Stage, Contacted, Method, Response, Next Action, Owner, Notes |
 | Follow Ups | Due/overdue follow-up queue | Business, Due, Priority, Status, Reminder, Notes |
 | Meetings | Discovery call log | Business, Contact, Date, Type, Outcome, Proposal, Notes |
@@ -26,7 +26,7 @@ Every sheet except Dashboard gets: a frozen header row, a basic filter, auto-res
 
 The Settings sheet stores six lists, one per column, used to drive data validation elsewhere. Values are grounded in what's already established in this repo rather than invented:
 
-- **Lead Status** — matches the status flow already documented in `outreach/OUTREACH_PLAYBOOK.md`.
+- **Lead Status** — matches the status flow already documented in `outreach/OUTREACH_PLAYBOOK.md`, plus `Archived` (added for the Archive Lead workflow action below).
 - **Priority** — High / Medium / Low, matching `outreach/prospects.csv`.
 - **Industry** — the 10 industries from the outreach research sprints.
 - **Project Status** — Discovery, Strategy, Design, Development, Launch, Active, Paused, Completed, matching the build workflow described in `process.html`.
@@ -86,6 +86,41 @@ Both percentage formulas are wrapped in `IFERROR(...,0)` so an empty CRM shows 0
 
 **Why it's safe to rerun:** duplicate checks are rebuilt from the live sheet on every call, so re-importing the same file (or a file with overlapping rows) only ever adds what's genuinely new. New rows are appended below the existing data with a single `setValues` call — nothing is cleared or rewritten, so existing rows, headers, banding, and validation dropdowns (all pre-applied by `buildRCSCRM()` across a generous future-proofed range) are untouched. The only formatting call the import re-runs is the Prospects filter, which is removed and recreated over the new full range so it actually covers the newly imported rows instead of going stale.
 
+## Workflow Automation v1
+
+Three menu actions cut down on manually retyping a prospect's details into another sheet. Each acts on whichever row(s) are currently selected in Prospects — select one row, several rows, or a whole block, then run the action.
+
+**Move to Outreach** — copies the selected Prospect(s) into Outreach Pipeline:
+| Outreach Pipeline field | Comes from |
+|---|---|
+| Business | Prospects.Business |
+| Stage | Prospects.Status (copied as-is) |
+| Contacted | Prospects.Last Contact |
+| Notes | Prospects.Notes (preserved) |
+
+Outreach Pipeline has no Website column, so duplicates are matched on Business name alone. Method, Response, Next Action, and Owner are left blank rather than guessed — there's no corresponding data on a Prospects row to carry over honestly.
+
+**Convert to Client** — copies the selected Prospect(s) into Clients:
+| Clients field | Comes from |
+|---|---|
+| Business | Prospects.Business |
+| Start | Today's date |
+| Status | `Discovery` (the first stage of the real build workflow in `process.html`) |
+| Website | Prospects.Website |
+| Notes | Prospects.Notes (preserved) |
+
+Duplicates are matched on Business + Website, same convention as everywhere else in this CRM. Package and Monthly are left blank — pricing isn't decided at the moment of conversion, so nothing is invented there.
+
+**Archive Lead** — the one action that edits Prospects in place rather than copying elsewhere: sets Status to `Archived` and stamps the new Archived Date column with today's date. (Prospects gained an `Archived Date` column for this — see the schema-evolution note below.)
+
+**Confirmation:** every action shows a Yes/No confirmation dialog naming what it's about to do (and how many rows, for a multi-row selection) before touching anything. Declining does nothing.
+
+**Duplicates and reruns:** all three actions rebuild their duplicate-check set from the live target sheet on every call and also guard against duplicates *within* the same selection, so re-running an action on a row that was already moved/converted just reports it as skipped — nothing gets added twice. Archive Lead is a plain in-place edit (no new rows), so running it again on an already-archived row simply re-writes the same Status and refreshes the Archived Date.
+
+**What's preserved:** these actions only ever append new rows below existing data (a single `setValues` call, same as Import Prospects) or edit specific cells on the selected Prospects row — never a full-sheet rewrite. Existing rows, headers, banding, and validation dropdowns stay untouched; only the destination sheet's filter is refreshed afterward so it covers the newly added rows.
+
+**Schema evolution note:** Archive Lead needed two things that didn't exist before this version — an `Archived` option in the Lead Status dropdown, and an `Archived Date` column on Prospects. Both `ensureHeaders_()` and `buildSettingsSheet_()` were upgraded to *append* whatever's missing (new header columns at the end, new canonical Settings values after whatever's already listed) instead of only acting on a completely blank sheet/column. That's what lets a CRM built with an earlier version of this script pick up new fields on the next **Build / Update CRM** run without losing anything — existing column positions and Settings customizations are never reordered or removed. One trade-off worth knowing: if a canonical Settings value is deliberately deleted, the next Build/Update CRM run will add it back, since that same repair logic can't distinguish "missing because it's new" from "missing because it was removed on purpose." Settings customization in v1 is additive-only.
+
 ## Install steps
 
 1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data).
@@ -94,7 +129,7 @@ Both percentage formulas are wrapped in `IFERROR(...,0)` so an empty CRM shows 0
 4. **Save** the project (e.g. name it "RCS CRM Builder").
 5. In the function dropdown at the top of the editor, select **`buildRCSCRM`** and click **Run**.
 6. The first run will prompt for authorization — this is Google's standard OAuth consent for a script to edit its own spreadsheet. Review and click **Allow**.
-7. Switch back to the spreadsheet tab and refresh the page. An **RCS CRM** menu now appears in the menu bar, with two items: **Build / Update CRM** (re-run any time to add missing sheets or re-apply formatting) and **Import Prospects...** (see above).
+7. Switch back to the spreadsheet tab and refresh the page. An **RCS CRM** menu now appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected (see Workflow Automation above).
 
 Re-running is always safe: it only creates sheets/headers/settings values that are missing, never deletes or overwrites existing row data, and reformatting (freeze/filter/resize/colors/banding/validation) is reapplied cleanly every time.
 
@@ -117,3 +152,11 @@ Re-running is always safe: it only creates sheets/headers/settings values that a
 - A file with the same business listed twice produced `imported: 1, skipped: 1` — within-batch duplicates are caught too, not just duplicates against the sheet.
 - A file with no recognizable Business column returned a clear error message and imported nothing, instead of guessing.
 - After all of the above, Prospects' filter, banding, and validation rules (captured from the original `buildRCSCRM()` run) were confirmed still present and untouched — appending rows doesn't disturb existing formatting.
+
+**Workflow Automation** was dry-run separately (24 assertions, all passing) against `menuMoveToOutreach_`/`menuConvertToClient_`/`menuArchiveLead_` with a mocked Sheets + Ui API:
+- **Upgrade path first:** pre-seeded a sheet shaped like a CRM built with an *older* version of this script — a 13-column Prospects header (no Archived Date) with one real data row, and a 13-value Lead Status list (no Archived) with a custom value manually added in another Settings column. After running `buildRCSCRM()`: `Archived Date` was appended at column 14 without moving `Status` from column 9, the pre-existing Prospects row and its Notes were untouched, `Archived` was appended as the 14th Lead Status value with the original 13 left in the same order, and the unrelated custom Settings value was left exactly as it was.
+- **Move to Outreach:** confirmed Stage/Contacted/Notes map correctly from Status/Last Contact/Notes; re-running on the same row reported `skipped: 1` and appended nothing (rerun safety); a multi-row selection moved both rows in one pass.
+- **Convert to Client:** confirmed Start Date is a real `Date` object for today, Status defaults to `Discovery`, Website and Notes carry over; re-running on the same row again reported a skip with no new row.
+- **Archive Lead:** confirmed Status becomes `Archived` and Archived Date is stamped with today's date on the selected row only — a different row was checked and confirmed untouched.
+- **Edge cases:** a row with a blank Business Name produced an error count with no exception; declining the Yes/No confirmation dialog (mocked "No" response) appended nothing; running an action while a non-Prospects sheet is active shows a guard alert instead of throwing.
+- Prospects/Clients/Outreach Pipeline filters, banding, and validation rules were all still present at the end — none of the three actions touch formatting beyond refreshing the destination sheet's filter range.
