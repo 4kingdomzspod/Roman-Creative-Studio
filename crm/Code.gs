@@ -1,5 +1,5 @@
 /**
- * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow
+ * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -12,6 +12,7 @@
  *   CRM_Dashboard.gs  - the formula-driven Dashboard sheet
  *   CRM_Import.gs     - "Import Prospects..." CSV dialog + import logic
  *   CRM_Actions.gs    - Move to Outreach / Convert to Client / Archive Lead
+ *   CRM_Sync.gs       - "Sync Prospects" + Auto Sync (GitHub -> Prospects)
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -22,17 +23,20 @@
  *
  * Install / run: see crm/README.md.
  *
- * Sprint 3 (not built yet): GitHub Sync, Auto Sync, and Website Audit. This
- * file layout leaves a clean seam for that — a new CRM_Sync.gs can reuse
- * getOrCreateSheet_, ensureHeaders_, SHEET_DEFS, and importProspectsFromCsv_
- * (CRM_Import.gs) without any changes to the files that exist today.
+ * Sprint 4 (not built yet): Website Audit scoring. This file layout leaves
+ * a clean seam for that too — a new CRM_Audit.gs can reuse the same
+ * getOrCreateSheet_/ensureHeaders_ helpers without changes here.
  */
 
 function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('RCS CRM')
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('RCS CRM')
     .addItem('Build / Update CRM', 'buildRCSCRM')
     .addItem('Import Prospects...', 'showImportDialog_')
+    .addItem('Sync Prospects', 'menuSyncProspects_')
+    .addSubMenu(ui.createMenu('Auto Sync')
+      .addItem('Enable Auto Sync', 'enableAutoSync_')
+      .addItem('Disable Auto Sync', 'disableAutoSync_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
@@ -56,6 +60,10 @@ function buildRCSCRM() {
     if (def.name === 'Settings') {
       buildSettingsSheet_(sheet);
       formatDataSheet_(sheet, Object.keys(SETTINGS_LISTS).length);
+      // GitHub Sync panel (CRM_Sync.gs) — columns H:I, outside the
+      // dropdown-list columns. Guarded so Code.gs still builds a working
+      // CRM even if CRM_Sync.gs hasn't been added to the project yet.
+      if (typeof ensureSyncStatusBlock_ === 'function') ensureSyncStatusBlock_(sheet);
       return;
     }
 
