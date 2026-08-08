@@ -1,5 +1,5 @@
 /**
- * RCS CRM — Sprint 1 Core
+ * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -10,6 +10,8 @@
  *   CRM_Builder.gs    - the 11-sheet schema (names, headers, validation map)
  *   CRM_Settings.gs   - Settings dropdown lists + validation application
  *   CRM_Dashboard.gs  - the formula-driven Dashboard sheet
+ *   CRM_Import.gs     - "Import Prospects..." CSV dialog + import logic
+ *   CRM_Actions.gs    - Move to Outreach / Convert to Client / Archive Lead
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -20,18 +22,21 @@
  *
  * Install / run: see crm/README.md.
  *
- * Sprint 2 (not built yet): a sync that pulls
- * RomanCreativeStudio/Roman-Creative-Studio's outreach/prospects.csv into
- * Prospects. This file layout leaves a clean seam for that — a new
- * CRM_Sync.gs (plus whatever CSV/import helpers it needs) can reuse
- * getOrCreateSheet_, ensureHeaders_, and the SHEET_DEFS schema without any
- * changes to the files above.
+ * Sprint 3 (not built yet): GitHub Sync, Auto Sync, and Website Audit. This
+ * file layout leaves a clean seam for that — a new CRM_Sync.gs can reuse
+ * getOrCreateSheet_, ensureHeaders_, SHEET_DEFS, and importProspectsFromCsv_
+ * (CRM_Import.gs) without any changes to the files that exist today.
  */
 
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu('RCS CRM')
     .addItem('Build / Update CRM', 'buildRCSCRM')
+    .addItem('Import Prospects...', 'showImportDialog_')
+    .addSeparator()
+    .addItem('Move to Outreach', 'menuMoveToOutreach_')
+    .addItem('Convert to Client', 'menuConvertToClient_')
+    .addItem('Archive Lead', 'menuArchiveLead_')
     .addToUi();
 }
 
