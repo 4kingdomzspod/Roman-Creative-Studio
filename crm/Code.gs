@@ -1,5 +1,6 @@
 /**
- * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync
+ * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
+ * Sync + Sprint 4 Website Audit
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -13,6 +14,7 @@
  *   CRM_Import.gs     - "Import Prospects..." CSV dialog + import logic
  *   CRM_Actions.gs    - Move to Outreach / Convert to Client / Archive Lead
  *   CRM_Sync.gs       - "Sync Prospects" + Auto Sync (GitHub -> Prospects)
+ *   CRM_Audits.gs     - Website Audit: fetch + score a site, log to Website Audits
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -22,10 +24,6 @@
  * entered record, so there's nothing to lose by redrawing it.
  *
  * Install / run: see crm/README.md.
- *
- * Sprint 4 (not built yet): Website Audit scoring. This file layout leaves
- * a clean seam for that too — a new CRM_Audit.gs can reuse the same
- * getOrCreateSheet_/ensureHeaders_ helpers without changes here.
  */
 
 function onOpen() {
@@ -37,6 +35,9 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Auto Sync')
       .addItem('Enable Auto Sync', 'enableAutoSync_')
       .addItem('Disable Auto Sync', 'disableAutoSync_'))
+    .addSubMenu(ui.createMenu('Website Audit')
+      .addItem('Audit Selected Prospect', 'menuAuditSelectedProspect_')
+      .addItem('Audit Website URL', 'menuAuditWebsiteUrl_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')

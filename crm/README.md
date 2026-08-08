@@ -1,6 +1,6 @@
-# RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync
+# RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync + Sprint 4 Website Audit
 
-A Google Apps Script, split across seven files, that builds/updates the Roman Creative Studio outreach/sales CRM inside a Google Sheet: 11 sheets, exact headers, Settings-backed dropdown validation, consistent formatting, a live formula-driven Dashboard, one-click CSV import, menu-driven prospect actions (Move to Outreach / Convert to Client / Archive Lead), and a GitHub sync (manual + hourly auto-sync) that pulls `outreach/prospects.csv` straight from this repo.
+A Google Apps Script, split across eight files, that builds/updates the Roman Creative Studio outreach/sales CRM inside a Google Sheet: 11 sheets, exact headers, Settings-backed dropdown validation, consistent formatting, a live formula-driven Dashboard, one-click CSV import, menu-driven prospect actions (Move to Outreach / Convert to Client / Archive Lead), a GitHub sync (manual + hourly auto-sync) that pulls `outreach/prospects.csv` straight from this repo, and a Website Audit tool that fetches and scores a prospect's site.
 
 **Container-bound script only.** This does not require, and does not use, a Web App deployment, an API executable, an Add-on, or a Library. It's plain Apps Script attached directly to a Google Sheet — the only "deployment" step is pasting the code in and running one function once.
 
@@ -15,6 +15,7 @@ A Google Apps Script, split across seven files, that builds/updates the Roman Cr
 | [`CRM_Import.gs`](./CRM_Import.gs) | *(Sprint 2)* "Import Prospects..." — the CSV dialog, the RFC4180 parser, and `importProspectsFromCsv_`, the shared import logic reused by Sprint 3's sync. |
 | [`CRM_Actions.gs`](./CRM_Actions.gs) | *(Sprint 2)* Move to Outreach / Convert to Client / Archive Lead — act on the selected Prospects row(s). |
 | [`CRM_Sync.gs`](./CRM_Sync.gs) | *(Sprint 3)* "Sync Prospects" + Auto Sync — pulls `outreach/prospects.csv` from GitHub and hands it to `importProspectsFromCsv_`. |
+| [`CRM_Audits.gs`](./CRM_Audits.gs) | *(Sprint 4)* Website Audit — fetches one page (+ robots.txt/sitemap.xml + a few internal links), runs verifiable checks, scores it, and logs a row to Website Audits. |
 
 Apps Script shares one global scope across every `.gs` file in a project (no imports/exports needed — a function or `const` defined in one file is callable/readable from any other), so this split is purely for readability; functionally it behaves as one script.
 
@@ -86,6 +87,7 @@ Every cell on Dashboard is a label or a live formula reading from the other 10 s
 - **Outreach Conversion %** — Meetings Booked ÷ total rows logged in Outreach Pipeline.
 - **Proposal Close %** — Proposals with Status "Accepted" ÷ Proposals with a Sent date filled in.
 - **Client Count** — total rows in Clients, regardless of status.
+- **Audits Completed** *(Sprint 4)* — count of all rows in Website Audits (`COUNTA('Website Audits'!A2:A)`). Added as a 4th card in this same row rather than redesigning the Dashboard — the row widened from 3 cards (columns A:F) to 4 (A:H).
 
 Both percentage formulas and the empty-range count formulas resolve to `0` (via `IFERROR` or plain `COUNT*` semantics) rather than an error on a brand-new, empty CRM.
 
@@ -167,13 +169,70 @@ This is the single source of truth for sync state — nothing is hidden in `Prop
 
 **What's preserved:** exactly what Import Prospects preserves (see above), since the sync reuses that function unmodified. The Settings Sync panel itself is provisioned once via `buildRCSCRM()` and never resets its own live values (Enabled/Last Sync Time/SHA/Result) on a rebuild — only the labels and checkbox get created if they're missing.
 
+## Website Audit (Sprint 4)
+
+**RCS CRM > Website Audit > Audit Selected Prospect** reads the Business + Website from whichever Prospects row(s) are selected, confirms before running (naming the business, or the count for a multi-row selection), skips any selected row missing a Business or Website with a clear note rather than guessing, and never modifies the Prospects row itself. **RCS CRM > Website Audit > Audit Website URL** opens a small dialog for auditing any URL — not tied to a Prospects row — normalizing a bare domain like `example.com` to `https://example.com` and rejecting anything that isn't a usable http/https URL (including other schemes like `mailto:` or `ftp://`, which are rejected outright rather than mangled into a bogus URL).
+
+**One page fetch, not a crawl.** Each audit makes: one request for the main page, one for `/robots.txt`, one for `/sitemap.xml`, and up to 5 requests for same-origin links found on that one page (capped — never a recursive crawl, never "a large number of requests"). Every network call is wrapped in try/catch; a DNS failure, timeout, SSL error, connection refusal, non-200 response, or empty response all become a specific, readable message — the menu and script never crash.
+
+### What is actually measured
+
+Every check below is either a direct read of the HTTP response / fetched HTML, or a heuristic explicitly labeled as such. Nothing here is invented or assumed.
+
+| Check | How it's verified |
+|---|---|
+| HTTPS | The URL's own scheme (`https://` vs `http://`) — not a redirect-chain inspection, since Apps Script's `UrlFetchApp` doesn't expose the final post-redirect URL. |
+| HTTP status | The real response code from the fetch. |
+| Page title | Presence + character length of `<title>…</title>`. |
+| Meta description | Presence + character length of `<meta name="description" content="…">` (attribute order doesn't matter). |
+| Viewport meta | Presence of `<meta name="viewport" …>` — this is the entire "Mobile" check; there is no real mobile-rendering test. |
+| H1 | Count of `<h1>` tags — flags both zero and more-than-one. |
+| Image alt text | Every `<img>` tag on the page, checked for a non-empty `alt` attribute. |
+| Canonical URL | Presence of `<link rel="canonical" href="…">`. |
+| robots.txt / sitemap.xml | A real fetch to each, checked for a reachable (2xx/3xx) response. |
+| Open Graph title/image | Presence of `og:title` / `og:image` meta tags. |
+| Page HTML size | The actual byte length of the fetched response body (used, labeled, as a Performance heuristic input). |
+| Fetch duration | Wall-clock time (`Date.now()` before/after the fetch) for this script's own request to the page — a real, if narrow, network-latency signal. |
+| Broken internal links (light) | Up to 5 same-origin links found on the page, each fetched and checked for a 4xx/5xx response. |
+
+### What is NOT measured (and never claimed)
+
+- **No real Lighthouse or PageSpeed score.** Performance is explicitly labeled `"NN/100 — HTML size/network heuristic"` — page size plus this script's own fetch-duration timing, nothing more.
+- **No Core Web Vitals** (LCP, CLS, INP, etc.) — these require a real browser render, which Apps Script cannot do.
+- **No actual mobile rendering.** "Mobile" is a single binary check — does a viewport meta tag exist — labeled `PASS`/`FAIL`, not a score, and not a claim that the site was actually rendered on a mobile device.
+- **No accessibility-compliance audit.** "Accessibility" is image alt-text coverage only, labeled `"NN/100 — image alt-text checks"` — not WCAG conformance, contrast checking, keyboard navigation, ARIA, or anything beyond what's named.
+- **No SEO ranking or traffic data.** The SEO score reflects only the on-page checks named in its own label (`"NN/100 — title/meta/H1/canonical checks"`) — not search rankings, backlinks, or real-world visibility.
+
+### Scoring
+
+Each category is scored 0–100 from only the checks actually performed:
+
+- **SEO** (max 100): title present (25, +5 if length is 10–60 chars), meta description present (25, +5 if length is 50–160 chars), exactly one H1 (20; more than one gets partial credit at 15), canonical tag present (20).
+- **Performance** (max 100, explicitly an HTML-size/network heuristic — never described as Lighthouse/PageSpeed): fetch duration under 1s/3s/6s/over (50/35/20/5 points) + HTML size under 100KB/300KB/800KB/over (50/35/20/5 points).
+- **Accessibility** (max 100): percentage of `<img>` tags with real (non-empty) alt text; a page with no images scores 100 (nothing to flag).
+- **Mobile**: binary PASS (viewport meta found) or FAIL — contributes 100 or 0 to the overall score, not a graded number.
+
+**Overall score** is a weighted average of the four categories — Mobile 25%, SEO 35%, Performance 20%, Accessibility 20% (`AUDIT_WEIGHTS` at the top of `CRM_Audits.gs`) — rounded to the nearest whole number.
+
+### Notes
+
+Generated only from checks that actually found something, in the exact format `"Opportunities: missing meta description; 6 images missing alt text; no canonical tag."` — or `"No issues found in the checks performed."` when nothing was flagged. Nothing is invented; an issue only appears if its corresponding check genuinely failed.
+
+### Storage
+
+Every completed audit appends one row to Website Audits — **never overwrites** a previous audit, including re-auditing the same business, which becomes a new row with a new Date rather than replacing the old record (so score history over time is preserved). A failed audit (network error, non-200, empty page) writes nothing. Date is stored as `yyyy-mm-dd`.
+
+### Results
+
+After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobile, SEO, Performance, Accessibility, Top issues (up to 3), and an "Audit saved to Website Audits" confirmation. Auditing multiple selected Prospects at once shows a compact per-business score list plus Audited/Failed/Skipped counts instead of stacking multiple detailed blocks.
+
 ## Safety / idempotency
 
 - `buildRCSCRM()` is safe to run any number of times.
 - **Sheets:** created only if missing (looked up by name) — never duplicated.
 - **Headers:** written in full only on a truly blank sheet. On a sheet that already has headers, only whichever target headers are missing get appended *after* the existing ones — never inserted in the middle, never duplicated, never reordered. This is what let Sprint 2 rely on `Archived Date` reaching a Prospects sheet built with a version of this script that predates it, with no manual migration step.
 - **Settings lists:** seeded in full the first time; on later runs, only canonical values not already present in that column get appended after what's there — a team's own additions to a list are never touched.
-- **Data rows:** never read, moved, or deleted by `Code.gs`, `CRM_Builder.gs`, or `CRM_Settings.gs`. Import, GitHub Sync, and the three Prospect Actions only ever *append* new rows elsewhere or edit specific cells on an explicitly selected/matched Prospects row — see the sections above for exactly what each one touches. Formatting operations (banding, filters, validation, column width) only touch formatting/structure, never cell values.
+- **Data rows:** never read, moved, or deleted by `Code.gs`, `CRM_Builder.gs`, or `CRM_Settings.gs`. Import, GitHub Sync, Website Audit, and the three Prospect Actions only ever *append* new rows elsewhere or edit specific cells on an explicitly selected/matched Prospects row — see the sections above for exactly what each one touches. A failed audit writes nothing at all. Formatting operations (banding, filters, validation, column width) only touch formatting/structure, never cell values.
 - **Triggers:** `enableAutoSync_` always removes every existing sync trigger before creating a new one, so repeated clicks never produce more than one. `disableAutoSync_` removes it and is a harmless no-op if none exists.
 - **`Code.gs` doesn't hard-depend on `CRM_Sync.gs`:** the one line `buildRCSCRM()` added for the Sync panel is guarded (`if (typeof ensureSyncStatusBlock_ === 'function')`), so the CRM still builds correctly even if `CRM_Sync.gs` hasn't been added to the project yet — useful mid-setup, and also what let Sprint 1's and Sprint 2's original standalone test suites keep passing unmodified against this sprint's `Code.gs`.
 - **Dashboard is the one deliberate exception:** every cell on it is computed from the other sheets, so `buildDashboard_()` clears and redraws that one sheet on every run — there's nothing to lose, since it holds no manually-entered records, and this is what guarantees no duplicate Dashboard sections rather than trying to diff and patch a formula layout in place.
@@ -182,11 +241,11 @@ This is the single source of truth for sync state — nothing is hidden in `Prop
 
 1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data, including one already using an earlier version of this CRM).
 2. **Extensions > Apps Script.**
-3. In the Apps Script editor, delete the default `Code.gs` placeholder content, then create seven script files matching the names in this folder — **Code**, **CRM_Builder**, **CRM_Settings**, **CRM_Dashboard**, **CRM_Import**, **CRM_Actions**, **CRM_Sync** — and paste the matching file's contents into each (use the **+** next to "Files" in the left sidebar to add each one; Apps Script appends `.gs` automatically).
+3. In the Apps Script editor, delete the default `Code.gs` placeholder content, then create eight script files matching the names in this folder — **Code**, **CRM_Builder**, **CRM_Settings**, **CRM_Dashboard**, **CRM_Import**, **CRM_Actions**, **CRM_Sync**, **CRM_Audits** — and paste the matching file's contents into each (use the **+** next to "Files" in the left sidebar to add each one; Apps Script appends `.gs` automatically).
 4. **Save** the project (e.g. name it "RCS CRM").
 5. In the function dropdown at the top of the editor, select **`buildRCSCRM`** and click **Run**.
-6. The first run prompts for authorization — Google's standard OAuth consent for a script to edit its own spreadsheet (Apps Script will list "See, edit, create, and delete your spreadsheets"). Review and click **Allow**. The first time **Sync Prospects** or **Auto Sync** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync specifically, permission to manage triggers — both standard Apps Script consent prompts, not anything specific to this script.
-7. Switch back to the spreadsheet tab and refresh the page (or close/reopen the sheet). An **RCS CRM** menu appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected.
+6. The first run prompts for authorization — Google's standard OAuth consent for a script to edit its own spreadsheet (Apps Script will list "See, edit, create, and delete your spreadsheets"). Review and click **Allow**. The first time **Sync Prospects**, **Auto Sync**, or **Website Audit** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync specifically, permission to manage triggers — both standard Apps Script consent prompts, not anything specific to this script.
+7. Switch back to the spreadsheet tab and refresh the page (or close/reopen the sheet). An **RCS CRM** menu appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), a **Website Audit** submenu (Audit Selected Prospect / Audit Website URL), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected.
 
 Re-running `buildRCSCRM()` (from the menu or the editor) is always safe — see Safety/idempotency above.
 
@@ -198,19 +257,52 @@ The 11-sheet schema, headers, Settings lists, dropdown validation, formatting, a
 
 Import Prospects (CSV dialog + column matching/aliases + duplicate protection) and the three Prospect Actions (Move to Outreach / Convert to Client / Archive Lead).
 
-## Sprint 3 scope (done, this update)
+## Sprint 3 scope (done)
 
-GitHub Sync (manual, via `RCS CRM > Sync Prospects`) and Auto Sync (hourly trigger via `RCS CRM > Auto Sync`), added as one new file (`CRM_Sync.gs`) that reuses `importProspectsFromCsv_` from `CRM_Import.gs` unmodified. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Dashboard.gs`, `CRM_Import.gs`, and `CRM_Actions.gs` were **not** modified at all this sprint. `Code.gs` changed in two small, targeted ways: `onOpen()` gained the Sync Prospects item and the Auto Sync submenu, and `buildRCSCRM()` gained one guarded call to provision the Settings Sync panel.
+GitHub Sync (manual, via `RCS CRM > Sync Prospects`) and Auto Sync (hourly trigger via `RCS CRM > Auto Sync`), added as one new file (`CRM_Sync.gs`) that reuses `importProspectsFromCsv_` from `CRM_Import.gs` unmodified. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, and `CRM_Actions.gs` were **not** modified at all that sprint. `Code.gs` changed in two small, targeted ways: `onOpen()` gained the Sync Prospects item and the Auto Sync submenu, and `buildRCSCRM()` gained one guarded call to provision the Settings Sync panel.
 
-**Deliberately not included in Sprint 3:** Website Audit scoring.
+## Sprint 4 scope (done, this update)
 
-## Sprint 4 (planned): Website Audit
+Website Audit — fetch, score, and log a prospect's website — added as one new file (`CRM_Audits.gs`) that reuses `getSelectedProspectRows_`/`getHeaders_` (`CRM_Actions.gs`) and `applyBasicFilter_`/`autoResizeColumns_` (`Code.gs`) without modifying any of them. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, and `CRM_Sync.gs` were **not** modified at all this sprint. Two other files changed in small, targeted ways: `Code.gs`'s `onOpen()` gained the Website Audit submenu (no changes to `buildRCSCRM()` this time), and `CRM_Dashboard.gs` gained one 4th card ("Audits Completed") in the existing Conversion & Client Metrics row, widening that row's header span from 6 to 8 columns — the 8-card Key Metrics row and every other Dashboard section are untouched.
 
-Sprint 4 will add Website Audit scoring, populating the Website Audits sheet. The file layout leaves a clean seam for it: a new `CRM_Audit.gs` can reuse `getOrCreateSheet_`/`ensureHeaders_` (`Code.gs`) without changes to any file that exists today.
+**Deliberately not included in Sprint 4:** anything beyond what Website Audit needed — no new Settings lists, no schema changes to any sheet other than what was already there (Website Audits' columns already matched this sprint's spec exactly), no external API key or token of any kind.
+
+## Sprint 5 (planned)
+
+No specific scope has been requested yet.
 
 ## Testing performed before delivery
 
 All of the following ran against a mocked Apps Script `SpreadsheetApp`/`Ui`/`UrlFetchApp`/`ScriptApp` API in Node (`node --check` for syntax, then a full functional dry run — the closest verification possible outside Google's actual runtime, since these services and the Sheets formula engine only exist there). Nothing was committed until every check below passed.
+
+**Sprint 4 (91 assertions, all passing):**
+- **Syntax:** all 8 `.gs` files individually passed `node --check`.
+- **File-load-order safety:** all 8 files were concatenated and evaluated in both full reverse order and forward order, and both built 11 sheets with no exceptions.
+- **`normalizeUrl_`:** a bare domain gets `https://` prepended; explicit `http://`/`https://` pass through unchanged; garbage text and an empty string are rejected; `ftp://` and `mailto:` are rejected outright rather than getting mangled into a bogus-but-technically-URL-shaped string (this caught a real bug during testing — `mailto:` doesn't use `//` the way `http://` does, so the first version of the scheme check missed it; fixed and re-verified before anything was committed).
+- **Scoring unit tests** (pure functions, controlled inputs, no network involved): `scoreSeo_` at 100 (everything ideal), 0 (nothing present), and 15 (multiple-H1 partial credit); `scorePerformance_` at 100 (fast + small) and 10 (slow + huge); `scoreAccessibility_` at 100 (no images to flag) and 50 (half missing alt text); `computeOverallScore_` at 100, 0, and 75 (mobile-only failure, verifying the 25% mobile weight lands exactly).
+- **Valid, well-built site:** a realistic good-practice HTML fixture (title, meta description, viewport, single H1, canonical, OG tags, both images with real alt text) scored ≥ 80 overall, with every individual "missing X" issue correctly absent and all four category labels matching the exact spec'd format.
+- **Poorly-built site:** a bare-minimum HTML fixture (no head metadata, 2 of 3 images missing alt text) scored < 40 overall, with every expected issue present — missing title, missing meta description, no H1, no canonical, "2 images missing alt text" (the exact count, not just "some"), missing Open Graph tags.
+- **HTTPS detection:** an `http://` (not `https://`) URL correctly flagged "not using HTTPS"; an `https://` URL did not.
+- **Multiple H1s:** a 2-H1 fixture produced "multiple H1 headings found (2)" with the exact count.
+- **robots.txt / sitemap.xml:** both unreachable (404/500) → both flagged; both reachable (200) → neither flagged.
+- **HTTP error responses:** a 404 and a 500 on the main page each returned `ok: false` with the status code in the message, no exception, no partial/garbage audit result.
+- **Network exception:** a thrown fetch error (simulating DNS failure) was caught and returned as a readable `ok: false` result rather than propagating out of `auditUrl_`.
+- **Empty response body:** a whitespace-only page body was caught as a distinct failure case ("empty response — nothing to analyze") rather than silently scoring a blank page.
+- **Invalid URL never reaches the network layer:** confirmed `normalizeUrl_` rejects bad input before any fetch would be attempted.
+- **Audit row creation:** ran a real audit and read back the actual appended Website Audits row cell-by-cell, confirming Business/Date(`yyyy-mm-dd`)/Mobile/SEO/Performance/Accessibility/Score/Notes all match the returned audit result exactly — not just that "a row exists."
+- **A failed audit writes nothing:** confirmed the Website Audits row count is unchanged after an audit that failed (404).
+- **Repeated audits create separate rows:** the same business was audited 3 times total; confirmed the sheet grew by 3 separate rows (not 1 overwritten row), and all 3 are independently present.
+- **Selected Prospect mapping:** selected a real Prospects row, ran the audit, and confirmed the saved audit row's Business came from the Prospects record (not the URL/domain) — and that the Prospects row itself (its Status) was untouched by the audit.
+- **Missing-website prospect handling:** a selected row with no Website produced a clear "nothing to audit" alert and wrote no audit row, rather than crashing or silently guessing a URL.
+- **Wrong-sheet guard:** running the audit action while a non-Prospects sheet is active does not throw.
+- **Audit Website URL dialog path** (`runUrlAudit_`): a bare domain was normalized correctly, a business name was derived from the domain, the audit succeeded and saved a row, and a blank/invalid input was rejected cleanly.
+- **Dashboard "Audits Completed":** confirmed the label and the exact `COUNTA('Website Audits'!A2:A)` formula are present as the 4th card in the Conversion & Client Metrics row, that the existing Client Count card (3rd) is untouched, and that the 8-card Key Metrics row is completely unaffected by this sprint.
+- **Formatting preserved:** Website Audits' filter, and Prospects' filter/banding/validation, all confirmed present after every audit ran.
+
+**Regression (all three re-run unmodified against this sprint's actual files, 0 failures):**
+- **Sprint 1 suite** (60 assertions, 4 files) still passes.
+- **Sprint 2 suite** (62 assertions, 6 files) still passes.
+- **Sprint 3 suite** (57 assertions, 7 files) still passes — confirming `CRM_Dashboard.gs`'s widened metrics row and `Code.gs`'s new submenu didn't disturb anything Sprint 3 depends on.
 
 **Sprint 3 (57 assertions, all passing):**
 - **Syntax:** all 7 `.gs` files individually passed `node --check`.
@@ -232,6 +324,12 @@ All of the following ran against a mocked Apps Script `SpreadsheetApp`/`Ui`/`Url
 - **Sprint 1 suite** (60 assertions, loading only `Code.gs`/`CRM_Builder.gs`/`CRM_Settings.gs`/`CRM_Dashboard.gs`) still passes — confirms `Code.gs`'s new Sync-panel hookup is properly guarded and doesn't break the CRM when `CRM_Sync.gs` isn't present.
 - **Sprint 2 suite** (62 assertions, loading the 6 pre-Sprint-3 files) still passes unmodified.
 
-## Remaining issues
+## Remaining limitations
 
-None identified. Sprint 3 is scoped to GitHub Sync + Auto Sync, added as one new file with only two small, guarded, well-isolated touches to `Code.gs` (menu items, one conditional line in `buildRCSCRM()`) — `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Dashboard.gs`, `CRM_Import.gs`, and `CRM_Actions.gs` are byte-for-byte unchanged from Sprint 2, confirmed by both the standalone Sprint 1/2 regression suites and the live regression checks inside the Sprint 3 suite. Unchanged-SHA sync skipping the raw download, and Auto Sync creating/removing exactly one trigger, were both verified directly rather than inferred. Website Audit remains out of scope until Sprint 4, matching this sprint's explicit exclusion.
+These are inherent to what's achievable inside Apps Script without a real browser, not bugs to fix later — see "What is NOT measured" above for the full list. Worth calling out specifically:
+- HTML is checked with regex/string matching, not a real DOM parser (none is available in Apps Script) — this is reliable for presence/absence/count checks (title, meta tags, H1 count, image alt attributes) but could misread unusual or deliberately obfuscated markup.
+- The HTTPS check reads the requested URL's own scheme; it does not follow and inspect a possible `http://` → `https://` redirect chain, since `UrlFetchApp`'s response object doesn't expose the final post-redirect URL.
+- Broken-link checking is intentionally shallow (up to 5 same-origin links from the one fetched page) — by design, not an oversight, per the "no large numbers of requests" requirement.
+- Fetch-duration timing measures this script's own request from Google's servers to the target site, not a real user's network conditions — labeled as a heuristic for exactly that reason.
+
+No functional gaps identified against this sprint's scope. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, and `CRM_Sync.gs` are byte-for-byte unchanged from before this sprint, confirmed by the standalone Sprint 1/2/3 regression suites all passing unmodified. No fabricated Lighthouse, PageSpeed, Core Web Vitals, real mobile-rendering, accessibility-compliance, or SEO-ranking claims appear anywhere in the code, labels, or stored results — every category label states plainly what was actually checked.
