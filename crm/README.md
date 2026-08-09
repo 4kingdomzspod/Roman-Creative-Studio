@@ -224,9 +224,11 @@ Generated only from checks that actually found something, in the exact format `"
 
 Every completed audit appends one row to Website Audits — **never overwrites** a previous audit, including re-auditing the same business, which becomes a new row with a new Date rather than replacing the old record (so score history over time is preserved). A failed audit (network error, non-200, empty page) writes nothing. Date is stored as `yyyy-mm-dd`.
 
+`saveAuditRecord_` never throws and always reports back whether the row genuinely landed: it verifies the write by reading the cell back, and any failure (missing sheet, missing schema, a Sheets API error mid-write) is caught and returned as `{ saved: false, message }` rather than an uncaught exception. `runUrlAudit_` (the function the URL-audit dialog calls) is wrapped the same way, so it always returns a plain result object instead of ever letting an exception escape to the dialog — the historical cause of a dialog hanging on "Auditing..." with no error shown.
+
 ### Results
 
-After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobile, SEO, Performance, Accessibility, Top issues (up to 3), and an "Audit saved to Website Audits" confirmation. Auditing multiple selected Prospects at once shows a compact per-business score list plus Audited/Failed/Skipped counts instead of stacking multiple detailed blocks.
+After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobile, SEO, Performance, Accessibility, Top issues (up to 3), and a save-status line. **"Audit saved to Website Audits" is only shown when the row write was actually confirmed** — if the audit itself succeeded but the save didn't (sheet missing, write error), the line instead reads "Audit completed but was NOT saved to Website Audits" with the specific reason, so a real save failure can never be mistaken for a successful one. Auditing multiple selected Prospects at once shows a compact per-business score list (each flagged `(NOT SAVED)` if its row didn't actually write) plus Audited/Failed/Skipped counts instead of stacking multiple detailed blocks. The Audit Website URL dialog itself is defensive against a missing/malformed result and never gets stuck showing "Auditing..." — both its success and failure callbacks always render a final message.
 
 ## Outreach Brief (Sprint 5)
 

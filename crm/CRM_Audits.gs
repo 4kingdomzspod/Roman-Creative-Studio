@@ -79,18 +79,28 @@ function menuAuditWebsiteUrl_() {
   SpreadsheetApp.getUi().showModalDialog(html, 'Audit Website URL');
 }
 
-// Called from the dialog via google.script.run.
+// Called from the dialog via google.script.run. Always returns a plain
+// { ok, ... } object and never throws — an uncaught exception escaping a
+// google.script.run entry point is a well-known way for the calling
+// dialog's success/failure callback to never fire, leaving the UI stuck
+// on "Auditing...". The try/catch here is the last-resort guarantee that
+// the dialog always gets a result to render, on top of the fact that
+// auditUrl_() and saveAuditRecord_() already handle their own failures.
 function runUrlAudit_(rawUrl) {
-  const normalized = normalizeUrl_(rawUrl);
-  if (!normalized) {
-    return { ok: false, message: 'That doesn’t look like a usable website URL.' };
-  }
+  try {
+    const normalized = normalizeUrl_(rawUrl);
+    if (!normalized) {
+      return { ok: false, message: 'That doesn’t look like a usable website URL.' };
+    }
 
-  const business = deriveBusinessNameFromUrl_(normalized);
-  const audit = performAndSaveAudit_(business, normalized);
-  audit.business = business;
-  audit.url = normalized;
-  return audit;
+    const business = deriveBusinessNameFromUrl_(normalized);
+    const audit = performAndSaveAudit_(business, normalized);
+    audit.business = business;
+    audit.url = normalized;
+    return audit;
+  } catch (e) {
+    return { ok: false, message: 'Unexpected error while auditing: ' + ((e && e.message) || e) };
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -398,39 +408,72 @@ function auditUrl_(url) {
   };
 }
 
-// Runs the audit and, on success, appends a row to Website Audits. On
-// failure, nothing is written — a failed audit isn't a data point.
+// Runs the audit and, on success, appends a row to Website Audits. On a
+// failed audit (bad fetch, non-2xx, empty body), nothing is written — a
+// failed audit isn't a data point. On a successful audit, the returned
+// object's `saved` flag reflects whether the row write itself actually
+// succeeded — audit.ok being true only ever meant "the site was reachable
+// and scored," never "and the row was saved," so callers must not assume
+// one implies the other.
 function performAndSaveAudit_(business, url) {
   const audit = auditUrl_(url);
   if (!audit.ok) return audit;
 
-  saveAuditRecord_(business, audit);
+  const saveResult = saveAuditRecord_(business, audit);
+  audit.saved = saveResult.saved;
+  if (!saveResult.saved) audit.saveError = saveResult.message;
   return audit;
 }
 
+// Returns { saved: true } once the row is actually written, or
+// { saved: false, message } otherwise. Never throws: every failure mode
+// (missing sheet, missing/renamed schema, a Sheets API error mid-write) is
+// caught and turned into a returned result instead of an uncaught
+// exception, so a caller can never mistake "didn't throw" for "saved."
 function saveAuditRecord_(business, audit) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Website Audits');
-  if (!sheet) return; // defensive; buildRCSCRM() always creates this sheet
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Website Audits');
+    if (!sheet) {
+      return { saved: false, message: 'Website Audits sheet not found.' };
+    }
 
-  const headers = getHeaders_('Website Audits'); // CRM_Actions.gs
-  const idx = {};
-  headers.forEach(function (h, i) { idx[h] = i; });
+    const headers = getHeaders_('Website Audits'); // CRM_Actions.gs
+    if (!headers || headers.length === 0) {
+      return { saved: false, message: 'Website Audits column schema not found.' };
+    }
 
-  const row = new Array(headers.length).fill('');
-  row[idx['Business']] = business;
-  row[idx['Date']] = formatAuditDate_(new Date());
-  row[idx['Mobile']] = audit.mobileLabel;
-  row[idx['SEO']] = audit.seoLabel;
-  row[idx['Performance']] = audit.performanceLabel;
-  row[idx['Accessibility']] = audit.accessibilityLabel;
-  row[idx['Score']] = audit.score;
-  row[idx['Notes']] = audit.notes;
+    const idx = {};
+    headers.forEach(function (h, i) { idx[h] = i; });
 
-  // Always appended below the current last row — a repeat audit of the
-  // same business becomes a new row, never a replacement of the old one.
-  sheet.getRange(sheet.getLastRow() + 1, 1, 1, headers.length).setValues([row]);
-  applyBasicFilter_(sheet, headers.length); // Code.gs
-  autoResizeColumns_(sheet, headers.length); // Code.gs
+    const row = new Array(headers.length).fill('');
+    row[idx['Business']] = business;
+    row[idx['Date']] = formatAuditDate_(new Date());
+    row[idx['Mobile']] = audit.mobileLabel;
+    row[idx['SEO']] = audit.seoLabel;
+    row[idx['Performance']] = audit.performanceLabel;
+    row[idx['Accessibility']] = audit.accessibilityLabel;
+    row[idx['Score']] = audit.score;
+    row[idx['Notes']] = audit.notes;
+
+    // Always appended below the current last row — a repeat audit of the
+    // same business becomes a new row, never a replacement of the old one.
+    const targetRow = sheet.getLastRow() + 1;
+    sheet.getRange(targetRow, 1, 1, headers.length).setValues([row]);
+
+    // Confirm the write actually landed before reporting success — reads
+    // back the cell we just set rather than trusting setValues() not to
+    // have silently no-op'd on a stale range reference.
+    const writtenBusiness = sheet.getRange(targetRow, idx['Business'] + 1).getValue();
+    if (String(writtenBusiness || '').trim() !== String(business || '').trim()) {
+      return { saved: false, message: 'Row write did not verify — sheet may be protected or out of sync.' };
+    }
+
+    applyBasicFilter_(sheet, headers.length); // Code.gs
+    autoResizeColumns_(sheet, headers.length); // Code.gs
+    return { saved: true };
+  } catch (e) {
+    return { saved: false, message: 'Could not write to Website Audits: ' + ((e && e.message) || e) };
+  }
 }
 
 function formatAuditDate_(date) {
@@ -445,6 +488,9 @@ function formatSingleAuditResult_(r) {
   if (!r.ok) return r.business + ' — audit failed: ' + r.message;
 
   const topIssues = r.issues && r.issues.length ? r.issues.slice(0, 3).join('; ') : 'None found';
+  const saveLine = r.saved
+    ? 'Audit saved to Website Audits.'
+    : 'Audit completed but was NOT saved to Website Audits' + (r.saveError ? ' (' + r.saveError + ')' : '') + '.';
   return 'Business: ' + r.business +
     '\nURL: ' + r.url +
     '\nOverall Score: ' + r.score + '/100' +
@@ -453,7 +499,7 @@ function formatSingleAuditResult_(r) {
     '\nPerformance: ' + r.performanceLabel +
     '\nAccessibility: ' + r.accessibilityLabel +
     '\nTop issues: ' + topIssues +
-    '\n\nAudit saved to Website Audits.';
+    '\n\n' + saveLine;
 }
 
 function showAuditResults_(results, skippedNoUrl) {
@@ -466,7 +512,8 @@ function showAuditResults_(results, skippedNoUrl) {
     const audited = results.filter(function (r) { return r.ok; }).length;
     const failed = results.length - audited;
     const lines = results.map(function (r) {
-      return r.ok ? (r.business + ' — ' + r.score + '/100') : (r.business + ' — failed: ' + r.message);
+      if (!r.ok) return r.business + ' — failed: ' + r.message;
+      return r.business + ' — ' + r.score + '/100' + (r.saved ? '' : ' (NOT SAVED)');
     });
     message = 'Audited: ' + audited + (failed ? ', Failed: ' + failed : '') +
       '\n\n' + lines.join('\n');
@@ -506,8 +553,9 @@ const AUDIT_URL_DIALOG_HTML = '<!DOCTYPE html><html><head><base target="_top">' 
   '  status.textContent = "Auditing...";' +
   '  google.script.run.withSuccessHandler(function (result) {' +
   '    btn.disabled = false;' +
-  '    if (!result.ok) { status.textContent = "Audit failed: " + result.message; return; }' +
+  '    if (!result || !result.ok) { status.textContent = "Audit failed: " + ((result && result.message) || "No result was returned."); return; }' +
   '    var topIssues = (result.issues && result.issues.length) ? result.issues.slice(0, 3).join("; ") : "None found";' +
+  '    var saveLine = result.saved ? "Audit saved to Website Audits." : ("Audit completed but was NOT saved to Website Audits" + (result.saveError ? " (" + result.saveError + ")" : "") + ".");' +
   '    status.textContent = "Business: " + result.business +' +
   '      "\\nURL: " + result.url +' +
   '      "\\nOverall Score: " + result.score + "/100" +' +
@@ -516,10 +564,10 @@ const AUDIT_URL_DIALOG_HTML = '<!DOCTYPE html><html><head><base target="_top">' 
   '      "\\nPerformance: " + result.performanceLabel +' +
   '      "\\nAccessibility: " + result.accessibilityLabel +' +
   '      "\\nTop issues: " + topIssues +' +
-  '      "\\n\\nAudit saved to Website Audits.";' +
+  '      "\\n\\n" + saveLine;' +
   '  }).withFailureHandler(function (err) {' +
   '    btn.disabled = false;' +
-  '    status.textContent = "Audit failed: " + err.message;' +
+  '    status.textContent = "Audit failed: " + ((err && err.message) || String(err) || "Unknown error.");' +
   '  }).runUrlAudit_(input.value);' +
   '});' +
   '</script></body></html>';
