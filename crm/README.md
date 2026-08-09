@@ -1,38 +1,58 @@
-# RCS CRM Builder v1
+# RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync + Sprint 4 Website Audit
 
-A single Google Apps Script that turns a blank Google Sheet into the Roman Creative Studio outreach/sales CRM: 11 sheets, formatted headers, filters, alternating rows, dropdown validation pulled from a shared Settings sheet, a live formula-driven Dashboard, one-click CSV import, menu-driven lead workflow actions (Move to Outreach / Convert to Client / Archive Lead), and a GitHub sync that pulls `outreach/prospects.csv` straight from this repo.
+A Google Apps Script, split across eight files, that builds/updates the Roman Creative Studio outreach/sales CRM inside a Google Sheet: 11 sheets, exact headers, Settings-backed dropdown validation, consistent formatting, a live formula-driven Dashboard, one-click CSV import, menu-driven prospect actions (Move to Outreach / Convert to Client / Archive Lead), a GitHub sync (manual + hourly auto-sync) that pulls `outreach/prospects.csv` straight from this repo, and a Website Audit tool that fetches and scores a prospect's site.
 
-Script: [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs)
+**Container-bound script only.** This does not require, and does not use, a Web App deployment, an API executable, an Add-on, or a Library. It's plain Apps Script attached directly to a Google Sheet — the only "deployment" step is pasting the code in and running one function once.
+
+## Files
+
+| File | Responsibility |
+|---|---|
+| [`Code.gs`](./Code.gs) | The `RCS CRM` menu, the `buildRCSCRM()` orchestrator, and the shared sheet/formatting helpers used by every other file (create-sheet-if-missing, additive header repair, freeze/style/banding/filter/resize). |
+| [`CRM_Builder.gs`](./CRM_Builder.gs) | The schema: `SHEET_DEFS` — the 11 sheet names, their exact headers, and which columns get a dropdown. No logic, just the CRM's shape in one place. |
+| [`CRM_Settings.gs`](./CRM_Settings.gs) | `SETTINGS_LISTS` — the six dropdown lists — plus the logic that seeds/extends the Settings sheet and applies validation elsewhere. |
+| [`CRM_Dashboard.gs`](./CRM_Dashboard.gs) | Builds the Dashboard sheet: KPI cards, the pipeline-by-status breakdown, and the conversion/client metrics — all formulas. |
+| [`CRM_Import.gs`](./CRM_Import.gs) | *(Sprint 2)* "Import Prospects..." — the CSV dialog, the RFC4180 parser, and `importProspectsFromCsv_`, the shared import logic reused by Sprint 3's sync. |
+| [`CRM_Actions.gs`](./CRM_Actions.gs) | *(Sprint 2)* Move to Outreach / Convert to Client / Archive Lead — act on the selected Prospects row(s). |
+| [`CRM_Sync.gs`](./CRM_Sync.gs) | *(Sprint 3)* "Sync Prospects" + Auto Sync — pulls `outreach/prospects.csv` from GitHub and hands it to `importProspectsFromCsv_`. |
+| [`CRM_Audits.gs`](./CRM_Audits.gs) | *(Sprint 4)* Website Audit — fetches one page (+ robots.txt/sitemap.xml + a few internal links), runs verifiable checks, scores it, and logs a row to Website Audits. |
+
+Apps Script shares one global scope across every `.gs` file in a project (no imports/exports needed — a function or `const` defined in one file is callable/readable from any other), so this split is purely for readability; functionally it behaves as one script.
 
 ## What it builds
 
-| Sheet | Purpose | Columns |
-|---|---|---|
-| Dashboard | Live KPI/pipeline/activity view — see below | — (formula-driven, no headers) |
-| Prospects | Master prospect list | Business, Industry, City, Website, Phone, Email, Contact, Priority, Status, Website Score, Last Contact, Next Follow Up, Notes, Archived Date |
-| Outreach Pipeline | Per-contact outreach stage tracking | Business, Stage, Contacted, Method, Response, Next Action, Owner, Notes |
-| Follow Ups | Due/overdue follow-up queue | Business, Due, Priority, Status, Reminder, Notes |
-| Meetings | Discovery call log | Business, Contact, Date, Type, Outcome, Proposal, Notes |
-| Proposals | Sent proposals and outcomes | Business, Package, Value, Sent, Status, Decision, Notes |
-| Clients | Active/won client roster | Business, Package, Start, Monthly, Status, Website, Notes |
-| Revenue | Invoice/payment log | Month, Client, Invoice, Amount, Paid, Payment Date |
-| Website Audits | Per-prospect audit scoring | Business, Date, Mobile, SEO, Performance, Accessibility, Score, Notes |
-| Referral Network | Referral partner contacts | Name, Company, Relationship, Industry, Last Contact, Referrals, Notes |
-| Settings | Dropdown source lists (see below) | Lead Status, Priority, Industry, Outreach Method, Proposal Status, Project Status |
+Running `buildRCSCRM()` creates or updates exactly these 11 sheets:
 
-Every sheet except Dashboard gets: a frozen header row, a basic filter, auto-resized columns, a dark header with white bold text, and alternating row shading (pre-applied 300+ rows ahead so new rows stay styled automatically).
+Dashboard, Prospects, Outreach Pipeline, Follow Ups, Meetings, Proposals, Clients, Revenue, Website Audits, Referral Network, Settings
+
+| Sheet | Columns |
+|---|---|
+| Dashboard | — (formula-driven, no headers — see below) |
+| Prospects | Business, Industry, City, Website, Phone, Email, Contact, Priority, Status, Website Score, Last Contact, Next Follow Up, Notes, Archived Date |
+| Outreach Pipeline | Business, Stage, Contacted, Method, Response, Next Action, Owner, Notes |
+| Follow Ups | Business, Due, Priority, Status, Reminder, Notes |
+| Meetings | Business, Contact, Date, Type, Outcome, Proposal, Notes |
+| Proposals | Business, Package, Value, Sent, Status, Decision, Notes |
+| Clients | Business, Package, Start, Monthly, Status, Website, Notes |
+| Revenue | Month, Client, Invoice, Amount, Paid, Payment Date |
+| Website Audits | Business, Date, Mobile, SEO, Performance, Accessibility, Score, Notes |
+| Referral Network | Name, Company, Relationship, Industry, Last Contact, Referrals, Notes |
+| Settings | Lead Status, Priority, Industry, Outreach Method, Proposal Status, Project Status, plus a GitHub Sync panel (columns H:I — see below) |
+
+Every sheet except Dashboard gets: a frozen header row, a dark header with white bold text, a basic filter, auto-resized columns, and alternating row banding pre-applied 300 rows ahead so new rows stay styled automatically without needing to re-run the builder.
 
 ### Settings dropdown lists
 
-The Settings sheet stores six lists, one per column, used to drive data validation elsewhere. Values are grounded in what's already established in this repo rather than invented:
+| List | Values |
+|---|---|
+| Lead Status | New, Contacted, Follow-up 1 Sent, Follow-up 2 Sent, No Response, Call Booked, Proposal Pending, Proposal Sent, Won, Closed — Lost, Nurture, Closed — Not Interested, Do Not Contact, Archived |
+| Priority | High, Medium, Low |
+| Industry | Contractors, Dentists, Churches, Landscaping, HVAC, Roofing, Electricians, Plumbing, Auto Detailing, Luxury Rentals |
+| Outreach Method | Email, Instagram DM, Facebook DM, Phone Call, In-Person, Referral |
+| Proposal Status | Draft, Sent, Under Review, Accepted, Declined, Expired |
+| Project Status | Discovery, Strategy, Design, Development, Launch, Active, Paused, Completed |
 
-- **Lead Status** — matches the status flow already documented in `outreach/OUTREACH_PLAYBOOK.md`, plus `Archived` (added for the Archive Lead workflow action below).
-- **Priority** — High / Medium / Low, matching `outreach/prospects.csv`.
-- **Industry** — the 10 industries from the outreach research sprints.
-- **Project Status** — Discovery, Strategy, Design, Development, Launch, Active, Paused, Completed, matching the build workflow described in `process.html`.
-- **Outreach Method** and **Proposal Status** are standard CRM option sets (not business-specific claims), consistent with the channels already used in `outreach/cold-email.md`, `outreach/instagram-dm.md`, and `outreach/personalized-dms.md`.
-
-Applied validation dropdowns:
+**Applied validation dropdowns:**
 - Prospects: Industry, Priority, Status (Lead Status)
 - Outreach Pipeline: Stage (Lead Status), Method (Outreach Method)
 - Follow Ups: Priority, Status (Lead Status)
@@ -40,13 +60,15 @@ Applied validation dropdowns:
 - Clients: Status (Project Status)
 - Referral Network: Industry
 
+Each dropdown sources from a generous 50-row range on its Settings column (not just however many canonical values there are today), so a value the team appends manually in Settings also becomes a selectable option elsewhere — no re-run needed.
+
 Columns without an obvious matching list (e.g. Meetings.Type, Meetings.Outcome) are left as free text rather than forcing a dropdown that isn't backed by a real category.
 
-## Dashboard v1
+### Dashboard
 
-Unlike every other sheet, Dashboard holds no manually-entered records — every cell is a label or a live formula pulling from the other 10 sheets. Because of that, `buildDashboard_()` clears and redraws the whole sheet on every run instead of trying to detect what changed; the end state is always identical for the same underlying data, so this can never produce duplicate sections and never touches the real records on Prospects/Clients/Revenue/etc.
+Every cell on Dashboard is a label or a live formula reading from the other 10 sheets — nothing is hardcoded.
 
-**Key Metrics (8 cards)**, all `COUNTA`/`COUNTIF`/`COUNTIFS`/`SUMIFS` formulas against the other sheets — nothing hardcoded:
+**Key Metrics (8 cards):**
 
 | Card | Formula source |
 |---|---|
@@ -57,132 +79,257 @@ Unlike every other sheet, Dashboard holds no manually-entered records — every 
 | Meetings Booked | Count of all logged rows in Meetings |
 | Proposals Sent | Count of Proposals with a Sent date filled in |
 | Active Clients | Clients where Status = "Active" |
-| Monthly Revenue | Sum of Revenue.Amount where Payment Date falls in the current calendar month and Paid is checked, using `EOMONTH(TODAY(), ...)` so the window always tracks the current month |
+| Monthly Revenue | Sum of Revenue.Amount where Payment Date falls in the current calendar month and Paid is checked (`EOMONTH(TODAY(),...)`, so the window always tracks the current month) |
 
-**Pipeline Summary** — one row per value currently listed under Settings!Lead Status, each with a live `COUNTIF` against Prospects.Status. Reads the list length dynamically (blank-guarded up to 30 rows), so adding a new status in Settings is picked up on the next rebuild without any code change.
-
-**Recent Activity** — the 10 most recent Outreach Pipeline rows, sorted by Contacted date descending, via `SORT(FILTER(...))` wrapped in `IFERROR(...,"No outreach activity logged yet")` so an empty pipeline shows a message instead of a formula error.
+**Pipeline Summary** — one row per value currently listed under Settings!Lead Status, each with a live `COUNTIF` against Prospects.Status. Reads the list dynamically (blank-guarded up to 30 rows), so adding a status in Settings shows up on the next rebuild with no code change.
 
 **Conversion & Client Metrics:**
-- **Outreach Conversion %** — Meetings Booked ÷ total rows logged in Outreach Pipeline (of everyone we logged a touch for, how many turned into a booked meeting).
+- **Outreach Conversion %** — Meetings Booked ÷ total rows logged in Outreach Pipeline.
 - **Proposal Close %** — Proposals with Status "Accepted" ÷ Proposals with a Sent date filled in.
-- **Client Count** — total rows in Clients, regardless of status (a companion to the Active Clients KPI card above, which is filtered to Active only).
+- **Client Count** — total rows in Clients, regardless of status.
+- **Audits Completed** *(Sprint 4)* — count of all rows in Website Audits (`COUNTA('Website Audits'!A2:A)`). Added as a 4th card in this same row rather than redesigning the Dashboard — the row widened from 3 cards (columns A:F) to 4 (A:H).
 
-Both percentage formulas are wrapped in `IFERROR(...,0)` so an empty CRM shows 0% instead of a `#DIV/0!` error.
+Both percentage formulas and the empty-range count formulas resolve to `0` (via `IFERROR` or plain `COUNT*` semantics) rather than an error on a brand-new, empty CRM.
 
-## Import Prospects v1
+## Import Prospects (Sprint 2)
 
-**RCS CRM > Import Prospects...** opens a dialog with a file picker for a CSV of leads. The CSV is read client-side (`FileReader`) and its raw text is sent to `importProspectsFromCsv_` via `google.script.run` — no Drive API or Picker setup required, and no extra OAuth scopes beyond what the CRM already needs.
+**RCS CRM > Import Prospects...** opens a dialog with a file picker for a CSV of leads. The file is read client-side (`FileReader`) and its raw text is sent to `importProspectsFromCsv_` via `google.script.run` — no Drive API or Picker setup, no OAuth scopes beyond what the CRM already needs.
 
-**How it matches columns:** each CSV header is matched to a Prospects header by exact name (case-insensitive), plus three aliases grounded in the real column names used by `outreach/prospects.csv` — `Business Name` → `Business`, `Owner/Contact` → `Contact`, `Website Quality (1-10)` → `Website Score`. Any CSV column that still doesn't match anything (e.g. `Google Rating`, `Pain Points`, `Personalized Opening`, `Contacted`, `Follow-up Date` from `prospects.csv`) is skipped and listed back in the report as "not imported" — nothing is silently dropped without being surfaced, and nothing is force-mapped into the wrong field.
+**Column matching:** each CSV header is matched to a Prospects header by exact name (case-insensitive), plus three aliases:
+- `Business Name` → `Business`
+- `Owner/Contact` → `Contact`
+- `Website Quality (1-10)` → `Website Score`
 
-**Duplicate detection:** a row is a duplicate if its Business + Website (both trimmed, case-insensitive) already exists in Prospects — checked against both the existing sheet data and other rows earlier in the same file, so importing the same file twice, or a file with repeated rows, only ever adds each business once.
+Any CSV column that still doesn't match anything is skipped and listed back in the report as "not imported" — nothing is silently dropped, and nothing is force-mapped into the wrong field.
 
-**What gets reported**, shown directly in the dialog after import:
-- **Imported** — new rows appended.
-- **Skipped** — duplicates (already in the sheet, or repeated within the file).
-- **Errors** — rows missing a Business Name (can't import a nameless prospect); each gets a row-numbered message.
-- Any CSV columns that couldn't be matched to a Prospects header.
+**Required field:** a row with no Business Name can't be imported — it's counted as an error with a row-numbered message, not silently skipped and not force-imported with a blank name.
 
-**Why it's safe to rerun:** duplicate checks are rebuilt from the live sheet on every call, so re-importing the same file (or a file with overlapping rows) only ever adds what's genuinely new. New rows are appended below the existing data with a single `setValues` call — nothing is cleared or rewritten, so existing rows, headers, banding, and validation dropdowns (all pre-applied by `buildRCSCRM()` across a generous future-proofed range) are untouched. The only formatting call the import re-runs is the Prospects filter, which is removed and recreated over the new full range so it actually covers the newly imported rows instead of going stale.
+**Duplicate detection:** a row is a duplicate if its Business + Website (both trimmed, case-insensitive) already exists in Prospects — checked against both the existing sheet data and other rows earlier in the same file. Importing the same file twice, or a file with repeated rows, only ever adds each business once.
 
-## Workflow Automation v1
+**CSV parsing:** a hand-rolled RFC4180 parser handles quoted fields, embedded commas and newlines inside quotes, and escaped `""` quotes — a naive `split('\n')`/`split(',')` would break on any multi-line Notes field, which real prospect data has.
 
-Three menu actions cut down on manually retyping a prospect's details into another sheet. Each acts on whichever row(s) are currently selected in Prospects — select one row, several rows, or a whole block, then run the action.
+**What gets reported**, shown directly in the dialog: Imported (new rows appended), Skipped (duplicates), Errors (missing Business Name), and any CSV columns that couldn't be matched.
+
+**What's preserved:** new rows are appended below existing data with a single `setValues` call — nothing is cleared or rewritten, so existing rows, headers, banding, and validation (all pre-applied by `buildRCSCRM()` across a generous future-proofed range) are untouched. Only the Prospects filter is refreshed afterward so it covers the newly imported rows.
+
+`importProspectsFromCsv_` is what Sprint 3's GitHub Sync calls directly — the exact same function, unmodified.
+
+## Prospect Actions (Sprint 2)
+
+Three menu actions act on whichever row(s) are currently selected in Prospects — select one row or a multi-row block, then run the action. Each shows a Yes/No confirmation naming what it's about to do (and how many rows, for a multi-row selection) before touching anything; declining does nothing.
 
 **Move to Outreach** — copies the selected Prospect(s) into Outreach Pipeline:
+
 | Outreach Pipeline field | Comes from |
 |---|---|
 | Business | Prospects.Business |
-| Stage | Prospects.Status (copied as-is) |
+| Stage | Prospects.Status |
 | Contacted | Prospects.Last Contact |
-| Notes | Prospects.Notes (preserved) |
+| Notes | Prospects.Notes |
 
-Outreach Pipeline has no Website column, so duplicates are matched on Business name alone. Method, Response, Next Action, and Owner are left blank rather than guessed — there's no corresponding data on a Prospects row to carry over honestly.
+Outreach Pipeline has no Website column, so duplicates are matched on Business name alone.
 
 **Convert to Client** — copies the selected Prospect(s) into Clients:
+
 | Clients field | Comes from |
 |---|---|
 | Business | Prospects.Business |
-| Start | Today's date |
-| Status | `Discovery` (the first stage of the real build workflow in `process.html`) |
 | Website | Prospects.Website |
-| Notes | Prospects.Notes (preserved) |
+| Notes | Prospects.Notes |
+| Start | Today's date |
+| Status | `Discovery` |
 
-Duplicates are matched on Business + Website, same convention as everywhere else in this CRM. Package and Monthly are left blank — pricing isn't decided at the moment of conversion, so nothing is invented there.
+Duplicates are matched on Business + Website, the same convention used everywhere else in this CRM.
 
-**Archive Lead** — the one action that edits Prospects in place rather than copying elsewhere: sets Status to `Archived` and stamps the new Archived Date column with today's date. (Prospects gained an `Archived Date` column for this — see the schema-evolution note below.)
+**Archive Lead** — the one action that edits Prospects in place rather than copying elsewhere: sets Status to `Archived` and stamps the Archived Date column with today's date.
 
-**Confirmation:** every action shows a Yes/No confirmation dialog naming what it's about to do (and how many rows, for a multi-row selection) before touching anything. Declining does nothing.
+**Never deletes records.** All three actions only ever append a new row elsewhere or edit the selected Prospects row's own cells — nothing is ever removed. **Reruns are duplicate-safe:** duplicate checks are rebuilt from the live target sheet on every call and also guard against duplicates *within* the same selection, so running an action again on an already-moved/converted row just reports a skip; running Archive Lead again on an already-archived row simply re-writes the same Status and refreshes the Archived Date.
 
-**Duplicates and reruns:** all three actions rebuild their duplicate-check set from the live target sheet on every call and also guard against duplicates *within* the same selection, so re-running an action on a row that was already moved/converted just reports it as skipped — nothing gets added twice. Archive Lead is a plain in-place edit (no new rows), so running it again on an already-archived row simply re-writes the same Status and refreshes the Archived Date.
+## GitHub Sync + Auto Sync (Sprint 3)
 
-**What's preserved:** these actions only ever append new rows below existing data (a single `setValues` call, same as Import Prospects) or edit specific cells on the selected Prospects row — never a full-sheet rewrite. Existing rows, headers, banding, and validation dropdowns stay untouched; only the destination sheet's filter is refreshed afterward so it covers the newly added rows.
+**RCS CRM > Sync Prospects** fetches `outreach/prospects.csv` from `RomanCreativeStudio/Roman-Creative-Studio` (branch `main`) and runs it through the exact same `importProspectsFromCsv_()` used by manual CSV import — identical column matching/aliases, duplicate skipping, and append-only behavior. Nothing about how a row gets imported differs between "upload a file" and "sync from GitHub"; only where the CSV text comes from.
 
-**Schema evolution note:** Archive Lead needed two things that didn't exist before this version — an `Archived` option in the Lead Status dropdown, and an `Archived Date` column on Prospects. Both `ensureHeaders_()` and `buildSettingsSheet_()` were upgraded to *append* whatever's missing (new header columns at the end, new canonical Settings values after whatever's already listed) instead of only acting on a completely blank sheet/column. That's what lets a CRM built with an earlier version of this script pick up new fields on the next **Build / Update CRM** run without losing anything — existing column positions and Settings customizations are never reordered or removed. One trade-off worth knowing: if a canonical Settings value is deliberately deleted, the next Build/Update CRM run will add it back, since that same repair logic can't distinguish "missing because it's new" from "missing because it was removed on purpose." Settings customization in v1 is additive-only.
+**Change detection (no unnecessary downloads):** each sync first makes one lightweight call to GitHub's commits API for the latest commit that touched `outreach/prospects.csv`, and compares that commit SHA against the one stored from the last sync. **If it's unchanged, the raw CSV is never fetched and the importer never runs** — this was verified directly in testing (a raw-fetch call flag that must stay `false`), not just inferred from the reported result. Only a changed SHA triggers fetching the file, pinned to that exact commit (so there's no race with something being pushed in between the two calls), followed by the import.
 
-## GitHub Sync v1
+**Settings Sync panel:** columns H:I on Settings (separate from the six dropdown-list columns in A:F) hold:
+- **Auto Sync Enabled** — a checkbox, unchecked by default (auto sync is opt-in).
+- **Last Sync Time**
+- **Last Commit SHA**
+- **Last Sync Result** (e.g. `Imported: 2, Skipped: 0, Errors: 0`)
 
-**RCS CRM > Sync Prospects** pulls the latest `outreach/prospects.csv` straight from this repo's `main` branch and runs it through the exact same `importProspectsFromCsv_()` that powers manual CSV import — same column matching (including the `Business Name`/`Owner/Contact`/`Website Quality (1-10)` aliases), same duplicate skipping, same append-only appending, same reporting shape. Nothing about how a row gets imported differs between "upload a file" and "sync from GitHub" — only where the CSV text comes from.
-
-**How change detection works (avoiding unnecessary imports):** each sync first makes one lightweight call to GitHub's commits API for the latest commit that touched `outreach/prospects.csv`, and compares that commit SHA to the one stored from the last sync. If it's unchanged, the sync stops right there — it never fetches the file itself or re-runs the import — and reports "Already up to date." Only when the SHA differs does it fetch the raw file content (pinned to that exact commit SHA, so there's no race with something else being pushed in between the two calls) and hand it to the importer. This is a real commit SHA from GitHub's commit history for that path, not a blob hash or an ETag guess.
-
-**What's stored, and where:** a small panel on the **Settings** sheet, columns H:I (separate from the six dropdown-list columns in A:F) — `Auto Sync Enabled` (a checkbox, unchecked by default), `Last Sync Time`, `Last Commit SHA`, and `Last Sync Result`. This is the single source of truth for sync state; nothing is hidden in Apps Script's PropertiesService or anywhere else, so what's on the sheet is the whole story and it's visible to anyone who opens the spreadsheet, not just whoever has Apps Script editor access.
+This is the single source of truth for sync state — nothing is hidden in `PropertiesService` or anywhere else, so what's on the sheet is the whole story, visible to anyone who opens the spreadsheet.
 
 **What gets reported**, both in the alert after a manual sync and in the Settings panel: Imported, Skipped (duplicates), Errors, and Last Sync (timestamp) — plus up to 10 row-level error messages if any rows were skipped for missing a Business Name, same as manual import.
 
-**Auto Sync:** `RCS CRM > Auto Sync > Enable Auto Sync` creates an hourly time-based trigger and checks the Settings checkbox; `Disable Auto Sync` removes the trigger and unchecks it. Both remove any existing sync trigger before doing anything else, so clicking Enable twice never results in two triggers double-syncing every hour. The hourly trigger itself (`hourlySyncTrigger_`) re-checks the Enabled checkbox before doing anything (rather than trusting that the trigger's mere existence means it should run) and is wrapped in a try/catch that logs instead of throwing — an unattended trigger that throws repeatedly is how Google ends up silently disabling it. **Don't toggle the checkbox directly** — editing Settings!I2 by hand doesn't create or remove the actual trigger (Apps Script's permission model doesn't allow a simple sheet-edit trigger to manage installable triggers), so it would leave the checkbox out of sync with reality. Always use the Auto Sync submenu.
+**Auto Sync:** `RCS CRM > Auto Sync > Enable Auto Sync` removes any existing sync trigger first, then creates exactly one hourly time-based trigger and sets the Settings checkbox to `TRUE`. `Disable Auto Sync` removes the trigger and sets the checkbox to `FALSE`. Clicking Enable (or Disable) more than once in a row is a no-op beyond the first click — verified directly by counting triggers after repeated calls, not just by reading the confirmation text. The hourly trigger callback (`hourlySyncTrigger_`) re-checks the Enabled flag itself before doing anything (rather than trusting the trigger's mere existence), runs the identical sync logic used by the menu, and is wrapped in a try/catch that logs instead of throwing — the trigger has no UI to alert, and an unattended trigger that throws repeatedly is how Google ends up silently disabling it.
 
-**Failure handling:** a network error, a non-200 response from GitHub, and a 403 rate limit (more likely on Google's shared outbound IP pool for unauthenticated requests — `GITHUB_TOKEN` at the top of the script can be set for a private repo or a higher rate limit) are all caught and reported as a clear message, whether the sync was triggered manually (an alert) or by the hourly trigger (a log entry, since there's no UI to alert in an unattended context) — never an uncaught exception either way.
+**Failure handling:** a thrown network exception, a non-200 API response, GitHub's 403 rate limit, a missing/deleted CSV file (404 on the raw fetch), and an empty commit history for the path are all caught and turned into a specific, readable message — never an uncaught exception, whether the sync was run manually or by the hourly trigger.
 
-**Self-healing:** if `Sync Prospects` runs against a sheet where the CRM scaffold doesn't exist yet or was cleared (Prospects or Settings missing), it calls `buildRCSCRM()` first — already idempotent and safe to call anytime — before doing anything else, so an hourly sync can't get stuck failing forever just because something upstream reset a sheet.
+**GITHUB_TOKEN:** an isolated, empty-by-default config constant at the top of `CRM_Sync.gs`. Left blank, since a public repo's contents and commit history are readable with no auth. If this repo is ever made private, set it there and it's sent as a request header automatically — it is never written to a log, an alert, the Settings sheet, or anywhere else visible; the only GitHub-Sync-related value that ever becomes visible is the commit SHA.
+
+**What's preserved:** exactly what Import Prospects preserves (see above), since the sync reuses that function unmodified. The Settings Sync panel itself is provisioned once via `buildRCSCRM()` and never resets its own live values (Enabled/Last Sync Time/SHA/Result) on a rebuild — only the labels and checkbox get created if they're missing.
+
+## Website Audit (Sprint 4)
+
+**RCS CRM > Website Audit > Audit Selected Prospect** reads the Business + Website from whichever Prospects row(s) are selected, confirms before running (naming the business, or the count for a multi-row selection), skips any selected row missing a Business or Website with a clear note rather than guessing, and never modifies the Prospects row itself. **RCS CRM > Website Audit > Audit Website URL** opens a small dialog for auditing any URL — not tied to a Prospects row — normalizing a bare domain like `example.com` to `https://example.com` and rejecting anything that isn't a usable http/https URL (including other schemes like `mailto:` or `ftp://`, which are rejected outright rather than mangled into a bogus URL).
+
+**One page fetch, not a crawl.** Each audit makes: one request for the main page, one for `/robots.txt`, one for `/sitemap.xml`, and up to 5 requests for same-origin links found on that one page (capped — never a recursive crawl, never "a large number of requests"). Every network call is wrapped in try/catch; a DNS failure, timeout, SSL error, connection refusal, non-200 response, or empty response all become a specific, readable message — the menu and script never crash.
+
+### What is actually measured
+
+Every check below is either a direct read of the HTTP response / fetched HTML, or a heuristic explicitly labeled as such. Nothing here is invented or assumed.
+
+| Check | How it's verified |
+|---|---|
+| HTTPS | The URL's own scheme (`https://` vs `http://`) — not a redirect-chain inspection, since Apps Script's `UrlFetchApp` doesn't expose the final post-redirect URL. |
+| HTTP status | The real response code from the fetch. |
+| Page title | Presence + character length of `<title>…</title>`. |
+| Meta description | Presence + character length of `<meta name="description" content="…">` (attribute order doesn't matter). |
+| Viewport meta | Presence of `<meta name="viewport" …>` — this is the entire "Mobile" check; there is no real mobile-rendering test. |
+| H1 | Count of `<h1>` tags — flags both zero and more-than-one. |
+| Image alt text | Every `<img>` tag on the page, checked for a non-empty `alt` attribute. |
+| Canonical URL | Presence of `<link rel="canonical" href="…">`. |
+| robots.txt / sitemap.xml | A real fetch to each, checked for a reachable (2xx/3xx) response. |
+| Open Graph title/image | Presence of `og:title` / `og:image` meta tags. |
+| Page HTML size | The actual byte length of the fetched response body (used, labeled, as a Performance heuristic input). |
+| Fetch duration | Wall-clock time (`Date.now()` before/after the fetch) for this script's own request to the page — a real, if narrow, network-latency signal. |
+| Broken internal links (light) | Up to 5 same-origin links found on the page, each fetched and checked for a 4xx/5xx response. |
+
+### What is NOT measured (and never claimed)
+
+- **No real Lighthouse or PageSpeed score.** Performance is explicitly labeled `"NN/100 — HTML size/network heuristic"` — page size plus this script's own fetch-duration timing, nothing more.
+- **No Core Web Vitals** (LCP, CLS, INP, etc.) — these require a real browser render, which Apps Script cannot do.
+- **No actual mobile rendering.** "Mobile" is a single binary check — does a viewport meta tag exist — labeled `PASS`/`FAIL`, not a score, and not a claim that the site was actually rendered on a mobile device.
+- **No accessibility-compliance audit.** "Accessibility" is image alt-text coverage only, labeled `"NN/100 — image alt-text checks"` — not WCAG conformance, contrast checking, keyboard navigation, ARIA, or anything beyond what's named.
+- **No SEO ranking or traffic data.** The SEO score reflects only the on-page checks named in its own label (`"NN/100 — title/meta/H1/canonical checks"`) — not search rankings, backlinks, or real-world visibility.
+
+### Scoring
+
+Each category is scored 0–100 from only the checks actually performed:
+
+- **SEO** (max 100): title present (25, +5 if length is 10–60 chars), meta description present (25, +5 if length is 50–160 chars), exactly one H1 (20; more than one gets partial credit at 15), canonical tag present (20).
+- **Performance** (max 100, explicitly an HTML-size/network heuristic — never described as Lighthouse/PageSpeed): fetch duration under 1s/3s/6s/over (50/35/20/5 points) + HTML size under 100KB/300KB/800KB/over (50/35/20/5 points).
+- **Accessibility** (max 100): percentage of `<img>` tags with real (non-empty) alt text; a page with no images scores 100 (nothing to flag).
+- **Mobile**: binary PASS (viewport meta found) or FAIL — contributes 100 or 0 to the overall score, not a graded number.
+
+**Overall score** is a weighted average of the four categories — Mobile 25%, SEO 35%, Performance 20%, Accessibility 20% (`AUDIT_WEIGHTS` at the top of `CRM_Audits.gs`) — rounded to the nearest whole number.
+
+### Notes
+
+Generated only from checks that actually found something, in the exact format `"Opportunities: missing meta description; 6 images missing alt text; no canonical tag."` — or `"No issues found in the checks performed."` when nothing was flagged. Nothing is invented; an issue only appears if its corresponding check genuinely failed.
+
+### Storage
+
+Every completed audit appends one row to Website Audits — **never overwrites** a previous audit, including re-auditing the same business, which becomes a new row with a new Date rather than replacing the old record (so score history over time is preserved). A failed audit (network error, non-200, empty page) writes nothing. Date is stored as `yyyy-mm-dd`.
+
+### Results
+
+After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobile, SEO, Performance, Accessibility, Top issues (up to 3), and an "Audit saved to Website Audits" confirmation. Auditing multiple selected Prospects at once shows a compact per-business score list plus Audited/Failed/Skipped counts instead of stacking multiple detailed blocks.
+
+## Safety / idempotency
+
+- `buildRCSCRM()` is safe to run any number of times.
+- **Sheets:** created only if missing (looked up by name) — never duplicated.
+- **Headers:** written in full only on a truly blank sheet. On a sheet that already has headers, only whichever target headers are missing get appended *after* the existing ones — never inserted in the middle, never duplicated, never reordered. This is what let Sprint 2 rely on `Archived Date` reaching a Prospects sheet built with a version of this script that predates it, with no manual migration step.
+- **Settings lists:** seeded in full the first time; on later runs, only canonical values not already present in that column get appended after what's there — a team's own additions to a list are never touched.
+- **Data rows:** never read, moved, or deleted by `Code.gs`, `CRM_Builder.gs`, or `CRM_Settings.gs`. Import, GitHub Sync, Website Audit, and the three Prospect Actions only ever *append* new rows elsewhere or edit specific cells on an explicitly selected/matched Prospects row — see the sections above for exactly what each one touches. A failed audit writes nothing at all. Formatting operations (banding, filters, validation, column width) only touch formatting/structure, never cell values.
+- **Triggers:** `enableAutoSync_` always removes every existing sync trigger before creating a new one, so repeated clicks never produce more than one. `disableAutoSync_` removes it and is a harmless no-op if none exists.
+- **`Code.gs` doesn't hard-depend on `CRM_Sync.gs`:** the one line `buildRCSCRM()` added for the Sync panel is guarded (`if (typeof ensureSyncStatusBlock_ === 'function')`), so the CRM still builds correctly even if `CRM_Sync.gs` hasn't been added to the project yet — useful mid-setup, and also what let Sprint 1's and Sprint 2's original standalone test suites keep passing unmodified against this sprint's `Code.gs`.
+- **Dashboard is the one deliberate exception:** every cell on it is computed from the other sheets, so `buildDashboard_()` clears and redraws that one sheet on every run — there's nothing to lose, since it holds no manually-entered records, and this is what guarantees no duplicate Dashboard sections rather than trying to diff and patch a formula layout in place.
 
 ## Install steps
 
-1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data).
+1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data, including one already using an earlier version of this CRM).
 2. **Extensions > Apps Script.**
-3. Delete any placeholder code in `Code.gs`, then paste in the full contents of [`RCS_CRM_Builder.gs`](./RCS_CRM_Builder.gs).
-4. **Save** the project (e.g. name it "RCS CRM Builder").
+3. In the Apps Script editor, delete the default `Code.gs` placeholder content, then create eight script files matching the names in this folder — **Code**, **CRM_Builder**, **CRM_Settings**, **CRM_Dashboard**, **CRM_Import**, **CRM_Actions**, **CRM_Sync**, **CRM_Audits** — and paste the matching file's contents into each (use the **+** next to "Files" in the left sidebar to add each one; Apps Script appends `.gs` automatically).
+4. **Save** the project (e.g. name it "RCS CRM").
 5. In the function dropdown at the top of the editor, select **`buildRCSCRM`** and click **Run**.
-6. The first run will prompt for authorization — this is Google's standard OAuth consent for a script to edit its own spreadsheet. Review and click **Allow**. The first time **Sync Prospects** or **Auto Sync** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync, "manage your triggers" — both standard Apps Script consent prompts, not anything specific to this script.
-7. Switch back to the spreadsheet tab and refresh the page. An **RCS CRM** menu now appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected (see Workflow Automation above).
+6. The first run prompts for authorization — Google's standard OAuth consent for a script to edit its own spreadsheet (Apps Script will list "See, edit, create, and delete your spreadsheets"). Review and click **Allow**. The first time **Sync Prospects**, **Auto Sync**, or **Website Audit** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync specifically, permission to manage triggers — both standard Apps Script consent prompts, not anything specific to this script.
+7. Switch back to the spreadsheet tab and refresh the page (or close/reopen the sheet). An **RCS CRM** menu appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), a **Website Audit** submenu (Audit Selected Prospect / Audit Website URL), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected.
 
-Re-running is always safe: it only creates sheets/headers/settings values that are missing, never deletes or overwrites existing row data, and reformatting (freeze/filter/resize/colors/banding/validation) is reapplied cleanly every time.
+Re-running `buildRCSCRM()` (from the menu or the editor) is always safe — see Safety/idempotency above.
 
-## Validation performed before delivery
+## Sprint 1 scope (done)
 
-- Syntax-checked with `node --check` (Apps Script's V8 runtime is standard ES2015+ JavaScript).
-- Dry-run against a mocked Sheets API (Node), extended to cover `merge`/`breakApart`/`clear`/column-width calls the Dashboard build uses, across three back-to-back `buildRCSCRM()` runs:
-  1. **Blank CRM.** Produced exactly 11 sheets (default `Sheet1` renamed to `Dashboard`). Verified all 8 KPI formulas landed in the correct cells in the requested order, the Pipeline Summary block correctly reads `Settings!A2:A31`, the Recent Activity spill formula is in place with its `IFERROR` guard, and the row-40 spacer between Pipeline Summary and the metrics section is blank (no bleed-through between sections).
-  2. **Immediate re-run, no data changes.** Merge count and total populated-cell count on Dashboard were identical before and after (28 merges, 97 cells both times) — confirms nothing is duplicated or drifting on repeat runs.
-  3. **Added real rows to Prospects and Outreach Pipeline, then rebuilt.** Confirmed those rows were untouched by the dashboard rebuild, sheet count stayed at 11, and scanning column A for the "Key Metrics" header string found exactly one occurrence — no duplicate sections.
-  - No exceptions thrown across any of the three runs.
-- **Empty-CRM zero-value behavior** is verified by formula semantics rather than a live run (see caveat below): `COUNTA`/`COUNTIF`/`COUNTIFS`/`SUMIFS` all evaluate to `0` on empty ranges by definition, and the two percentage formulas and the Recent Activity spill are explicitly wrapped in `IFERROR` to turn what would otherwise be `#DIV/0!` or `#N/A` into `0`/a friendly message.
-- Because Apps Script's `SpreadsheetApp` API and its formula engine only exist inside Google's runtime, this dry run (structure, cell placement, idempotency, data preservation) is the closest verification possible outside of actually running it in Sheets — confirm live formula output on first real run per the install steps above.
+The 11-sheet schema, headers, Settings lists, dropdown validation, formatting, and the live Dashboard.
 
-**Import Prospects** was dry-run separately (20 assertions, all passing) directly against `parseCsv_`/`importProspectsFromCsv_` with a mocked Sheets API:
-- The CSV parser was checked against a quoted field with an embedded comma, an escaped `""` quote, and a multi-line quoted field — all parsed correctly rather than breaking on a naive `split('\n')`.
-- **Blank CSV** (empty string) and **header-only CSV** both returned `imported: 0, skipped: 0, errors: 0` with no exception — the "blank CSV imports correctly" requirement.
-- A `prospects.csv`-shaped file (real header names, aliases and all) imported 2 valid rows correctly mapped through the three aliases, flagged 1 row with a missing Business Name as an error, and listed the 5 unmatched columns (`Google Rating`, `Pain Points`, `Personalized Opening`, `Contacted`, `Follow-up Date`) as not imported.
-- **Re-importing the exact same file** afterward produced `imported: 0, skipped: 2` and left the sheet at exactly the same row count — confirms rerun safety and duplicate skipping against existing data.
-- A file with the same business listed twice produced `imported: 1, skipped: 1` — within-batch duplicates are caught too, not just duplicates against the sheet.
-- A file with no recognizable Business column returned a clear error message and imported nothing, instead of guessing.
-- After all of the above, Prospects' filter, banding, and validation rules (captured from the original `buildRCSCRM()` run) were confirmed still present and untouched — appending rows doesn't disturb existing formatting.
+## Sprint 2 scope (done)
 
-**Workflow Automation** was dry-run separately (24 assertions, all passing) against `menuMoveToOutreach_`/`menuConvertToClient_`/`menuArchiveLead_` with a mocked Sheets + Ui API:
-- **Upgrade path first:** pre-seeded a sheet shaped like a CRM built with an *older* version of this script — a 13-column Prospects header (no Archived Date) with one real data row, and a 13-value Lead Status list (no Archived) with a custom value manually added in another Settings column. After running `buildRCSCRM()`: `Archived Date` was appended at column 14 without moving `Status` from column 9, the pre-existing Prospects row and its Notes were untouched, `Archived` was appended as the 14th Lead Status value with the original 13 left in the same order, and the unrelated custom Settings value was left exactly as it was.
-- **Move to Outreach:** confirmed Stage/Contacted/Notes map correctly from Status/Last Contact/Notes; re-running on the same row reported `skipped: 1` and appended nothing (rerun safety); a multi-row selection moved both rows in one pass.
-- **Convert to Client:** confirmed Start Date is a real `Date` object for today, Status defaults to `Discovery`, Website and Notes carry over; re-running on the same row again reported a skip with no new row.
-- **Archive Lead:** confirmed Status becomes `Archived` and Archived Date is stamped with today's date on the selected row only — a different row was checked and confirmed untouched.
-- **Edge cases:** a row with a blank Business Name produced an error count with no exception; declining the Yes/No confirmation dialog (mocked "No" response) appended nothing; running an action while a non-Prospects sheet is active shows a guard alert instead of throwing.
-- Prospects/Clients/Outreach Pipeline filters, banding, and validation rules were all still present at the end — none of the three actions touch formatting beyond refreshing the destination sheet's filter range.
+Import Prospects (CSV dialog + column matching/aliases + duplicate protection) and the three Prospect Actions (Move to Outreach / Convert to Client / Archive Lead).
 
-**GitHub Sync** was dry-run separately (27 assertions, all passing) against `runProspectsSync_`/`enableAutoSync_`/`disableAutoSync_`/`hourlySyncTrigger_` with `UrlFetchApp` and `ScriptApp` mocked alongside the Sheets API:
-- **Network/API failure handling** — a thrown network exception, a non-200 response (404), and a 403 rate-limit response were each reported as a clear, specific message with no uncaught exception, and none of them wrote a Last Commit SHA (a failed check shouldn't look like a successful one).
-- **Empty CSV** — GitHub returning a 200 with an empty file body flowed through the same `importProspectsFromCsv_` empty-CSV handling already covered under Import Prospects: `Imported: 0`, no crash, and the SHA was still recorded (the check itself succeeded, even though the source file happened to be empty).
-- **New prospects import correctly** — a 2-row CSV (using the real `prospects.csv` header shape) imported both rows, and the Prospects sheet was confirmed to actually contain them, not just the reported count.
-- **No new prospects / avoiding unnecessary imports** — syncing again with an unchanged commit SHA reported "Already up to date" and — verified directly, not just inferred from the report — never even made the raw-file fetch call, let alone re-ran the importer.
-- **Duplicate protection** — a new commit SHA whose CSV re-listed the 2 already-imported businesses plus 1 genuinely new one produced `Imported: 1, Skipped: 2`, and the sheet grew by exactly 1 row.
-- **Auto Sync idempotency** — calling `enableAutoSync_` twice in a row left exactly one trigger in place (not two); calling `disableAutoSync_` twice was a harmless no-op both times.
-- **Unattended context** — `hourlySyncTrigger_` was called directly (simulating an actual trigger firing, no UI available) both while disabled (does nothing, no throw) and while enabled (runs the sync via `Logger.log` instead of an alert, no throw).
-- Prospects' filter, banding, and validation rules were confirmed still present after all of the above.
+## Sprint 3 scope (done)
+
+GitHub Sync (manual, via `RCS CRM > Sync Prospects`) and Auto Sync (hourly trigger via `RCS CRM > Auto Sync`), added as one new file (`CRM_Sync.gs`) that reuses `importProspectsFromCsv_` from `CRM_Import.gs` unmodified. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, and `CRM_Actions.gs` were **not** modified at all that sprint. `Code.gs` changed in two small, targeted ways: `onOpen()` gained the Sync Prospects item and the Auto Sync submenu, and `buildRCSCRM()` gained one guarded call to provision the Settings Sync panel.
+
+## Sprint 4 scope (done, this update)
+
+Website Audit — fetch, score, and log a prospect's website — added as one new file (`CRM_Audits.gs`) that reuses `getSelectedProspectRows_`/`getHeaders_` (`CRM_Actions.gs`) and `applyBasicFilter_`/`autoResizeColumns_` (`Code.gs`) without modifying any of them. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, and `CRM_Sync.gs` were **not** modified at all this sprint. Two other files changed in small, targeted ways: `Code.gs`'s `onOpen()` gained the Website Audit submenu (no changes to `buildRCSCRM()` this time), and `CRM_Dashboard.gs` gained one 4th card ("Audits Completed") in the existing Conversion & Client Metrics row, widening that row's header span from 6 to 8 columns — the 8-card Key Metrics row and every other Dashboard section are untouched.
+
+**Deliberately not included in Sprint 4:** anything beyond what Website Audit needed — no new Settings lists, no schema changes to any sheet other than what was already there (Website Audits' columns already matched this sprint's spec exactly), no external API key or token of any kind.
+
+## Sprint 5 (planned)
+
+No specific scope has been requested yet.
+
+## Testing performed before delivery
+
+All of the following ran against a mocked Apps Script `SpreadsheetApp`/`Ui`/`UrlFetchApp`/`ScriptApp` API in Node (`node --check` for syntax, then a full functional dry run — the closest verification possible outside Google's actual runtime, since these services and the Sheets formula engine only exist there). Nothing was committed until every check below passed.
+
+**Sprint 4 (91 assertions, all passing):**
+- **Syntax:** all 8 `.gs` files individually passed `node --check`.
+- **File-load-order safety:** all 8 files were concatenated and evaluated in both full reverse order and forward order, and both built 11 sheets with no exceptions.
+- **`normalizeUrl_`:** a bare domain gets `https://` prepended; explicit `http://`/`https://` pass through unchanged; garbage text and an empty string are rejected; `ftp://` and `mailto:` are rejected outright rather than getting mangled into a bogus-but-technically-URL-shaped string (this caught a real bug during testing — `mailto:` doesn't use `//` the way `http://` does, so the first version of the scheme check missed it; fixed and re-verified before anything was committed).
+- **Scoring unit tests** (pure functions, controlled inputs, no network involved): `scoreSeo_` at 100 (everything ideal), 0 (nothing present), and 15 (multiple-H1 partial credit); `scorePerformance_` at 100 (fast + small) and 10 (slow + huge); `scoreAccessibility_` at 100 (no images to flag) and 50 (half missing alt text); `computeOverallScore_` at 100, 0, and 75 (mobile-only failure, verifying the 25% mobile weight lands exactly).
+- **Valid, well-built site:** a realistic good-practice HTML fixture (title, meta description, viewport, single H1, canonical, OG tags, both images with real alt text) scored ≥ 80 overall, with every individual "missing X" issue correctly absent and all four category labels matching the exact spec'd format.
+- **Poorly-built site:** a bare-minimum HTML fixture (no head metadata, 2 of 3 images missing alt text) scored < 40 overall, with every expected issue present — missing title, missing meta description, no H1, no canonical, "2 images missing alt text" (the exact count, not just "some"), missing Open Graph tags.
+- **HTTPS detection:** an `http://` (not `https://`) URL correctly flagged "not using HTTPS"; an `https://` URL did not.
+- **Multiple H1s:** a 2-H1 fixture produced "multiple H1 headings found (2)" with the exact count.
+- **robots.txt / sitemap.xml:** both unreachable (404/500) → both flagged; both reachable (200) → neither flagged.
+- **HTTP error responses:** a 404 and a 500 on the main page each returned `ok: false` with the status code in the message, no exception, no partial/garbage audit result.
+- **Network exception:** a thrown fetch error (simulating DNS failure) was caught and returned as a readable `ok: false` result rather than propagating out of `auditUrl_`.
+- **Empty response body:** a whitespace-only page body was caught as a distinct failure case ("empty response — nothing to analyze") rather than silently scoring a blank page.
+- **Invalid URL never reaches the network layer:** confirmed `normalizeUrl_` rejects bad input before any fetch would be attempted.
+- **Audit row creation:** ran a real audit and read back the actual appended Website Audits row cell-by-cell, confirming Business/Date(`yyyy-mm-dd`)/Mobile/SEO/Performance/Accessibility/Score/Notes all match the returned audit result exactly — not just that "a row exists."
+- **A failed audit writes nothing:** confirmed the Website Audits row count is unchanged after an audit that failed (404).
+- **Repeated audits create separate rows:** the same business was audited 3 times total; confirmed the sheet grew by 3 separate rows (not 1 overwritten row), and all 3 are independently present.
+- **Selected Prospect mapping:** selected a real Prospects row, ran the audit, and confirmed the saved audit row's Business came from the Prospects record (not the URL/domain) — and that the Prospects row itself (its Status) was untouched by the audit.
+- **Missing-website prospect handling:** a selected row with no Website produced a clear "nothing to audit" alert and wrote no audit row, rather than crashing or silently guessing a URL.
+- **Wrong-sheet guard:** running the audit action while a non-Prospects sheet is active does not throw.
+- **Audit Website URL dialog path** (`runUrlAudit_`): a bare domain was normalized correctly, a business name was derived from the domain, the audit succeeded and saved a row, and a blank/invalid input was rejected cleanly.
+- **Dashboard "Audits Completed":** confirmed the label and the exact `COUNTA('Website Audits'!A2:A)` formula are present as the 4th card in the Conversion & Client Metrics row, that the existing Client Count card (3rd) is untouched, and that the 8-card Key Metrics row is completely unaffected by this sprint.
+- **Formatting preserved:** Website Audits' filter, and Prospects' filter/banding/validation, all confirmed present after every audit ran.
+
+**Regression (all three re-run unmodified against this sprint's actual files, 0 failures):**
+- **Sprint 1 suite** (60 assertions, 4 files) still passes.
+- **Sprint 2 suite** (62 assertions, 6 files) still passes.
+- **Sprint 3 suite** (57 assertions, 7 files) still passes — confirming `CRM_Dashboard.gs`'s widened metrics row and `Code.gs`'s new submenu didn't disturb anything Sprint 3 depends on.
+
+**Sprint 3 (57 assertions, all passing):**
+- **Syntax:** all 7 `.gs` files individually passed `node --check`.
+- **File-load-order safety:** all 7 files were concatenated and evaluated in both forward order and full reverse order, and both built 11 sheets with no exceptions.
+- **Settings Sync panel:** confirmed provisioned by `buildRCSCRM()` — header, all 4 labels, checkbox defaulting to unchecked, Last Sync Time/SHA starting blank — and confirmed the six dropdown-list columns (A:F) are untouched by it.
+- **GitHub API / network failure handling:** a thrown network exception, an HTTP 500 from the commits API, and a 403 rate-limit response were each reported as a clear, specific message with no uncaught exception; none of them wrote a Last Commit SHA (a failed check shouldn't look like a successful one).
+- **Missing CSV:** the commits API succeeding but the raw file returning 404 (file moved/deleted) was reported clearly, and the SHA was not recorded (only the failed step, not a "successful" sync).
+- **No commit history for the path** was reported clearly rather than crashing on an empty array.
+- **Changed SHA — new prospects imported correctly:** a 2-row CSV imported both rows; verified the Prospects sheet actually contains them (not just the reported count), and that Last Sync Time/SHA/Result were all written to the visible Settings panel.
+- **Unchanged SHA — raw CSV fetch confirmed skipped:** re-synced with the same SHA and directly verified (via a call-tracking flag, not just the reported message) that the raw file fetch never happened and the importer never ran.
+- **Duplicate prospects skipped / repeated sync:** re-synced the same 2 businesses under a *new* commit SHA and confirmed both were skipped as duplicates with 0 imported; then synced again with 1 genuinely new business mixed in among the 2 already-synced ones and confirmed exactly 1 new row was added.
+- **Auto Sync idempotency:** calling `enableAutoSync_` three times in a row left exactly one trigger; calling `disableAutoSync_` three times in a row left exactly zero.
+- **Trigger execution with no UI:** `hourlySyncTrigger_` was called directly (simulating a real trigger firing) while disabled (does nothing, no throw), while enabled (runs the sync via `Logger.log`, no throw), and while the sync itself throws a fatal error (still caught and logged, no throw) — the last case exercises the trigger's own try/catch specifically, not just the sync's internal error handling.
+- **Token never exposed:** scanned every UI alert produced across the whole test run for `Authorization`/`token ` substrings and confirmed none appear (the token is blank in this public-repo config, so this checks the leak path stays closed regardless).
+- **Sprint 1 + Sprint 2 regression, exercised live within the full 7-file build:** Dashboard title/KPI formulas intact; a manual `importProspectsFromCsv_` call (not via sync) still imports correctly and still respects duplicate protection; Move to Outreach and Archive Lead were run directly against freshly-added rows and produced the correct field mappings.
+- **Formatting preserved:** Prospects/Outreach Pipeline/Clients filters, banding, and validation were all confirmed present after every sync, import, and action; the Lead Status list was confirmed still exactly 14 values.
+
+**Regression (both re-run unmodified against this sprint's actual files, 0 failures):**
+- **Sprint 1 suite** (60 assertions, loading only `Code.gs`/`CRM_Builder.gs`/`CRM_Settings.gs`/`CRM_Dashboard.gs`) still passes — confirms `Code.gs`'s new Sync-panel hookup is properly guarded and doesn't break the CRM when `CRM_Sync.gs` isn't present.
+- **Sprint 2 suite** (62 assertions, loading the 6 pre-Sprint-3 files) still passes unmodified.
+
+## Remaining limitations
+
+These are inherent to what's achievable inside Apps Script without a real browser, not bugs to fix later — see "What is NOT measured" above for the full list. Worth calling out specifically:
+- HTML is checked with regex/string matching, not a real DOM parser (none is available in Apps Script) — this is reliable for presence/absence/count checks (title, meta tags, H1 count, image alt attributes) but could misread unusual or deliberately obfuscated markup.
+- The HTTPS check reads the requested URL's own scheme; it does not follow and inspect a possible `http://` → `https://` redirect chain, since `UrlFetchApp`'s response object doesn't expose the final post-redirect URL.
+- Broken-link checking is intentionally shallow (up to 5 same-origin links from the one fetched page) — by design, not an oversight, per the "no large numbers of requests" requirement.
+- Fetch-duration timing measures this script's own request from Google's servers to the target site, not a real user's network conditions — labeled as a heuristic for exactly that reason.
+
+No functional gaps identified against this sprint's scope. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, and `CRM_Sync.gs` are byte-for-byte unchanged from before this sprint, confirmed by the standalone Sprint 1/2/3 regression suites all passing unmodified. No fabricated Lighthouse, PageSpeed, Core Web Vitals, real mobile-rendering, accessibility-compliance, or SEO-ranking claims appear anywhere in the code, labels, or stored results — every category label states plainly what was actually checked.
