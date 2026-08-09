@@ -1,7 +1,7 @@
 /**
  * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
  * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6
- * Outreach Execution + Follow-Up
+ * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -20,6 +20,8 @@
  *                           deterministic, template-based sales brief on Prospects
  *   CRM_OutreachWorkflow.gs - Mark as Contacted / Schedule Follow-Up / Generate
  *                           Follow-Up Message, built on top of the Outreach Brief
+ *   CRM_Scoring.gs        - RCS Lead Priority Score: deterministic 0-100 score +
+ *                           tier + reasons from existing Prospects/Website Audits data
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -49,6 +51,10 @@ function onOpen() {
       .addItem('Mark as Contacted', 'menuMarkAsContacted_')
       .addItem('Schedule Follow-Up', 'menuScheduleFollowUp_')
       .addItem('Generate Follow-Up Message', 'menuGenerateFollowUpMessage_'))
+    .addSubMenu(ui.createMenu('Lead Intelligence')
+      .addItem('Score Selected Prospect(s)', 'menuScoreSelectedProspects_')
+      .addItem('Score All Prospects', 'menuScoreAllProspects_')
+      .addItem('Show Top Leads', 'menuShowTopLeads_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')

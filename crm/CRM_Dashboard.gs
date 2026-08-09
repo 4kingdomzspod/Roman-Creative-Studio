@@ -42,14 +42,22 @@ const DASHBOARD_KPIS = [
 ];
 
 // Conversion + client summary cards, reusing the same card widget as the KPIs.
-// "Audits Completed" (Sprint 4) was added here rather than the 8-card Key
-// Metrics row above, since that row's contents match Sprint 1's spec
-// exactly and this is a small addition, not a redesign.
+// "Audits Completed" (Sprint 4) and "Hot Leads" (Sprint 7) were both added
+// here rather than the 8-card Key Metrics row above, since that row's
+// contents match Sprint 1's spec exactly and these are small additions,
+// not a redesign.
+//
+// "Hot Leads" counts Prospects whose Score Tier column reads "Hot". The
+// scoring columns (CRM_Scoring.gs) are appended additively and aren't at a
+// fixed column position, so this locates "Score Tier" by header name via
+// INDEX/MATCH rather than a hardcoded column letter — IFERROR guards the
+// count at 0 for a CRM where scoring hasn't been run yet (no such column).
 const DASHBOARD_METRICS = [
   { label: 'Outreach Conversion %', formula: '=IFERROR(COUNTA(Meetings!A2:A)/COUNTA(\'Outreach Pipeline\'!A2:A),0)', format: '0.0%' },
   { label: 'Proposal Close %', formula: '=IFERROR(COUNTIF(Proposals!E2:E,"Accepted")/COUNTA(Proposals!D2:D),0)', format: '0.0%' },
   { label: 'Client Count', formula: '=COUNTA(Clients!A2:A)', format: '0' },
-  { label: 'Audits Completed', formula: '=COUNTA(\'Website Audits\'!A2:A)', format: '0' }
+  { label: 'Audits Completed', formula: '=COUNTA(\'Website Audits\'!A2:A)', format: '0' },
+  { label: 'Hot Leads', formula: '=IFERROR(COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Score Tier",Prospects!A1:Z1,0)),"Hot"),0)', format: '0' }
 ];
 
 function buildDashboard_(sheet) {
@@ -92,8 +100,8 @@ function writeKpiSection_(sheet) {
 }
 
 function writeConversionMetrics_(sheet) {
-  // 4 cards * 2 columns each = 8 columns (A:H), well within DASHBOARD_COLS (16).
-  writeSectionHeader_(sheet, DASHBOARD_ROWS.metricsHeader, 1, 8, 'Conversion & Client Metrics');
+  // 5 cards * 2 columns each = 10 columns (A:J), well within DASHBOARD_COLS (16).
+  writeSectionHeader_(sheet, DASHBOARD_ROWS.metricsHeader, 1, 10, 'Conversion & Client Metrics');
   DASHBOARD_METRICS.forEach(function (metric, i) {
     writeKpiCard_(sheet, i, DASHBOARD_ROWS.metricsLabel, metric.label, metric.formula, metric.format);
   });
