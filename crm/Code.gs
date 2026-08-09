@@ -1,6 +1,6 @@
 /**
  * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
- * Sync + Sprint 4 Website Audit
+ * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -15,6 +15,8 @@
  *   CRM_Actions.gs    - Move to Outreach / Convert to Client / Archive Lead
  *   CRM_Sync.gs       - "Sync Prospects" + Auto Sync (GitHub -> Prospects)
  *   CRM_Audits.gs     - Website Audit: fetch + score a site, log to Website Audits
+ *   CRM_Outreach.gs   - Outreach Brief: turns a Website Audits record into a
+ *                       deterministic, template-based sales brief on Prospects
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -38,6 +40,9 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Website Audit')
       .addItem('Audit Selected Prospect', 'menuAuditSelectedProspect_')
       .addItem('Audit Website URL', 'menuAuditWebsiteUrl_'))
+    .addSubMenu(ui.createMenu('Outreach Tools')
+      .addItem('Generate Outreach Brief', 'menuGenerateOutreachBrief_')
+      .addItem('Generate Brief for Selected Prospect', 'menuGenerateOutreachBrief_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
