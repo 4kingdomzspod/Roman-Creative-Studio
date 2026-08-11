@@ -79,21 +79,26 @@ function buildAnalyticsProspectRecords_(prospects) {
   const lastRow = prospects.getLastRow();
   const data = prospects.getRange(2, 1, lastRow - 1, headers.length).getValues();
 
-  const extra = {};
+  // Aligned by row position, not by Business name: a Business name is not
+  // guaranteed unique (two rows can legitimately share one — e.g. duplicate
+  // data entry), so a name-keyed lookup would let a later row's Industry/
+  // Archived Date/contact info silently overwrite an earlier row's for both.
+  // base and this pass both filter identically (skip blank Business) and
+  // walk the same row range in the same order, so index-aligning is safe.
+  const extraByRow = [];
   data.forEach(function (row) {
     const business = String(readField_(row, idx, 'Business') || '').trim();
     if (business === '') return;
-    extra[business.toLowerCase()] = {
+    extraByRow.push({
       industry: String(readField_(row, idx, 'Industry') || '').trim(),
       archivedDateRaw: readField_(row, idx, 'Archived Date'),
       daysSinceContact: daysSince_(readField_(row, idx, 'Last Contact')),
       hasContactInfo: String(readField_(row, idx, 'Phone') || '').trim() !== '' || String(readField_(row, idx, 'Email') || '').trim() !== ''
-    };
+    });
   });
 
-  return base.map(function (r) {
-    const e = extra[r.business.toLowerCase()] || { industry: '', archivedDateRaw: '', daysSinceContact: null, hasContactInfo: false };
-    return Object.assign({}, r, e);
+  return base.map(function (r, i) {
+    return Object.assign({}, r, extraByRow[i] || { industry: '', archivedDateRaw: '', daysSinceContact: null, hasContactInfo: false });
   });
 }
 
