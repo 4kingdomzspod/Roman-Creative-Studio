@@ -2,7 +2,8 @@
  * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
  * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6
  * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization +
- * Sprint 8 Daily Sales Command Center
+ * Sprint 8 Daily Sales Command Center + Sprint 9 Pipeline Intelligence &
+ * Analytics
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -25,6 +26,8 @@
  *                           tier + reasons from existing Prospects/Website Audits data
  *   CRM_CommandCenter.gs  - Daily Sales Command Center: read-only ranked daily
  *                           action report built from existing Prospects/Meetings/Proposals data
+ *   CRM_Analytics.gs      - Pipeline Intelligence: read-only funnel/value/aging/risk/
+ *                           industry analytics built from existing CRM data only
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -59,6 +62,7 @@ function onOpen() {
       .addItem('Score Selected Prospect(s)', 'menuScoreSelectedProspects_')
       .addItem('Score All Prospects', 'menuScoreAllProspects_')
       .addItem('Show Top Leads', 'menuShowTopLeads_'))
+    .addItem('Pipeline Intelligence', 'openPipelineIntelligence_')
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
