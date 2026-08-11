@@ -1,6 +1,6 @@
-# RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6 Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization
+# RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6 Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization + Sprint 8 Daily Sales Command Center
 
-A Google Apps Script, split across eleven files, that builds/updates the Roman Creative Studio outreach/sales CRM inside a Google Sheet: 11 sheets, exact headers, Settings-backed dropdown validation, consistent formatting, a live formula-driven Dashboard, one-click CSV import, menu-driven prospect actions (Move to Outreach / Convert to Client / Archive Lead), a GitHub sync (manual + hourly auto-sync) that pulls `outreach/prospects.csv` straight from this repo, a Website Audit tool that fetches and scores a prospect's site, an Outreach Brief generator that turns a saved audit into a ready-to-send sales brief, an Outreach Execution workflow (Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message) that carries a prospect forward after that brief has been sent, and a transparent, deterministic Lead Scoring system (the "RCS Lead Priority Score") that tells RCS which prospects deserve attention first.
+A Google Apps Script, split across twelve files, that builds/updates the Roman Creative Studio outreach/sales CRM inside a Google Sheet: 11 sheets, exact headers, Settings-backed dropdown validation, consistent formatting, a live formula-driven Dashboard, one-click CSV import, menu-driven prospect actions (Move to Outreach / Convert to Client / Archive Lead), a GitHub sync (manual + hourly auto-sync) that pulls `outreach/prospects.csv` straight from this repo, a Website Audit tool that fetches and scores a prospect's site, an Outreach Brief generator that turns a saved audit into a ready-to-send sales brief, an Outreach Execution workflow (Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message) that carries a prospect forward after that brief has been sent, a transparent, deterministic Lead Scoring system (the "RCS Lead Priority Score") that tells RCS which prospects deserve attention first, and a read-only Daily Sales Command Center that answers "what should I work on today?" in one ranked report.
 
 **Container-bound script only.** This does not require, and does not use, a Web App deployment, an API executable, an Add-on, or a Library. It's plain Apps Script attached directly to a Google Sheet — the only "deployment" step is pasting the code in and running one function once.
 
@@ -19,6 +19,7 @@ A Google Apps Script, split across eleven files, that builds/updates the Roman C
 | [`CRM_Outreach.gs`](./CRM_Outreach.gs) | *(Sprint 5)* Outreach Brief — turns a Prospects row's latest Website Audits record into a deterministic, template-based sales brief stored back on Prospects. |
 | [`CRM_OutreachWorkflow.gs`](./CRM_OutreachWorkflow.gs) | *(Sprint 6)* Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message — carries an outreach forward on the selected Prospects row(s), reusing the stored Outreach Brief for message generation. |
 | [`CRM_Scoring.gs`](./CRM_Scoring.gs) | *(Sprint 7)* RCS Lead Priority Score — a deterministic 0-100 score, tier, and human-readable reasons computed from existing Prospects + Website Audits data; Score Selected Prospect(s) / Score All Prospects / Show Top Leads. |
+| [`CRM_CommandCenter.gs`](./CRM_CommandCenter.gs) | *(Sprint 8)* Daily Sales Command Center — a single read-only, ranked "what to work on today" report built from existing Prospects/Website Audits/Meetings/Proposals data. Never writes anything. |
 
 Apps Script shares one global scope across every `.gs` file in a project (no imports/exports needed — a function or `const` defined in one file is callable/readable from any other), so this split is purely for readability; functionally it behaves as one script.
 
@@ -336,6 +337,34 @@ The final score is capped at 100 (`Math.min(100, ...)`) as a safety net, though 
 
 **What's preserved:** scoring only ever writes to a row's own Lead Score / Score Tier / Score Reasons cells — every other Prospects field (including the pre-existing, unrelated "Website Score" column) is left exactly as it was. Website Audits and the stored Outreach Brief text are read-only from this feature's perspective.
 
+## Daily Sales Command Center (Sprint 8)
+
+**RCS CRM > Daily Command Center** (`openDailyCommandCenter_`) answers one question — *"what should I work on today to move RCS prospects toward revenue?"* — as a single alert. **It is entirely read-only**: it only ever calls `getValues()`/`getValue()` against Prospects, Website Audits, Meetings, and Proposals, and never writes a cell, creates a sheet, creates a trigger, or sends anything. It's built entirely from Sprint 1-7 data and doesn't introduce a new scoring model — every "Hot," "Score," or exclusion rule it uses is the exact one from `CRM_Scoring.gs`, `CRM_Outreach.gs`, and `CRM_Audits.gs`, called directly rather than reimplemented.
+
+**Data sources:** Prospects (Status, Priority, Last Contact, Next Follow Up, Archived Date, and the optional Sprint 5/7 Outreach Brief / Lead Score / Score Tier columns when present), Website Audits (via `findLatestAuditForBusiness_`), Meetings, and Proposals — each read via `getHeaders_`/`getLiveProspectsHeaders_`, never a hardcoded column letter.
+
+**Seven categories**, checked for every non-excluded prospect (plus Meetings/Proposals rows):
+
+| # | Category | Condition |
+|---|---|---|
+| 1 | Overdue follow-up | Next Follow Up is a real date before today |
+| 2 | Follow-up due today | Next Follow Up is exactly today |
+| 3 | Hot lead needing action | Score Tier = "Hot" or Lead Score ≥ 80, and Status isn't already Won/Closed |
+| 4 | High-priority uncontacted | Priority = High, and Status is blank/"New" with no Last Contact |
+| 5 | Audited but uncontacted | A Website Audits record exists for the business, and the prospect is uncontacted (same definition as #4) |
+| 6 | Upcoming meeting | Meetings.Date is today or a real future date |
+| 7 | Active proposal | Proposals.Status is "Sent" or "Under Review" (Draft hasn't been sent yet; Accepted/Declined/Expired are already resolved) |
+
+**Exclusions:** any prospect that's Archived, Do Not Contact, or has a non-blank Archived Date (`isExcludedFromTopLeads_`, `CRM_Scoring.gs`) is skipped from **every** category, not just the Hot one — an excluded prospect never appears in the report at all, regardless of how urgent it would otherwise look.
+
+**Ranking:** one deterministic function walks the categories in the priority order above; within categories 1-5 ties are broken by existing Lead Score descending (no score = sorts last), and Meetings/Proposals are ordered by date ascending (soonest first). **A business appears at most once in the final list** — if it qualifies for more than one category (e.g. an overdue follow-up that's also a Hot lead), only its highest-priority entry is kept. The list is capped at the top 10; the Pipeline Health counts at the top of the report always reflect the true, uncapped totals for each category.
+
+**Every entry names:** the Business, a reason line (with the relevant score/status/date), a detail line when there's something specific worth stating, and one recommended next action — phrased to point at an action that will actually work given what's on file (e.g. it never recommends "Generate Follow-Up Message" for a prospect with no Outreach Brief yet, since that action would immediately fail; it recommends contacting them directly instead).
+
+**Empty states:** a CRM with no prospects, no follow-ups, no audits, no meetings, or no proposals — or one where the Sprint 5/7 optional columns were never provisioned — produces a report with all-zero Pipeline Health counts and `"No urgent actions found. Your pipeline is clear."` instead of an empty or broken list. Blank-Business rows and malformed/blank dates are silently skipped, never guessed at or thrown on.
+
+**Doesn't depend on the active sheet or a selection** — unlike the row-based actions elsewhere in this CRM, Daily Command Center reads Prospects/Meetings/Proposals directly, so it works no matter which sheet is currently open.
+
 ## Safety / idempotency
 
 - `buildRCSCRM()` is safe to run any number of times.
@@ -347,6 +376,7 @@ The final score is capped at 100 (`Math.min(100, ...)`) as a safety net, though 
 - **Outreach Brief's own column** is provisioned additively by `CRM_Outreach.gs` itself (not through `CRM_Builder.gs`/`ensureHeaders_`, since that file wasn't touched this sprint) — same append-only, never-reorder rule, just a self-contained implementation of it.
 - **The three Lead Scoring columns** are provisioned additively by `CRM_Scoring.gs` calling `Code.gs`'s own `ensureHeaders_` directly (again without touching `CRM_Builder.gs`) — same append-only, never-reorder rule as Outreach Brief, and correctly appends after Outreach Brief's column if that one was added first.
 - **Scoring never changes Status, Priority, or any other field it reads** — it only ever writes Lead Score / Score Tier / Score Reasons, and re-scoring (Score All Prospects run again) updates those three cells in place rather than creating new rows or columns.
+- **Daily Command Center is fully read-only** — `CRM_CommandCenter.gs` contains no `setValue`/`setValues` call anywhere; it only reads Prospects, Website Audits, Meetings, and Proposals and displays one alert. It creates no sheet, no trigger, and sends nothing.
 - **Triggers:** `enableAutoSync_` always removes every existing sync trigger before creating a new one, so repeated clicks never produce more than one. `disableAutoSync_` removes it and is a harmless no-op if none exists.
 - **`Code.gs` doesn't hard-depend on `CRM_Sync.gs`:** the one line `buildRCSCRM()` added for the Sync panel is guarded (`if (typeof ensureSyncStatusBlock_ === 'function')`), so the CRM still builds correctly even if `CRM_Sync.gs` hasn't been added to the project yet — useful mid-setup, and also what let Sprint 1's and Sprint 2's original standalone test suites keep passing unmodified against this sprint's `Code.gs`.
 - **Dashboard is the one deliberate exception:** every cell on it is computed from the other sheets, so `buildDashboard_()` clears and redraws that one sheet on every run — there's nothing to lose, since it holds no manually-entered records, and this is what guarantees no duplicate Dashboard sections rather than trying to diff and patch a formula layout in place.
@@ -355,11 +385,11 @@ The final score is capped at 100 (`Math.min(100, ...)`) as a safety net, though 
 
 1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data, including one already using an earlier version of this CRM).
 2. **Extensions > Apps Script.**
-3. In the Apps Script editor, delete the default `Code.gs` placeholder content, then create eleven script files matching the names in this folder — **Code**, **CRM_Builder**, **CRM_Settings**, **CRM_Dashboard**, **CRM_Import**, **CRM_Actions**, **CRM_Sync**, **CRM_Audits**, **CRM_Outreach**, **CRM_OutreachWorkflow**, **CRM_Scoring** — and paste the matching file's contents into each (use the **+** next to "Files" in the left sidebar to add each one; Apps Script appends `.gs` automatically).
+3. In the Apps Script editor, delete the default `Code.gs` placeholder content, then create twelve script files matching the names in this folder — **Code**, **CRM_Builder**, **CRM_Settings**, **CRM_Dashboard**, **CRM_Import**, **CRM_Actions**, **CRM_Sync**, **CRM_Audits**, **CRM_Outreach**, **CRM_OutreachWorkflow**, **CRM_Scoring**, **CRM_CommandCenter** — and paste the matching file's contents into each (use the **+** next to "Files" in the left sidebar to add each one; Apps Script appends `.gs` automatically).
 4. **Save** the project (e.g. name it "RCS CRM").
 5. In the function dropdown at the top of the editor, select **`buildRCSCRM`** and click **Run**.
-6. The first run prompts for authorization — Google's standard OAuth consent for a script to edit its own spreadsheet (Apps Script will list "See, edit, create, and delete your spreadsheets"). Review and click **Allow**. The first time **Sync Prospects**, **Auto Sync**, or **Website Audit** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync specifically, permission to manage triggers — both standard Apps Script consent prompts, not anything specific to this script. Outreach Brief, Outreach Execution (Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message), and Lead Scoring need no extra authorization beyond the base spreadsheet scope, since none of them make any network calls.
-7. Switch back to the spreadsheet tab and refresh the page (or close/reopen the sheet). An **RCS CRM** menu appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), a **Website Audit** submenu (Audit Selected Prospect / Audit Website URL), an **Outreach Tools** submenu (Generate Outreach Brief / Generate Brief for Selected Prospect — both do the same thing — plus Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message), a **Lead Intelligence** submenu (Score Selected Prospect(s) / Score All Prospects / Show Top Leads), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected.
+6. The first run prompts for authorization — Google's standard OAuth consent for a script to edit its own spreadsheet (Apps Script will list "See, edit, create, and delete your spreadsheets"). Review and click **Allow**. The first time **Sync Prospects**, **Auto Sync**, or **Website Audit** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync specifically, permission to manage triggers — both standard Apps Script consent prompts, not anything specific to this script. Outreach Brief, Outreach Execution (Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message), Lead Scoring, and Daily Command Center need no extra authorization beyond the base spreadsheet scope, since none of them make any network calls.
+7. Switch back to the spreadsheet tab and refresh the page (or close/reopen the sheet). An **RCS CRM** menu appears in the menu bar: **Build / Update CRM**, **Daily Command Center**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), a **Website Audit** submenu (Audit Selected Prospect / Audit Website URL), an **Outreach Tools** submenu (Generate Outreach Brief / Generate Brief for Selected Prospect — both do the same thing — plus Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message), a **Lead Intelligence** submenu (Score Selected Prospect(s) / Score All Prospects / Show Top Leads), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected.
 
 Re-running `buildRCSCRM()` (from the menu or the editor) is always safe — see Safety/idempotency above.
 
@@ -399,9 +429,51 @@ Lead Scoring + Prioritization — the RCS Lead Priority Score — added as one n
 
 **Deliberately not included in Sprint 7:** any AI/LLM API call, any claim that the score predicts probability of closing (checked directly by tests — see below), any new sheet (Show Top Leads is a single alert, not a sheet), any automatic Status/Priority/data change as a side effect of scoring, and any modification to `CRM_Builder.gs` (the three scoring columns are provisioned the same additive, self-contained way Sprint 5's Outreach Brief column was).
 
+## Sprint 8 scope (done, this update)
+
+Daily Sales Command Center — added as one new file (`CRM_CommandCenter.gs`) that reuses `getLiveProspectsHeaders_`/`OUTREACH_BRIEF_COLUMN`/`findLatestAuditForBusiness_`/`isAuditDataComplete_` (`CRM_Outreach.gs`), `isExcludedFromTopLeads_`/`formatScoreDate_` (`CRM_Scoring.gs`), and `getHeaders_` (`CRM_Actions.gs`) without modifying any of them and without reimplementing any exclusion, scoring, or audit-lookup logic. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, `CRM_Sync.gs`, `CRM_Audits.gs`, `CRM_Outreach.gs`, `CRM_OutreachWorkflow.gs`, `CRM_Scoring.gs`, and — unlike Sprint 7 — `CRM_Dashboard.gs` too, were **not** modified at all this sprint (this sprint added no Dashboard KPI; the Pipeline Health counts live inside the Command Center's own report). `Code.gs` changed only to add the one new top-level **Daily Command Center** menu item; `buildRCSCRM()` is unchanged.
+
+**Deliberately not included in Sprint 8:** any AI/LLM API call, any new sheet or stored field (everything is computed fresh on each run from existing sheets), any automatic write of any kind (it's read-only end to end — see Safety/idempotency above), any new scoring model (Hot/Warm/Cold and Lead Score come straight from Sprint 7, untouched), and any email or external notification.
+
 ## Testing performed before delivery
 
 All of the following ran against a mocked Apps Script `SpreadsheetApp`/`Ui`/`UrlFetchApp`/`ScriptApp` API in Node (`node --check` for syntax, then a full functional dry run — the closest verification possible outside Google's actual runtime, since these services and the Sheets formula engine only exist there). Nothing was committed until every check below passed.
+
+**Sprint 8 (75 assertions, all passing):**
+- **Syntax:** all 12 `.gs` files individually passed `node --check`.
+- **File-load-order safety:** all 12 files were concatenated and evaluated in both full reverse order and forward order, and both built 11 sheets with no exceptions.
+- **Empty CRM:** no prospects, no meetings, no proposals — confirmed no throw, an all-zero Pipeline Health summary, an empty action list, and the exact `"No urgent actions found. Your pipeline is clear."` message.
+- **Overdue follow-up detection:** a prospect with a Next Follow Up date before today is counted and appears with a `FOLLOW-UP OVERDUE` reason.
+- **Follow-up due today:** a Next Follow Up of exactly today is counted and appears with `FOLLOW-UP DUE TODAY`.
+- **Future follow-up exclusion:** a Next Follow Up 10 days out is counted in neither overdue nor due-today, and doesn't appear in the action list at all.
+- **Hot Lead detection:** both qualifying conditions tested independently — Score Tier exactly "Hot" (even with a raw score below 80), and Lead Score ≥ 80 (even with a lagging Warm tier label) — both correctly counted as hot leads.
+- **Cold/Warm exclusion:** Warm (65) and Cold (20) scored prospects are confirmed absent from the hot-lead count and the action list's HOT-tagged entries.
+- **Archived exclusion:** a prospect with a would-be-Hot score (95) and an overdue follow-up, but Status "Archived," is confirmed excluded from *every* category (overdue, hot, high-priority) and from the action list entirely — not just downgraded.
+- **Do Not Contact exclusion:** same result for Status "Do Not Contact."
+- **High-priority uncontacted detection:** a High-priority prospect with blank Status and no Last Contact is counted; an already-contacted High-priority prospect and a Low-priority uncontacted prospect are both correctly excluded from this category.
+- **Audited/uncontacted detection:** an uncontacted prospect with a real Website Audits record is counted and recommended for "Generate Outreach Brief"; an uncontacted prospect with no audit at all is excluded from this category.
+- **Upcoming meeting detection:** a meeting dated tomorrow is counted; one dated 5 days ago is excluded; a blank-Business meeting row doesn't throw and is skipped.
+- **Active proposal detection:** Sent and Under Review proposals are both counted (Sent includes its dollar Value in the reason text); Accepted and Draft proposals are both excluded.
+- **Ranking order:** seeded one qualifying business per all 7 categories simultaneously and confirmed the returned action order matches the category priority exactly, 1 through 7.
+- **Lead Score tie-breaking:** two prospects in the same category (both overdue) with different Lead Scores — confirmed the higher score ranks first.
+- **Duplicate action prevention:** a single business qualifying for both overdue follow-up (category 1) and hot lead (category 3) appears exactly once in the final list, keeping the higher-priority (overdue) reason text, not the hot-lead one.
+- **Blank Business handling:** blank-Business rows seeded simultaneously in Prospects, Meetings, and Proposals — confirmed no throw and none of the three are counted anywhere.
+- **Missing optional columns:** ran the command center against a Prospects sheet that never had Lead Score/Score Tier/Outreach Brief provisioned — confirmed no throw, overdue follow-ups still detected correctly, and no false "hot lead" reported in their absence.
+- **Malformed/blank dates:** a non-date string and a blank value in Next Follow Up, plus a non-date string in a Meeting's Date — confirmed no throw and none are miscounted as overdue/due-today/upcoming.
+- **Deterministic repeated output:** calling `openDailyCommandCenter_()` twice against unchanged data produces byte-identical summary and action-list JSON both times.
+- **Wrong-sheet handling:** running the command center while Clients (not Prospects) is the active sheet doesn't throw and still finds the same results — confirms the report doesn't depend on the active sheet or a selection.
+- **Maximum result limit:** 15 qualifying overdue prospects seeded — confirmed the action list is capped at exactly 10, while the Pipeline Health summary still reports the true, uncapped count of 15.
+- **Read-only guarantee:** captured Prospects' entire cell data and Website Audits' row count before and after running the command center — confirmed byte-for-byte identical, proving no write of any kind occurred.
+
+**Regression (all eight re-run unmodified against this sprint's actual files, 0 failures):**
+- **Sprint 1 suite** (73 assertions) still passes.
+- **Sprint 2 suite** (61 assertions) still passes.
+- **Sprint 3 suite** (56 assertions) still passes.
+- **Sprint 4 suite** (88 assertions) still passes.
+- **Sprint 4 fix suite** (28 assertions) still passes.
+- **Sprint 5 suite** (54 assertions) still passes.
+- **Sprint 6 suite** (66 assertions) still passes.
+- **Sprint 7 suite** (110 assertions) still passes — confirming `Code.gs`'s new top-level menu item didn't disturb Lead Intelligence or anything else Sprint 7 depends on, and that `CRM_Dashboard.gs` being untouched this sprint kept the Hot Leads KPI intact.
 
 **Sprint 7 (110 assertions, all passing):**
 - **Syntax:** all 11 `.gs` files individually passed `node --check`.
@@ -565,4 +637,11 @@ These are inherent to what's achievable inside Apps Script without a real browse
 - **"Lead Score" / "Score Tier" / "Score Reasons" don't appear on a fresh Build/Update CRM run** — like Outreach Brief, they're provisioned the first time a scoring action is actually run, not by `buildRCSCRM()`, per the constraint on not modifying `CRM_Builder.gs` this sprint.
 - **Business-name matching for the Website Audit factor is exact-text**, same limitation and same fix (re-run Website Audit from the Prospects row) as Outreach Brief's audit lookup, since both reuse `findLatestAuditForBusiness_`.
 
-No functional gaps identified against any sprint's scope. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, `CRM_Sync.gs`, `CRM_Audits.gs`, `CRM_Outreach.gs`, and `CRM_OutreachWorkflow.gs` are byte-for-byte unchanged from before Sprint 7, confirmed by the standalone Sprint 1-6 regression suites all passing unmodified. No fabricated Lighthouse, PageSpeed, Core Web Vitals, real mobile-rendering, accessibility-compliance, or SEO-ranking claims appear anywhere in the code, labels, or stored results — every category label states plainly what was actually checked, every line of a generated Outreach Brief or follow-up message traces back to specific stored data, and the RCS Lead Priority Score never claims to predict probability of closing.
+**Sprint 8 additions:**
+- **The Command Center's recommendations are exactly as good as the underlying CRM data.** It surfaces existing signals (follow-up dates, Lead Score, Priority, contact history, audit/brief presence, meeting dates, proposal status) — it never infers, predicts, or invents anything not already on a sheet, same discipline as every prior sprint's data-facing feature.
+- **"Uncontacted" is inferred from Status (blank/"New") + a blank Last Contact**, not a separate stored field — a prospect manually marked "Contacted" with an empty Last Contact, or vice versa, could read as contacted/uncontacted in a way that doesn't match reality. Keeping Status and Last Contact in sync (which Mark as Contacted, Sprint 6, already does) avoids this.
+- **"Hot lead needing action" excludes Won/Closed-Lost/Closed-Not-Interested statuses** so an already-resolved deal doesn't clutter a daily action list — any other status, including ones outside this sprint's spec, is still treated as needing action if the score/tier qualifies.
+- **The 10-item cap is on the ranked action list only** — the Pipeline Health counts at the top of the report always reflect true, uncapped totals, so a busy day's real scope is never hidden by the cap.
+- **No new Dashboard KPI this sprint** — Pipeline Health lives inside the Command Center's own report; `CRM_Dashboard.gs` was intentionally left untouched.
+
+No functional gaps identified against any sprint's scope. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, `CRM_Sync.gs`, `CRM_Audits.gs`, `CRM_Outreach.gs`, `CRM_OutreachWorkflow.gs`, `CRM_Scoring.gs`, and `CRM_Dashboard.gs` are byte-for-byte unchanged from before Sprint 8, confirmed by the standalone Sprint 1-7 regression suites all passing unmodified. No fabricated Lighthouse, PageSpeed, Core Web Vitals, real mobile-rendering, accessibility-compliance, or SEO-ranking claims appear anywhere in the code, labels, or stored results — every category label states plainly what was actually checked, every line of a generated Outreach Brief or follow-up message traces back to specific stored data, the RCS Lead Priority Score never claims to predict probability of closing, and the Daily Command Center never claims a fact it can't trace to an actual cell.

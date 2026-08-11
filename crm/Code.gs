@@ -1,7 +1,8 @@
 /**
  * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
  * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6
- * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization
+ * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization +
+ * Sprint 8 Daily Sales Command Center
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -22,6 +23,8 @@
  *                           Follow-Up Message, built on top of the Outreach Brief
  *   CRM_Scoring.gs        - RCS Lead Priority Score: deterministic 0-100 score +
  *                           tier + reasons from existing Prospects/Website Audits data
+ *   CRM_CommandCenter.gs  - Daily Sales Command Center: read-only ranked daily
+ *                           action report built from existing Prospects/Meetings/Proposals data
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -37,6 +40,7 @@ function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('RCS CRM')
     .addItem('Build / Update CRM', 'buildRCSCRM')
+    .addItem('Daily Command Center', 'openDailyCommandCenter_')
     .addItem('Import Prospects...', 'showImportDialog_')
     .addItem('Sync Prospects', 'menuSyncProspects_')
     .addSubMenu(ui.createMenu('Auto Sync')
