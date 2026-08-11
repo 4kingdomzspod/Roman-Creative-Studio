@@ -1,6 +1,6 @@
-# RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync + Sprint 4 Website Audit
+# RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6 Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization
 
-A Google Apps Script, split across eight files, that builds/updates the Roman Creative Studio outreach/sales CRM inside a Google Sheet: 11 sheets, exact headers, Settings-backed dropdown validation, consistent formatting, a live formula-driven Dashboard, one-click CSV import, menu-driven prospect actions (Move to Outreach / Convert to Client / Archive Lead), a GitHub sync (manual + hourly auto-sync) that pulls `outreach/prospects.csv` straight from this repo, and a Website Audit tool that fetches and scores a prospect's site.
+A Google Apps Script, split across eleven files, that builds/updates the Roman Creative Studio outreach/sales CRM inside a Google Sheet: 11 sheets, exact headers, Settings-backed dropdown validation, consistent formatting, a live formula-driven Dashboard, one-click CSV import, menu-driven prospect actions (Move to Outreach / Convert to Client / Archive Lead), a GitHub sync (manual + hourly auto-sync) that pulls `outreach/prospects.csv` straight from this repo, a Website Audit tool that fetches and scores a prospect's site, an Outreach Brief generator that turns a saved audit into a ready-to-send sales brief, an Outreach Execution workflow (Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message) that carries a prospect forward after that brief has been sent, and a transparent, deterministic Lead Scoring system (the "RCS Lead Priority Score") that tells RCS which prospects deserve attention first.
 
 **Container-bound script only.** This does not require, and does not use, a Web App deployment, an API executable, an Add-on, or a Library. It's plain Apps Script attached directly to a Google Sheet — the only "deployment" step is pasting the code in and running one function once.
 
@@ -16,6 +16,9 @@ A Google Apps Script, split across eight files, that builds/updates the Roman Cr
 | [`CRM_Actions.gs`](./CRM_Actions.gs) | *(Sprint 2)* Move to Outreach / Convert to Client / Archive Lead — act on the selected Prospects row(s). |
 | [`CRM_Sync.gs`](./CRM_Sync.gs) | *(Sprint 3)* "Sync Prospects" + Auto Sync — pulls `outreach/prospects.csv` from GitHub and hands it to `importProspectsFromCsv_`. |
 | [`CRM_Audits.gs`](./CRM_Audits.gs) | *(Sprint 4)* Website Audit — fetches one page (+ robots.txt/sitemap.xml + a few internal links), runs verifiable checks, scores it, and logs a row to Website Audits. |
+| [`CRM_Outreach.gs`](./CRM_Outreach.gs) | *(Sprint 5)* Outreach Brief — turns a Prospects row's latest Website Audits record into a deterministic, template-based sales brief stored back on Prospects. |
+| [`CRM_OutreachWorkflow.gs`](./CRM_OutreachWorkflow.gs) | *(Sprint 6)* Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message — carries an outreach forward on the selected Prospects row(s), reusing the stored Outreach Brief for message generation. |
+| [`CRM_Scoring.gs`](./CRM_Scoring.gs) | *(Sprint 7)* RCS Lead Priority Score — a deterministic 0-100 score, tier, and human-readable reasons computed from existing Prospects + Website Audits data; Score Selected Prospect(s) / Score All Prospects / Show Top Leads. |
 
 Apps Script shares one global scope across every `.gs` file in a project (no imports/exports needed — a function or `const` defined in one file is callable/readable from any other), so this split is purely for readability; functionally it behaves as one script.
 
@@ -28,7 +31,7 @@ Dashboard, Prospects, Outreach Pipeline, Follow Ups, Meetings, Proposals, Client
 | Sheet | Columns |
 |---|---|
 | Dashboard | — (formula-driven, no headers — see below) |
-| Prospects | Business, Industry, City, Website, Phone, Email, Contact, Priority, Status, Website Score, Last Contact, Next Follow Up, Notes, Archived Date |
+| Prospects | Business, Industry, City, Website, Phone, Email, Contact, Priority, Status, Website Score, Last Contact, Next Follow Up, Notes, Archived Date — plus **Outreach Brief** (added the first time a brief is generated) and **Lead Score / Score Tier / Score Reasons** (added the first time scoring is run) — see Outreach Brief and Lead Scoring below; none of these columns are provisioned by `buildRCSCRM()` |
 | Outreach Pipeline | Business, Stage, Contacted, Method, Response, Next Action, Owner, Notes |
 | Follow Ups | Business, Due, Priority, Status, Reminder, Notes |
 | Meetings | Business, Contact, Date, Type, Outcome, Proposal, Notes |
@@ -88,6 +91,7 @@ Every cell on Dashboard is a label or a live formula reading from the other 10 s
 - **Proposal Close %** — Proposals with Status "Accepted" ÷ Proposals with a Sent date filled in.
 - **Client Count** — total rows in Clients, regardless of status.
 - **Audits Completed** *(Sprint 4)* — count of all rows in Website Audits (`COUNTA('Website Audits'!A2:A)`). Added as a 4th card in this same row rather than redesigning the Dashboard — the row widened from 3 cards (columns A:F) to 4 (A:H).
+- **Hot Leads** *(Sprint 7)* — count of Prospects whose Score Tier reads "Hot" (`=IFERROR(COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Score Tier",Prospects!A1:Z1,0)),"Hot"),0)`). Added as a 5th card in this same row — widened from 4 cards (A:H) to 5 (A:J). The formula locates the Score Tier column by header name via `INDEX`/`MATCH` rather than a hardcoded column letter, since that column's position depends on when scoring was first run (see Lead Scoring below) — `IFERROR` resolves it to `0` on a CRM where scoring hasn't been run yet, rather than an error.
 
 Both percentage formulas and the empty-range count formulas resolve to `0` (via `IFERROR` or plain `COUNT*` semantics) rather than an error on a brand-new, empty CRM.
 
@@ -222,9 +226,115 @@ Generated only from checks that actually found something, in the exact format `"
 
 Every completed audit appends one row to Website Audits — **never overwrites** a previous audit, including re-auditing the same business, which becomes a new row with a new Date rather than replacing the old record (so score history over time is preserved). A failed audit (network error, non-200, empty page) writes nothing. Date is stored as `yyyy-mm-dd`.
 
+`saveAuditRecord_` never throws and always reports back whether the row genuinely landed: it verifies the write by reading the cell back, and any failure (missing sheet, missing schema, a Sheets API error mid-write) is caught and returned as `{ saved: false, message }` rather than an uncaught exception. `runUrlAudit_` (the function the URL-audit dialog calls) is wrapped the same way, so it always returns a plain result object instead of ever letting an exception escape to the dialog — the historical cause of a dialog hanging on "Auditing..." with no error shown.
+
 ### Results
 
-After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobile, SEO, Performance, Accessibility, Top issues (up to 3), and an "Audit saved to Website Audits" confirmation. Auditing multiple selected Prospects at once shows a compact per-business score list plus Audited/Failed/Skipped counts instead of stacking multiple detailed blocks.
+After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobile, SEO, Performance, Accessibility, Top issues (up to 3), and a save-status line. **"Audit saved to Website Audits" is only shown when the row write was actually confirmed** — if the audit itself succeeded but the save didn't (sheet missing, write error), the line instead reads "Audit completed but was NOT saved to Website Audits" with the specific reason, so a real save failure can never be mistaken for a successful one. Auditing multiple selected Prospects at once shows a compact per-business score list (each flagged `(NOT SAVED)` if its row didn't actually write) plus Audited/Failed/Skipped counts instead of stacking multiple detailed blocks. The Audit Website URL dialog itself is defensive against a missing/malformed result and never gets stuck showing "Auditing..." — both its success and failure callbacks always render a final message.
+
+## Outreach Brief (Sprint 5)
+
+**RCS CRM > Outreach Tools > Generate Outreach Brief** and **Generate Brief for Selected Prospect** are two menu labels for the exact same action — both act on whichever Prospects row(s) are selected. They're kept as one handler (`menuGenerateOutreachBrief_`) rather than two near-identical implementations, per this sprint's "no duplicate CRM logic" instruction.
+
+**What it does:** for each selected Prospects row, looks up that business's most recent Website Audits record (by Business name, latest Date if there are several — see Website Audit's storage behavior above) and assembles a plain-text brief from fields already stored there. **No AI API, no external service, no additional web fetch** — generation is a deterministic template filled in from `Mobile`/`SEO`/`Performance`/`Accessibility`/`Score`/`Notes` on the matched Website Audits row. Running it twice on the same audit data produces byte-identical output.
+
+**Brief format:**
+
+```
+OUTREACH BRIEF
+Business: ...
+Website: ...
+Audit Date: ...
+
+OVERALL FINDINGS
+Overall Score: NN/100  (Mobile: ...; SEO: ...; Performance: ...; Accessibility: ...)
+
+TOP ISSUES
+1. ...
+2. ...
+3. ...
+
+POSITIVE FINDINGS
+- ...
+
+OPENING
+"I took a quick look at your website and noticed ..."
+
+VALUE
+"RCS can help improve your ..."
+
+CTA
+"Would you be open to a quick conversation about it?"
+```
+
+**Where every line comes from — nothing is invented:**
+- **Top Issues** — parsed directly from the audit's `Notes` field (`"Opportunities: a; b; c."` → up to the first 3 of `a`, `b`, `c`). If Notes says no issues were found, this section says so instead of inventing a problem.
+- **Positive Findings** — Mobile is listed if its stored label starts with `PASS`; SEO/Performance/Accessibility are listed if their stored score is ≥ 70 (`OUTREACH_POSITIVE_THRESHOLD` in `CRM_Outreach.gs`) — each shown using its own already-computed label text, not a new claim.
+- **Opening** — references the actual top issue(s) found (e.g. `"...and noticed missing meta description and no canonical tag."`); if there genuinely were none, falls back to a neutral opening rather than naming a problem that wasn't found.
+- **Value** — names the genuine weak categories (score below the same 70 threshold, or Mobile FAIL) — up to 2 of them — rather than a generic pitch unrelated to what was actually found.
+- **CTA** — the fixed line from this sprint's spec, used verbatim; it's an invitation, not a factual claim, so it doesn't need to be grounded in audit data.
+
+**Safe handling:**
+- **No selection / wrong sheet** — reuses `getSelectedProspectRows_` (`CRM_Actions.gs`), which already covers both.
+- **Missing Business** — a selected row with no Business name is skipped and counted, never silently guessed.
+- **Missing audit** — no matching Website Audits record → clear message, nothing written, told to run Website Audit first.
+- **Incomplete audit data** — a matched record missing Score or any of the four category labels → clear message, nothing written, rather than generating a brief with holes in it.
+- **Existing brief** — if any target already has a non-blank Outreach Brief, one Yes/No confirmation asks whether to replace it before anything is touched; declining leaves every existing brief exactly as it was.
+- **Multiple prospects** — processes every valid selected row and reports aggregate counts (Generated / No audit found / Incomplete audit data) plus per-business detail lines, rather than one alert per row.
+
+**The Outreach Brief column:** `CRM_Builder.gs` (the normal source of Prospects' header list) is intentionally not touched this sprint, so this column can't be provisioned through the usual `SHEET_DEFS`/`ensureHeaders_` path used everywhere else. Instead, `CRM_Outreach.gs` provisions it itself the first time a brief is generated — appended after whatever the last column currently is, exactly the same additive-only rule as everywhere else in this CRM (never inserted in the middle, never reorders existing columns). One consequence worth knowing: unlike every other schema column, `Outreach Brief` won't appear just from running **Build / Update CRM** — it only appears once **Generate Outreach Brief** has been run at least once.
+
+**What's preserved:** brief generation only ever writes to a single Prospects row's own Outreach Brief cell (an edit, not an append/delete elsewhere) — Business, Website, and every other Prospects field are untouched, and Website Audits is read-only from this feature's perspective (never written to). Filter and column width are refreshed only at the moment the Outreach Brief column is first added.
+
+**"Audit Status" column:** intentionally not added. The task allowed it only "if useful/required" with an explicit preference to avoid it, and it wasn't needed — audit presence/completeness is checked live against Website Audits at brief-generation time, so a separate cached status field on Prospects would just be one more thing that could drift out of sync with the real data.
+
+## Outreach Execution + Follow-Up (Sprint 6)
+
+Three menu actions under **RCS CRM > Outreach Tools** carry an outreach forward once a brief has actually been sent. All three act on whichever Prospects row(s) are currently selected (reusing `getSelectedProspectRows_` from `CRM_Actions.gs`, the same guard used by the Sprint 2 actions and Website Audit), read the live header row (`getLiveProspectsHeaders_`, `CRM_Outreach.gs`) rather than the static schema, and never delete, archive, or move anything to another sheet.
+
+**Mark as Contacted** — sets `Status` to `Contacted` and `Last Contact` to today's date on every selected row that has a Business name; rows with a blank Business are skipped and counted, not guessed at. A single Yes/No confirmation (naming the business, or the count for a multi-row selection) is shown before anything is written; declining leaves `Status` and `Last Contact` untouched. Every other field on the row — Website, Priority, Notes, Next Follow Up, etc. — is left exactly as it was. **Next Follow Up is never touched by this action** (the task explicitly said not to auto-change it) — scheduling a follow-up is a separate, deliberate action. Re-running it on an already-Contacted row simply re-writes the same Status and refreshes Last Contact to today; nothing is duplicated.
+
+**Schedule Follow-Up** — prompts once (`ui.prompt`, a plain `yyyy-mm-dd` text entry — chosen over a new HtmlService dialog for consistency with the rest of this file and to avoid a new dialog file for a single date value) for the follow-up date, validates it's both correctly formatted and a real calendar date (rejects `2026-02-30`), then writes it to `Next Follow Up` on every selected row with a Business name. **If any selected row already has a Next Follow Up date, one confirmation asks before overwriting it** — naming the existing date; declining leaves every existing date exactly as it was, for every row in the selection (not just the one that already had a date). Cancelling the date prompt itself does nothing and shows no further alert. All other fields, including Notes, are untouched.
+
+**Generate Follow-Up Message** — deterministic and template-based, exactly like Sprint 5's Outreach Brief: **no AI API, no external service, nothing invented.** Restricted to a single selected row (unlike the other two actions) since it displays and optionally saves one specific message — a multi-row selection shows a clear "select a single prospect" message instead of guessing which row to use. Requires an existing Outreach Brief on that Prospects row (Sprint 5); if there isn't one, it says so and points to **Generate Outreach Brief** rather than fabricating content. The message references the real top issue pulled from the stored brief's own `TOP ISSUES` section (not a placeholder), and opens with one of five templates keyed to the prospect's current `Status` — `Contacted`, `Follow-up 1 Sent`, `Follow-up 2 Sent`, `No Response`, `Nurture` (the exact five Lead Status values named in this sprint's spec) — falling back to one neutral default template for any other status (`New`, `Won`, etc.) rather than refusing to generate a message. The message is **always shown first** (`ui.alert`, satisfying "display for copy/use" even if nothing gets saved), then a separate Yes/No asks whether to save it to Notes; declining leaves Notes completely untouched. Accepting **appends** a dated `[Follow-Up yyyy-mm-dd]: ...` block to any existing Notes content rather than overwriting it, consistent with this CRM's general preserve-existing-data rule. Regenerating the same message twice from the same Status/brief produces byte-identical text.
+
+**What's preserved:** all three actions only ever edit specific cells (`Status`, `Last Contact`, `Next Follow Up`, or `Notes`) on the exact Prospects row(s) selected — no new sheet, no row insertion/deletion, no changes to Website Audits or the stored Outreach Brief text itself.
+
+## Lead Scoring (Sprint 7)
+
+**RCS CRM > Lead Intelligence > Score Selected Prospect(s) / Score All Prospects / Show Top Leads** compute the **"RCS Lead Priority Score"** — a transparent, deterministic 0-100 score built only from data already on Prospects and Website Audits. **No AI API, no external service, no invented values** — any input that's missing simply contributes 0 points, and every score comes with a plain-English breakdown of exactly how it was reached.
+
+**This score does not predict probability of closing.** It's a prioritization aid, not a sales forecast — that disclaimer appears verbatim in every result dialog and in Show Top Leads, and no UI text anywhere in this feature implies otherwise.
+
+**Score components (weights sum to exactly 100):**
+
+| Factor | Points | How it's measured |
+|---|---|---|
+| Website Audit Score | up to 30 | The latest Website Audits record for that Business (`findLatestAuditForBusiness_`, Sprint 5), scaled: `round(auditScore / 100 * 30)`. No audit on file = 0. |
+| Priority | High +20 / Medium +10 / Low or unset +0 | Prospects.Priority, read as-is — any value other than exactly High/Medium/Low (including blank) is treated as unset, never guessed. |
+| Contact info available | up to 10 | +5 if Phone is on file, +5 if Email is on file. A Contact *name* alone doesn't count — it's not a channel to actually reach the business. |
+| Website exists | +5 | Prospects.Website is non-blank. |
+| Outreach Brief exists | +10 | The Sprint 5 Outreach Brief column is non-blank (0 if that column doesn't exist yet — nothing invented). |
+| Follow-up due/overdue | +10 | Prospects.Next Follow Up is today or earlier. A future date scores 0 ("not yet due"); no date scores 0 ("no follow-up scheduled") — the reason text distinguishes the two. |
+| Status / engagement signal | up to 15 | Call Booked/Proposal Sent/Won = 15, Proposal Pending = 12, Follow-up 2 Sent = 10, Follow-up 1 Sent = 8, Contacted = 6, Nurture = 4. Any other status (New, No Response, Closed states, Do Not Contact, Archived, blank, or anything unrecognized) = 0 — there's no engagement signal to credit. |
+
+The final score is capped at 100 (`Math.min(100, ...)`) as a safety net, though the weights above never actually sum past 100.
+
+**Tiers:** 80-100 = **Hot**, 60-79 = **Warm**, 0-59 = **Cold**.
+
+**Archived / Do Not Contact — never scored Hot:** if a prospect's Status is exactly "Archived" or "Do Not Contact" (case-insensitive), or its Archived Date is filled in, its computed tier is capped at Warm even if the raw point total would reach Hot — the reasons text says so explicitly (`"Tier capped at Warm — Archived/Do Not Contact prospects are never scored Hot."`). These prospects are also **excluded entirely from Show Top Leads**, regardless of score, so a Do Not Contact lead can never surface as something to act on. The underlying numeric score itself is still computed and stored honestly (so the data stays meaningful for anyone auditing it) — only the *tier label* and *Top Leads visibility* are constrained.
+
+**Score Selected Prospect(s)** — scores whichever Prospects row(s) are currently selected (`getSelectedProspectRows_`, `CRM_Actions.gs` — same wrong-sheet/no-selection guard as every other row-based action), after a Yes/No confirmation naming the business or the count. Rows with no Business name are skipped and counted, not guessed at.
+
+**Score All Prospects** — scores every Prospects row with a Business name, after one confirmation. Skips blank-Business rows. Re-running it (on the same or updated data) overwrites the three scoring cells in place — this is a live "current score," not an append-only log like Website Audits, so re-scoring is expected and produces no duplicate rows or columns.
+
+**Show Top Leads** — displays the top 10 scored, non-excluded prospects sorted by score descending, as `Business | Score | Tier | Reasons | Next Follow Up | Status` per row, in a single alert (**no new sheet is created**). If nothing has been scored yet, it says so and points to Score All Prospects instead of showing an empty or misleading list.
+
+**Deterministic:** `computeLeadScore_` is a pure function — the same Prospects/Website Audits inputs always produce the exact same score, tier, and reasons text, byte-for-byte, on every run.
+
+**The three scoring columns (Lead Score, Score Tier, Score Reasons):** like Sprint 5's Outreach Brief column, `CRM_Builder.gs` isn't touched this sprint, so these can't go through the normal `SHEET_DEFS`/`ensureHeaders_` build path automatically. Instead `CRM_Scoring.gs` provisions them itself the first time any scoring action runs, by calling Code.gs's own `ensureHeaders_` directly — the same additive-only, append-after-the-last-column, never-reorder guarantee used everywhere else in this CRM, just invoked from a new caller. They won't appear from a fresh **Build / Update CRM** run alone — only once scoring has actually been used at least once.
+
+**What's preserved:** scoring only ever writes to a row's own Lead Score / Score Tier / Score Reasons cells — every other Prospects field (including the pre-existing, unrelated "Website Score" column) is left exactly as it was. Website Audits and the stored Outreach Brief text are read-only from this feature's perspective.
 
 ## Safety / idempotency
 
@@ -232,7 +342,11 @@ After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobi
 - **Sheets:** created only if missing (looked up by name) — never duplicated.
 - **Headers:** written in full only on a truly blank sheet. On a sheet that already has headers, only whichever target headers are missing get appended *after* the existing ones — never inserted in the middle, never duplicated, never reordered. This is what let Sprint 2 rely on `Archived Date` reaching a Prospects sheet built with a version of this script that predates it, with no manual migration step.
 - **Settings lists:** seeded in full the first time; on later runs, only canonical values not already present in that column get appended after what's there — a team's own additions to a list are never touched.
-- **Data rows:** never read, moved, or deleted by `Code.gs`, `CRM_Builder.gs`, or `CRM_Settings.gs`. Import, GitHub Sync, Website Audit, and the three Prospect Actions only ever *append* new rows elsewhere or edit specific cells on an explicitly selected/matched Prospects row — see the sections above for exactly what each one touches. A failed audit writes nothing at all. Formatting operations (banding, filters, validation, column width) only touch formatting/structure, never cell values.
+- **Data rows:** never read, moved, or deleted by `Code.gs`, `CRM_Builder.gs`, or `CRM_Settings.gs`. Import, GitHub Sync, Website Audit, Outreach Brief, Outreach Execution (Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message), Lead Scoring, and the three Prospect Actions only ever *append* new rows elsewhere or edit specific cells on an explicitly selected/matched Prospects row — see the sections above for exactly what each one touches. A failed audit writes nothing at all; a brief that can't be generated (no audit / incomplete audit) writes nothing at all; Mark as Contacted and Schedule Follow-Up write nothing if declined at their confirmation step; Generate Follow-Up Message never writes to Notes unless the save is explicitly confirmed; declining a scoring confirmation writes nothing and doesn't even provision the scoring columns. Formatting operations (banding, filters, validation, column width) only touch formatting/structure, never cell values.
+- **Mark as Contacted never touches Next Follow Up, and Schedule Follow-Up never touches Status/Last Contact** — the two actions are deliberately independent, matching the sprint's explicit "do not automatically change Next Follow Up" constraint.
+- **Outreach Brief's own column** is provisioned additively by `CRM_Outreach.gs` itself (not through `CRM_Builder.gs`/`ensureHeaders_`, since that file wasn't touched this sprint) — same append-only, never-reorder rule, just a self-contained implementation of it.
+- **The three Lead Scoring columns** are provisioned additively by `CRM_Scoring.gs` calling `Code.gs`'s own `ensureHeaders_` directly (again without touching `CRM_Builder.gs`) — same append-only, never-reorder rule as Outreach Brief, and correctly appends after Outreach Brief's column if that one was added first.
+- **Scoring never changes Status, Priority, or any other field it reads** — it only ever writes Lead Score / Score Tier / Score Reasons, and re-scoring (Score All Prospects run again) updates those three cells in place rather than creating new rows or columns.
 - **Triggers:** `enableAutoSync_` always removes every existing sync trigger before creating a new one, so repeated clicks never produce more than one. `disableAutoSync_` removes it and is a harmless no-op if none exists.
 - **`Code.gs` doesn't hard-depend on `CRM_Sync.gs`:** the one line `buildRCSCRM()` added for the Sync panel is guarded (`if (typeof ensureSyncStatusBlock_ === 'function')`), so the CRM still builds correctly even if `CRM_Sync.gs` hasn't been added to the project yet — useful mid-setup, and also what let Sprint 1's and Sprint 2's original standalone test suites keep passing unmodified against this sprint's `Code.gs`.
 - **Dashboard is the one deliberate exception:** every cell on it is computed from the other sheets, so `buildDashboard_()` clears and redraws that one sheet on every run — there's nothing to lose, since it holds no manually-entered records, and this is what guarantees no duplicate Dashboard sections rather than trying to diff and patch a formula layout in place.
@@ -241,11 +355,11 @@ After a single audit, the dialog/alert shows: Business, URL, Overall Score, Mobi
 
 1. Open the target Google Sheet (a blank sheet is fine — the script also works on a sheet that already has data, including one already using an earlier version of this CRM).
 2. **Extensions > Apps Script.**
-3. In the Apps Script editor, delete the default `Code.gs` placeholder content, then create eight script files matching the names in this folder — **Code**, **CRM_Builder**, **CRM_Settings**, **CRM_Dashboard**, **CRM_Import**, **CRM_Actions**, **CRM_Sync**, **CRM_Audits** — and paste the matching file's contents into each (use the **+** next to "Files" in the left sidebar to add each one; Apps Script appends `.gs` automatically).
+3. In the Apps Script editor, delete the default `Code.gs` placeholder content, then create eleven script files matching the names in this folder — **Code**, **CRM_Builder**, **CRM_Settings**, **CRM_Dashboard**, **CRM_Import**, **CRM_Actions**, **CRM_Sync**, **CRM_Audits**, **CRM_Outreach**, **CRM_OutreachWorkflow**, **CRM_Scoring** — and paste the matching file's contents into each (use the **+** next to "Files" in the left sidebar to add each one; Apps Script appends `.gs` automatically).
 4. **Save** the project (e.g. name it "RCS CRM").
 5. In the function dropdown at the top of the editor, select **`buildRCSCRM`** and click **Run**.
-6. The first run prompts for authorization — Google's standard OAuth consent for a script to edit its own spreadsheet (Apps Script will list "See, edit, create, and delete your spreadsheets"). Review and click **Allow**. The first time **Sync Prospects**, **Auto Sync**, or **Website Audit** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync specifically, permission to manage triggers — both standard Apps Script consent prompts, not anything specific to this script.
-7. Switch back to the spreadsheet tab and refresh the page (or close/reopen the sheet). An **RCS CRM** menu appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), a **Website Audit** submenu (Audit Selected Prospect / Audit Website URL), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected.
+6. The first run prompts for authorization — Google's standard OAuth consent for a script to edit its own spreadsheet (Apps Script will list "See, edit, create, and delete your spreadsheets"). Review and click **Allow**. The first time **Sync Prospects**, **Auto Sync**, or **Website Audit** is used, a second authorization prompt appears for "Connect to an external service" (`UrlFetchApp`) and, for Auto Sync specifically, permission to manage triggers — both standard Apps Script consent prompts, not anything specific to this script. Outreach Brief, Outreach Execution (Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message), and Lead Scoring need no extra authorization beyond the base spreadsheet scope, since none of them make any network calls.
+7. Switch back to the spreadsheet tab and refresh the page (or close/reopen the sheet). An **RCS CRM** menu appears in the menu bar: **Build / Update CRM**, **Import Prospects...**, **Sync Prospects**, an **Auto Sync** submenu (Enable/Disable), a **Website Audit** submenu (Audit Selected Prospect / Audit Website URL), an **Outreach Tools** submenu (Generate Outreach Brief / Generate Brief for Selected Prospect — both do the same thing — plus Mark as Contacted / Schedule Follow-Up / Generate Follow-Up Message), a **Lead Intelligence** submenu (Score Selected Prospect(s) / Score All Prospects / Show Top Leads), and — below a separator — **Move to Outreach**, **Convert to Client**, and **Archive Lead**, which act on whichever Prospects row(s) are selected.
 
 Re-running `buildRCSCRM()` (from the menu or the editor) is always safe — see Safety/idempotency above.
 
@@ -267,13 +381,115 @@ Website Audit — fetch, score, and log a prospect's website — added as one ne
 
 **Deliberately not included in Sprint 4:** anything beyond what Website Audit needed — no new Settings lists, no schema changes to any sheet other than what was already there (Website Audits' columns already matched this sprint's spec exactly), no external API key or token of any kind.
 
-## Sprint 5 (planned)
+## Sprint 5 scope (done, this update)
 
-No specific scope has been requested yet.
+Outreach Brief — turn a saved Website Audits record into a deterministic sales brief — added as one new file (`CRM_Outreach.gs`) that reuses `getSelectedProspectRows_` (`CRM_Actions.gs`) and `applyBasicFilter_`/`autoResizeColumns_` (`Code.gs`) without modifying any of them. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Dashboard.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, and `CRM_Sync.gs` were **not** modified at all this sprint — `CRM_Dashboard.gs` in particular wasn't touched since nothing in this sprint's scope needed a Dashboard change. `Code.gs` changed only to add the Outreach Tools submenu (`onOpen()`); `buildRCSCRM()` is unchanged.
+
+**Deliberately not included in Sprint 5:** an "Audit Status" column on Prospects (allowed only "if useful/required" with an explicit preference to avoid it — see Outreach Brief above for why it wasn't needed), any AI/LLM API call, any additional web fetch beyond what Website Audit already stored, and any change to how Website Audits records are written (Outreach Brief is read-only against that sheet).
+
+## Sprint 6 scope (done, this update)
+
+Outreach Execution + Follow-Up — Mark as Contacted, Schedule Follow-Up, and Generate Follow-Up Message — added as one new file (`CRM_OutreachWorkflow.gs`) that reuses `getSelectedProspectRows_` (`CRM_Actions.gs`), `getLiveProspectsHeaders_`/`OUTREACH_BRIEF_COLUMN` (`CRM_Outreach.gs`), and `formatAuditDate_` (`CRM_Audits.gs`) without modifying any of them. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Dashboard.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, `CRM_Sync.gs`, and `CRM_Audits.gs` were **not** modified at all this sprint. `Code.gs` changed only to add the three new items to the existing Outreach Tools submenu (`onOpen()`); `buildRCSCRM()` is unchanged, and the two pre-existing Outreach Tools menu items keep their exact prior labels/targets.
+
+**Deliberately not included in Sprint 6:** any AI/LLM API call, any new sheet, any new external service, any change to how Website Audits or the Outreach Brief text itself are written, and any automatic cross-field side effect — Mark as Contacted never touches Next Follow Up, and neither action ever moves a row to another sheet or archives/deletes anything, per the sprint's explicit constraints.
+
+## Sprint 7 scope (done, this update)
+
+Lead Scoring + Prioritization — the RCS Lead Priority Score — added as one new file (`CRM_Scoring.gs`) that reuses `getSelectedProspectRows_` (`CRM_Actions.gs`), `getLiveProspectsHeaders_`/`OUTREACH_BRIEF_COLUMN`/`findLatestAuditForBusiness_` (`CRM_Outreach.gs`), `formatAuditDate_` (`CRM_Audits.gs`), and `ensureHeaders_`/`applyBasicFilter_`/`autoResizeColumns_` (`Code.gs`) without modifying any of them. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, `CRM_Sync.gs`, `CRM_Audits.gs`, `CRM_Outreach.gs`, and `CRM_OutreachWorkflow.gs` were **not** modified at all this sprint. Two other files changed in small, targeted ways: `Code.gs`'s `onOpen()` gained the Lead Intelligence submenu (no changes to `buildRCSCRM()`), and `CRM_Dashboard.gs` gained one 5th card ("Hot Leads") in the existing Conversion & Client Metrics row, widening that row's header span from 8 to 10 columns — the 8-card Key Metrics row, Pipeline Summary, and every other Dashboard section are untouched.
+
+**Deliberately not included in Sprint 7:** any AI/LLM API call, any claim that the score predicts probability of closing (checked directly by tests — see below), any new sheet (Show Top Leads is a single alert, not a sheet), any automatic Status/Priority/data change as a side effect of scoring, and any modification to `CRM_Builder.gs` (the three scoring columns are provisioned the same additive, self-contained way Sprint 5's Outreach Brief column was).
 
 ## Testing performed before delivery
 
 All of the following ran against a mocked Apps Script `SpreadsheetApp`/`Ui`/`UrlFetchApp`/`ScriptApp` API in Node (`node --check` for syntax, then a full functional dry run — the closest verification possible outside Google's actual runtime, since these services and the Sheets formula engine only exist there). Nothing was committed until every check below passed.
+
+**Sprint 7 (110 assertions, all passing):**
+- **Syntax:** all 11 `.gs` files individually passed `node --check`.
+- **File-load-order safety:** all 11 files were concatenated and evaluated in both full reverse order and forward order, and both built 11 sheets with no exceptions.
+- **`scoreTier_` boundaries:** 59 → Cold, 60 → Warm, 79 → Warm, 80 → Hot, plus 0 → Cold and 100 → Hot — the exact boundary values named in the sprint spec.
+- **`computeLeadScore_` — fully maxed prospect:** every factor present (100/100 audit, High priority, phone + email, website, Outreach Brief, an overdue follow-up, Call Booked status) scores exactly 100, tier Hot, and the reasons text names every individual contribution — confirms the 0-100 cap holds without overshoot on a legitimately maximal input.
+- **`computeLeadScore_` — fully blank prospect:** every factor missing scores exactly 0, tier Cold, and each of the 7 reason lines explicitly states "0 pts" for its own missing factor — confirms missing data always reads as 0, never an invented value.
+- **Unrecognized Priority value** (e.g. "Urgent") is treated identically to a missing one (0 pts, "Priority not set") rather than guessed.
+- **Partial contact info:** phone-only and email-only each score exactly +5 (not the full +10), with reasons naming which one was found.
+- **Follow-up timing:** an overdue date and a date of exactly today both score +10; a future date scores 0 with "not yet due"; no date at all scores 0 with "no follow-up scheduled" — the two 0-point cases are distinguished in the reasons text.
+- **Website Audit integration:** seeded two Website Audits records for the same business at different dates and confirmed the score uses the **latest** one (by date) via the existing `findLatestAuditForBusiness_` — and confirmed a business with no audit record at all scores 0 for that factor specifically.
+- **Deterministic repeated scoring:** calling `computeLeadScore_` twice with identical inputs produces an identical score, tier, and byte-identical reasons text both times.
+- **Archived / Do Not Contact handling:** a prospect whose raw point total would reach Hot (≥80) but whose Status is "Archived" has its tier capped at Warm, with the reasons text explicitly stating the cap; same result for "Do Not Contact." A non-blank Archived Date alone (with an unrelated Status) also triggers exclusion; an ordinary prospect with neither is confirmed *not* excluded.
+- **Additive column provisioning:** confirmed Prospects starts at 14 columns, gains Lead Score/Score Tier/Score Reasons at columns 15/16/17 after first use, that column 9 (Status) is untouched, and that calling the provisioning function again doesn't add duplicates. A second scenario provisions scoring columns onto a sheet that already has Sprint 5's Outreach Brief column at column 15, and confirms Outreach Brief is preserved in place while the three scoring columns append after it (16/17/18) — proving the two independently-provisioned column sets compose correctly.
+- **Score Selected Prospect(s):** confirmation shown before any write; correct Lead Score/Score Tier/Score Reasons written; every unrelated field (Business, Website, Priority, the pre-existing "Website Score" column, Notes, Status) confirmed untouched afterward.
+- **Confirmation cancellation:** declining the Yes/No leaves the sheet at its original 14 columns — scoring columns aren't even provisioned if the user declines.
+- **Blank Business handling:** a selected row with no Business name is not scored and is counted in a "Skipped" line rather than throwing or guessing.
+- **Multi-row selection:** a 2-row selection scores both rows independently, with the High-priority row correctly scoring higher than the Low-priority row.
+- **Wrong-sheet handling:** running Score Selected Prospect(s) while a non-Prospects sheet is active does not throw and shows a clear redirect message.
+- **Score All Prospects:** scores every row with a Business name, skips a blank-Business row, reports accurate Scored/Skipped counts, and leaves an unrelated row's Notes untouched. Re-running it after changing the underlying audit data updates the score **in place** — confirmed no new rows or columns were added and the new reasons text reflects the updated audit score.
+- **Show Top Leads:** seeded 12 ordinary prospects plus one high-scoring Archived prospect; confirmed the Archived one never appears in the list (regardless of its raw score), the required `Business | Score | Tier | Reasons | Next Follow Up | Status` header is present, the list is sorted by score descending, is capped at exactly 10 rows, an exclusion count note is shown, and the "does not predict probability of closing" disclaimer is present in the message. A separate case confirms Show Top Leads before any scoring has run shows a clear "run scoring first" message rather than an empty or broken list.
+- **Dashboard "Hot Leads":** confirmed the label and the exact `IFERROR(COUNTIF(INDEX(...),"Hot"),0)` formula are present as the 5th card in the Conversion & Client Metrics row, that the existing Client Count (3rd) and Audits Completed (4th) cards are untouched, and that the 8-card Key Metrics row is completely unaffected by this sprint.
+- **Formatting preserved:** Prospects' filter/banding/validation all confirmed present after every scoring action ran.
+
+**Regression (all seven re-run unmodified against this sprint's actual files, 0 failures):**
+- **Sprint 1 suite** (73 assertions) still passes.
+- **Sprint 2 suite** (61 assertions) still passes.
+- **Sprint 3 suite** (56 assertions) still passes.
+- **Sprint 4 suite** (88 assertions) still passes.
+- **Sprint 4 fix suite** (28 assertions, from the Website Audit save-confirmation fix) still passes.
+- **Sprint 5 suite** (54 assertions) still passes.
+- **Sprint 6 suite** (66 assertions) still passes — confirming `Code.gs`'s new Lead Intelligence submenu and `CRM_Dashboard.gs`'s widened metrics row didn't disturb anything Sprint 6 depends on.
+
+**Sprint 6 (66 assertions, all passing):**
+- **Syntax:** all 10 `.gs` files individually passed `node --check`.
+- **File-load-order safety:** all 10 files were concatenated and evaluated in both full reverse order and forward order, and both built 11 sheets with no exceptions.
+- **`isValidDateString_`** (pure function): a valid `yyyy-mm-dd` string is accepted; malformed text, wrong separators (slashes), and an impossible calendar date (`2026-02-30`) are all rejected; an empty string is rejected.
+- **`parseBriefTopIssues_`** (pure function): correctly extracts the real issue list from a stored Outreach Brief's `TOP ISSUES` section; correctly treats "No significant issues found in the audit." as zero issues rather than as an issue itself; returns `[]` for blank brief text.
+- **Mark as Contacted — correct update + data preservation:** confirmation shown before any write; `Status` set to `Contacted`; `Last Contact` set to a real `Date` object; Notes, Website, and Priority on the same row all confirmed untouched.
+- **Mark as Contacted — idempotency:** running it a second time on an already-Contacted row doesn't throw, leaves `Status` at `Contacted`, and doesn't create a duplicate row.
+- **Mark as Contacted — blank Business:** a selected row with no Business name doesn't throw, produces a clear alert, and its `Status` is confirmed untouched (still `New`).
+- **Mark as Contacted — confirmation cancellation:** declining the Yes/No prompt leaves both `Status` and `Last Contact` exactly as they were.
+- **Mark as Contacted — multi-row:** a 2-row selection updates both rows' `Status` and `Last Contact` correctly.
+- **Schedule Follow-Up — creation:** `Next Follow Up` is written as a real `Date` object matching the entered date; no overwrite-confirmation is asked when there was no existing date.
+- **Schedule Follow-Up — existing date requires confirmation:** confirmed the overwrite question is asked when a date already exists, and confirming it updates the date.
+- **Schedule Follow-Up — declining overwrite:** declining the overwrite question leaves the original date in place, byte-for-byte.
+- **Schedule Follow-Up — invalid date input:** an invalid date string produces a clear error with no crash and writes nothing.
+- **Schedule Follow-Up — cancel the prompt entirely:** cancelling the `ui.prompt` dialog itself writes nothing and shows no further alert.
+- **Schedule Follow-Up — data preservation + multi-row:** a 2-row selection both get `Next Follow Up` set correctly, and an unrelated row's Notes are confirmed untouched throughout.
+- **Generate Follow-Up Message — missing Outreach Brief:** a selected prospect with no stored brief produces a clear message pointing to Generate Outreach Brief, with no crash.
+- **Generate Follow-Up Message — status-specific templates:** all 5 named statuses (`Contacted`, `Follow-up 1 Sent`, `Follow-up 2 Sent`, `No Response`, `Nurture`) produce genuinely different, correctly-worded messages; an unrecognized status (`Won`) falls back to the default template without throwing; the message correctly references the real top issue pulled from the stored brief, not a placeholder.
+- **Generate Follow-Up Message — display + save-to-Notes confirmation:** the message is always displayed first; the save confirmation is asked afterward; accepting it appends to (rather than overwrites) existing Notes content.
+- **Generate Follow-Up Message — declining save:** declining leaves Notes exactly as it was before.
+- **Generate Follow-Up Message — deterministic repetition:** generating twice in a row from the same Business/Status/brief produces identical message text both times.
+- **Generate Follow-Up Message — multi-row rejection:** a multi-row selection doesn't throw and shows a clear "select a single prospect" message instead of guessing.
+- **Generate Follow-Up Message — missing Business:** a selected row with no Business name doesn't throw and produces a clear message.
+- **Wrong sheet (all three actions):** `menuMarkAsContacted_`, `menuScheduleFollowUp_`, and `menuGenerateFollowUpMessage_` were each called with a non-Prospects sheet active and none threw.
+- **Data preservation + formatting:** an unrelated row's Website/Industry confirmed untouched; Prospects' filter/banding/validation all confirmed present after every action ran; sheet count still exactly 11 (no new sheet was created).
+
+**Regression (all five re-run unmodified against this sprint's actual files, 0 failures):**
+- **Sprint 1 suite** (73 assertions) still passes.
+- **Sprint 2 suite** (61 assertions) still passes.
+- **Sprint 3 suite** (56 assertions) still passes.
+- **Sprint 4 suite** (88 assertions) still passes.
+- **Sprint 5 suite** (54 assertions) still passes — confirming `Code.gs`'s three new Outreach Tools menu items didn't disturb Generate Outreach Brief / Generate Brief for Selected Prospect or anything else Sprint 5 depends on.
+
+**Sprint 5 (54 assertions, all passing):**
+- **Syntax:** all 9 `.gs` files individually passed `node --check`.
+- **File-load-order safety:** all 9 files were concatenated and evaluated in both full reverse order and forward order, and both built 11 sheets with no exceptions.
+- **Parsing helpers** (pure functions): `parseCategoryLabel_` correctly splits `"78/100 — title/meta/H1/canonical checks"` into score + description; `parseMobileLabel_` correctly reads PASS and FAIL; `parseOpportunities_` correctly splits `"Opportunities: a; b; c."` into `['a','b','c']` and returns `[]` for both the "No issues found" message and blank Notes.
+- **Outreach Brief column provisioning:** confirmed Prospects starts at its normal 14 columns, gained `Outreach Brief` at column 15 after the first brief generation, that column 9 (`Status`) was untouched by the append, and that calling the provisioning function again does not add a second copy of the column.
+- **Selected Prospect with a matching audit:** ran a full brief generation against a realistic audit record and checked the actual saved cell text field-by-field — correct Business/Website/Audit Date, Overall Score matching the stored Score exactly, Top Issues matching the parsed Opportunities list, Positive Findings correctly including categories ≥ 70 and correctly excluding the one category (SEO, scored 55) below the threshold, an Opening sentence that names the real top issues (not a placeholder), a Value line naming the real weak category, and the CTA matching the spec text exactly. Also confirmed the Prospects row's other fields (Status) were untouched.
+- **Missing audit:** a selected prospect with no Website Audits record produced a clear message and left the Outreach Brief cell blank.
+- **Missing Business:** a selected row with no Business name did not throw and produced a clear "nothing to generate" message.
+- **Incomplete audit data:** a Website Audits record with blank Mobile/SEO/Performance/Accessibility fields (Score present) was correctly rejected as incomplete, with a clear message and nothing written.
+- **Existing brief — decline:** re-running against a prospect that already had a brief triggered the replace-confirmation question, and declining it left the existing brief text byte-for-byte unchanged.
+- **Existing brief — accept:** accepting the replacement against a newer audit record (different date, score, and issues) produced a brief that was verifiably different from the original and correctly reflected every new value.
+- **Repeated generation is deterministic:** regenerating twice in a row from the same underlying audit data produced byte-identical brief text both times.
+- **Multiple prospects in one selection:** a 4-row selection mixing a missing-audit case, a missing-Business case, an incomplete-audit case, and a genuinely valid case produced the correct aggregate counts (`Generated: 1`, `No audit found: 1`, `Incomplete audit data: 1`, plus the missing-Business skip note) and the one valid business's brief was actually written.
+- **Wrong sheet:** running the action while a non-Prospects sheet is active does not throw.
+- **Data preservation:** confirmed an unrelated Prospects row's Business/Website were untouched, that Website Audits' row count was unchanged (brief generation never writes to it), and that Prospects' filter/banding/validation all survived the new column being added.
+- One real test-script bug (not a source bug) was caught and fixed during this sprint: an early assertion checked `alerts[0]` without first clearing the mock's alert log after the setup `buildRCSCRM()` calls, so it was reading a leftover "CRM is up to date" message instead of the actual result alert — fixed by clearing the mock's state before the functional tests begin and asserting against the correct alert.
+
+**Regression (all four re-run unmodified against this sprint's actual files, 0 failures):**
+- **Sprint 1 suite** (60 assertions, 4 files) still passes.
+- **Sprint 2 suite** (62 assertions, 6 files) still passes.
+- **Sprint 3 suite** (57 assertions, 7 files) still passes.
+- **Sprint 4 suite** (91 assertions, 8 files) still passes — confirming `Code.gs`'s new Outreach Tools submenu didn't disturb anything Sprint 4 depends on (Website Audit's own menu items, the Dashboard "Audits Completed" card, etc.).
 
 **Sprint 4 (91 assertions, all passing):**
 - **Syntax:** all 8 `.gs` files individually passed `node --check`.
@@ -332,4 +548,21 @@ These are inherent to what's achievable inside Apps Script without a real browse
 - Broken-link checking is intentionally shallow (up to 5 same-origin links from the one fetched page) — by design, not an oversight, per the "no large numbers of requests" requirement.
 - Fetch-duration timing measures this script's own request from Google's servers to the target site, not a real user's network conditions — labeled as a heuristic for exactly that reason.
 
-No functional gaps identified against this sprint's scope. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, and `CRM_Sync.gs` are byte-for-byte unchanged from before this sprint, confirmed by the standalone Sprint 1/2/3 regression suites all passing unmodified. No fabricated Lighthouse, PageSpeed, Core Web Vitals, real mobile-rendering, accessibility-compliance, or SEO-ranking claims appear anywhere in the code, labels, or stored results — every category label states plainly what was actually checked.
+**Sprint 5 additions:**
+- **Outreach Brief quality is bounded by what Website Audit stored.** The brief only ever restates/reorganizes data already on the matched Website Audits row — it can't surface anything the audit didn't check (see Website Audit's own "what is NOT measured" list above), and a thin or generic-sounding brief on a site with few detected issues is an honest reflection of a limited automated audit, not a sign the brief generator is broken.
+- **Business-name matching is exact-text (trimmed, case-insensitive).** If a Prospects row's Business name doesn't match the Website Audits Business name exactly (e.g. "Acme Roofing" vs. "Acme Roofing LLC"), the brief generator reports "no audit found" even though a relevant audit exists under a slightly different name — there's no fuzzy matching. Re-running Website Audit from the Prospects row itself (rather than typing the business name differently in two places) avoids this.
+- **"Outreach Brief" doesn't appear on a fresh Build/Update CRM run** — it's provisioned the first time a brief is actually generated, not by `buildRCSCRM()`, per the constraint on not modifying `CRM_Builder.gs` this sprint (documented in the Outreach Brief section above).
+
+**Sprint 6 additions:**
+- **Generate Follow-Up Message's quality is bounded by the stored Outreach Brief.** It restates the brief's own top issue rather than re-deriving anything from Website Audits — if the brief was thin (few detected issues), the follow-up message will be too, which is an honest reflection of the underlying audit rather than a sign this feature is broken.
+- **Status-specific templates cover exactly the 5 Lead Status values named in this sprint's spec** (`Contacted`, `Follow-up 1 Sent`, `Follow-up 2 Sent`, `No Response`, `Nurture`). Any other status (`New`, `Call Booked`, `Proposal Sent`, `Won`, etc.) gets one neutral default template rather than a tailored one — by design, since the sprint only specified those 5.
+- **Schedule Follow-Up's date entry is a plain `yyyy-mm-dd` text prompt**, not a calendar picker widget — Apps Script's built-in `ui.prompt` has no native date picker, and adding an HtmlService dialog for a single value would have been more than this sprint's "keep it minimal" instruction called for.
+
+**Sprint 7 additions:**
+- **The RCS Lead Priority Score is not a sales forecast.** It's a weighted count of existing CRM signals (audit quality, declared Priority, reachability, outreach progress, follow-up timing, funnel status) — it does not model, and was never intended to model, an actual probability of a deal closing. This is stated directly in every result dialog and in Show Top Leads, not just here.
+- **A thin score reflects thin CRM data, not a broken scorer.** A prospect with no audit, no brief, and no contact info on file will score low even if it's genuinely a great lead — the score can only ever reflect what's actually recorded in Prospects/Website Audits, same limitation as Outreach Brief above.
+- **The Status → engagement-points mapping only credits the specific Lead Status values listed in this sprint's spec** (Call Booked/Proposal Sent/Won = 15, Proposal Pending = 12, Follow-up 2 Sent = 10, Follow-up 1 Sent = 8, Contacted = 6, Nurture = 4). Any other status, including legitimate ones like "New," scores 0 for that factor — by design, since a lead that hasn't been engaged yet has no engagement signal to credit.
+- **"Lead Score" / "Score Tier" / "Score Reasons" don't appear on a fresh Build/Update CRM run** — like Outreach Brief, they're provisioned the first time a scoring action is actually run, not by `buildRCSCRM()`, per the constraint on not modifying `CRM_Builder.gs` this sprint.
+- **Business-name matching for the Website Audit factor is exact-text**, same limitation and same fix (re-run Website Audit from the Prospects row) as Outreach Brief's audit lookup, since both reuse `findLatestAuditForBusiness_`.
+
+No functional gaps identified against any sprint's scope. `CRM_Builder.gs`, `CRM_Settings.gs`, `CRM_Import.gs`, `CRM_Actions.gs`, `CRM_Sync.gs`, `CRM_Audits.gs`, `CRM_Outreach.gs`, and `CRM_OutreachWorkflow.gs` are byte-for-byte unchanged from before Sprint 7, confirmed by the standalone Sprint 1-6 regression suites all passing unmodified. No fabricated Lighthouse, PageSpeed, Core Web Vitals, real mobile-rendering, accessibility-compliance, or SEO-ranking claims appear anywhere in the code, labels, or stored results — every category label states plainly what was actually checked, every line of a generated Outreach Brief or follow-up message traces back to specific stored data, and the RCS Lead Priority Score never claims to predict probability of closing.

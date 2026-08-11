@@ -1,20 +1,27 @@
 /**
  * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
- * Sync + Sprint 4 Website Audit
+ * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6
+ * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
  * executable, Add-on, or Library deployment required or used anywhere here.
  *
  * File layout:
- *   Code.gs           - menu, buildRCSCRM() orchestrator, shared sheet/format helpers
- *   CRM_Builder.gs    - the 11-sheet schema (names, headers, validation map)
- *   CRM_Settings.gs   - Settings dropdown lists + validation application
- *   CRM_Dashboard.gs  - the formula-driven Dashboard sheet
- *   CRM_Import.gs     - "Import Prospects..." CSV dialog + import logic
- *   CRM_Actions.gs    - Move to Outreach / Convert to Client / Archive Lead
- *   CRM_Sync.gs       - "Sync Prospects" + Auto Sync (GitHub -> Prospects)
- *   CRM_Audits.gs     - Website Audit: fetch + score a site, log to Website Audits
+ *   Code.gs               - menu, buildRCSCRM() orchestrator, shared sheet/format helpers
+ *   CRM_Builder.gs        - the 11-sheet schema (names, headers, validation map)
+ *   CRM_Settings.gs       - Settings dropdown lists + validation application
+ *   CRM_Dashboard.gs      - the formula-driven Dashboard sheet
+ *   CRM_Import.gs         - "Import Prospects..." CSV dialog + import logic
+ *   CRM_Actions.gs        - Move to Outreach / Convert to Client / Archive Lead
+ *   CRM_Sync.gs           - "Sync Prospects" + Auto Sync (GitHub -> Prospects)
+ *   CRM_Audits.gs         - Website Audit: fetch + score a site, log to Website Audits
+ *   CRM_Outreach.gs       - Outreach Brief: turns a Website Audits record into a
+ *                           deterministic, template-based sales brief on Prospects
+ *   CRM_OutreachWorkflow.gs - Mark as Contacted / Schedule Follow-Up / Generate
+ *                           Follow-Up Message, built on top of the Outreach Brief
+ *   CRM_Scoring.gs        - RCS Lead Priority Score: deterministic 0-100 score +
+ *                           tier + reasons from existing Prospects/Website Audits data
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -38,6 +45,16 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Website Audit')
       .addItem('Audit Selected Prospect', 'menuAuditSelectedProspect_')
       .addItem('Audit Website URL', 'menuAuditWebsiteUrl_'))
+    .addSubMenu(ui.createMenu('Outreach Tools')
+      .addItem('Generate Outreach Brief', 'menuGenerateOutreachBrief_')
+      .addItem('Generate Brief for Selected Prospect', 'menuGenerateOutreachBrief_')
+      .addItem('Mark as Contacted', 'menuMarkAsContacted_')
+      .addItem('Schedule Follow-Up', 'menuScheduleFollowUp_')
+      .addItem('Generate Follow-Up Message', 'menuGenerateFollowUpMessage_'))
+    .addSubMenu(ui.createMenu('Lead Intelligence')
+      .addItem('Score Selected Prospect(s)', 'menuScoreSelectedProspects_')
+      .addItem('Score All Prospects', 'menuScoreAllProspects_')
+      .addItem('Show Top Leads', 'menuShowTopLeads_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
