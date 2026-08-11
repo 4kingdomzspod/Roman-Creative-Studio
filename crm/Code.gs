@@ -3,7 +3,8 @@
  * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6
  * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization +
  * Sprint 8 Daily Sales Command Center + Sprint 9 Pipeline Intelligence &
- * Analytics + Sprint 10 CRM Data Quality & Health Audit
+ * Analytics + Sprint 10 CRM Data Quality & Health Audit + Sprint 11
+ * Automation & Daily Maintenance
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -30,6 +31,9 @@
  *                           industry analytics built from existing CRM data only
  *   CRM_Health.gs         - CRM Health Audit: read-only completeness/duplicate/
  *                           consistency/integrity/staleness checks + a 0-100 CRM Health Score
+ *   CRM_Automation.gs     - Daily CRM Maintenance report, Automation Status, and an
+ *                           optional installable daily trigger — reporting only, no
+ *                           automatic edits, reuses CRM_Health.gs/CRM_Analytics.gs
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -66,6 +70,11 @@ function onOpen() {
       .addItem('Show Top Leads', 'menuShowTopLeads_'))
     .addItem('Pipeline Intelligence', 'openPipelineIntelligence_')
     .addItem('CRM Health', 'openCrmHealthAudit_')
+    .addSubMenu(ui.createMenu('Automation')
+      .addItem('Run CRM Maintenance', 'menuRunCrmMaintenance_')
+      .addItem('Automation Status', 'menuAutomationStatus_')
+      .addItem('Enable Daily Maintenance', 'enableDailyMaintenance_')
+      .addItem('Disable Daily Maintenance', 'disableDailyMaintenance_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
@@ -93,6 +102,9 @@ function buildRCSCRM() {
       // dropdown-list columns. Guarded so Code.gs still builds a working
       // CRM even if CRM_Sync.gs hasn't been added to the project yet.
       if (typeof ensureSyncStatusBlock_ === 'function') ensureSyncStatusBlock_(sheet);
+      // Automation panel (CRM_Automation.gs) — columns K:L, separate from
+      // the GitHub Sync panel above. Same guard for the same reason.
+      if (typeof ensureAutomationStatusBlock_ === 'function') ensureAutomationStatusBlock_(sheet);
       return;
     }
 
