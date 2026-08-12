@@ -4,7 +4,7 @@
  * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization +
  * Sprint 8 Daily Sales Command Center + Sprint 9 Pipeline Intelligence &
  * Analytics + Sprint 10 CRM Data Quality & Health Audit + Sprint 11
- * Automation & Daily Maintenance
+ * Automation & Daily Maintenance + Sprint 12 Next-Action Engine
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -34,6 +34,9 @@
  *   CRM_Automation.gs     - Daily CRM Maintenance report, Automation Status, and an
  *                           optional installable daily trigger — reporting only, no
  *                           automatic edits, reuses CRM_Health.gs/CRM_Analytics.gs
+ *   CRM_NextAction.gs     - Next-Action Engine: read-only, ranked "what should I act
+ *                           on next?" report across Prospects/Meetings/Proposals/
+ *                           Clients, reusing Sprint 7's Lead Score as-is
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -70,6 +73,7 @@ function onOpen() {
       .addItem('Show Top Leads', 'menuShowTopLeads_'))
     .addItem('Pipeline Intelligence', 'openPipelineIntelligence_')
     .addItem('CRM Health', 'openCrmHealthAudit_')
+    .addItem('Next Actions', 'openNextActions_')
     .addSubMenu(ui.createMenu('Automation')
       .addItem('Run CRM Maintenance', 'menuRunCrmMaintenance_')
       .addItem('Automation Status', 'menuAutomationStatus_')
