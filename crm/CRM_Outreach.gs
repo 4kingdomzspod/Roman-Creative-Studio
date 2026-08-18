@@ -72,7 +72,7 @@ function menuGenerateOutreachBrief_() {
   const details = [];
 
   targets.forEach(function (t) {
-    const auditRow = findLatestAuditForBusiness_(t.business);
+    const auditRow = findLatestAuditForBusiness_(t.business, t.website);
     if (!auditRow) {
       missingAudit++;
       details.push(t.business + ': no Website Audit found — run Website Audit first.');
@@ -132,7 +132,21 @@ function getLiveProspectsHeaders_(sheet) {
 // Website Audits can hold more than one record per business (repeated
 // audits are appended, never overwritten — see CRM_Audits.gs). This picks
 // the most recent one by Date ('yyyy-mm-dd' sorts correctly as a string).
-function findLatestAuditForBusiness_(business) {
+//
+// `website` is optional and only ever consulted as a fallback — every
+// existing single-argument call (CRM_CommandCenter.gs, CRM_Scoring.gs) is
+// unaffected, since it's `undefined` there and the fallback phase below
+// exits immediately for a blank/undefined value, before touching any row.
+//
+// The fallback exists because "Audit Website URL" (CRM_Audits.gs) isn't
+// tied to a Prospects row at all — it saves the audit under a domain-
+// derived Business (deriveBusinessNameFromUrl_), which won't match a real
+// Prospects.Business string like "Roman Creative Studio". Website Audits
+// has no URL column of its own (and this fix doesn't add one), but a
+// domain-derived Business value *is* itself a URL-ish string, so comparing
+// it against the Prospect's own Website (both reduced to a bare host) finds
+// exactly that case — deterministic string comparison only, never fuzzy.
+function findLatestAuditForBusiness_(business, website) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Website Audits');
   if (!sheet) return null;
 
@@ -142,17 +156,46 @@ function findLatestAuditForBusiness_(business) {
   const data = sheet.getRange(2, 1, lastRow - 1, 8).getValues(); // Business,Date,Mobile,SEO,Performance,Accessibility,Score,Notes
   const key = business.trim().toLowerCase();
 
+  const byName = pickLatestAuditRow_(data, function (row) {
+    return String(row[0] || '').trim().toLowerCase() === key;
+  });
+  if (byName) return formatAuditRow_(byName);
+
+  const websiteKey = normalizeAuditUrlKey_(website);
+  if (websiteKey === '') return null;
+
+  const byUrl = pickLatestAuditRow_(data, function (row) {
+    return normalizeAuditUrlKey_(row[0]) === websiteKey;
+  });
+  return byUrl ? formatAuditRow_(byUrl) : null;
+}
+
+function pickLatestAuditRow_(data, matches) {
   let best = null;
   data.forEach(function (row) {
-    if (String(row[0] || '').trim().toLowerCase() !== key) return;
+    if (!matches(row)) return;
     if (!best || String(row[1]) >= String(best[1])) best = row;
   });
-  if (!best) return null;
+  return best;
+}
 
+function formatAuditRow_(best) {
   return {
     business: best[0], date: best[1], mobile: best[2], seo: best[3],
     performance: best[4], accessibility: best[5], score: best[6], notes: best[7]
   };
+}
+
+// Reduces a URL-ish string to a bare, comparable host: strips http(s)://,
+// strips a leading www., then cuts at the first /, ?, or # — handling a
+// trailing slash, a path, a query string, and a hash fragment all in the
+// same step. Deterministic only; not a real URL parser.
+function normalizeAuditUrlKey_(value) {
+  let v = String(value || '').trim().toLowerCase();
+  if (v === '') return '';
+  v = v.replace(/^https?:\/\//, '').replace(/^www\./, '');
+  v = v.split(/[/?#]/)[0];
+  return v;
 }
 
 function isAuditDataComplete_(auditRow) {
