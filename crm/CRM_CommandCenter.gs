@@ -85,6 +85,7 @@ function buildProspectRecords_(prospects) {
 
     records.push({
       business: business,
+      website: String(field('Website') || '').trim(),
       priority: priority,
       status: status,
       statusLower: statusLower,
@@ -120,7 +121,7 @@ function categorizeProspects_(records) {
   // prospects (the only ones this category cares about) rather than every row.
   records.forEach(function (r) {
     if (r.excluded || !r.uncontacted) return;
-    const audit = findLatestAuditForBusiness_(r.business); // CRM_Outreach.gs
+    const audit = findLatestAuditForBusiness_(r.business, r.website); // CRM_Outreach.gs — reuses Sprint 5's URL fallback
     if (!audit) return;
     r.auditComplete = isAuditDataComplete_(audit); // CRM_Outreach.gs
     auditedUncontacted.push(r);
@@ -303,7 +304,7 @@ function buildDueTodayAction_(r) {
 
 function buildHotAction_(r) {
   const scoreText = r.leadScoreNum !== null ? 'Score ' + r.leadScoreNum : 'Score unavailable';
-  const audit = findLatestAuditForBusiness_(r.business); // CRM_Outreach.gs
+  const audit = findLatestAuditForBusiness_(r.business, r.website); // CRM_Outreach.gs — reuses Sprint 5's URL fallback
   let detail, action;
   if (!audit) {
     detail = 'No website audit on file yet.';
