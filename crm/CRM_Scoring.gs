@@ -251,7 +251,7 @@ function computeLeadScore_(fields) {
 
   // Website Audit Score — up to 30. Missing/incomplete audit data = 0,
   // never an invented value.
-  const audit = findLatestAuditForBusiness_(fields.business); // CRM_Outreach.gs
+  const audit = findLatestAuditForBusiness_(fields.business, fields.website); // CRM_Outreach.gs — reuses Sprint 5's URL fallback
   const auditScore = audit ? Number(audit.score) : NaN;
   if (audit && !isNaN(auditScore)) {
     const pts = Math.round((auditScore / 100) * SCORE_WEIGHTS.auditMax);
