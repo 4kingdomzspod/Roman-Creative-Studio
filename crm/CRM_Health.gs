@@ -206,11 +206,15 @@ function buildIntegritySection_(records, duplicates, clientBusinesses) {
   const noContactInfo = active.filter(function (r) { return !r.hasContactInfo; });
   const noNextAction = active.filter(function (r) { return r.nextFollowUpStatus === null; });
   const overdue = active.filter(function (r) { return r.nextFollowUpStatus === 'past'; });
-  const activeDuplicates = active.filter(function (r) { return duplicates.affectedBusinessesSet[r.business.toLowerCase()]; });
+  // Keyed by normalizeBusinessKey_ to match how buildDuplicatesSection_
+  // itself keys affectedBusinessesSet (whitespace-collapsed) — a plain
+  // .toLowerCase() here previously missed a duplicate pair whose two Business
+  // values differed only by irregular internal whitespace.
+  const activeDuplicates = active.filter(function (r) { return duplicates.affectedBusinessesSet[normalizeBusinessKey_(r.business)]; });
 
   const issueBusinesses = {};
   [noContactInfo, noNextAction, activeDuplicates].forEach(function (list) {
-    list.forEach(function (r) { issueBusinesses[r.business.toLowerCase()] = true; });
+    list.forEach(function (r) { issueBusinesses[normalizeBusinessKey_(r.business)] = true; });
   });
 
   // Archived/Do Not Contact prospects that still carry a live Next Follow Up.
