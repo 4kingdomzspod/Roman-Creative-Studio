@@ -1,7 +1,10 @@
 /**
  * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
  * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6
- * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization
+ * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization +
+ * Sprint 8 Daily Sales Command Center + Sprint 9 Pipeline Intelligence &
+ * Analytics + Sprint 10 CRM Data Quality & Health Audit + Sprint 11
+ * Automation & Daily Maintenance + Sprint 12 Next-Action Engine
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -22,6 +25,18 @@
  *                           Follow-Up Message, built on top of the Outreach Brief
  *   CRM_Scoring.gs        - RCS Lead Priority Score: deterministic 0-100 score +
  *                           tier + reasons from existing Prospects/Website Audits data
+ *   CRM_CommandCenter.gs  - Daily Sales Command Center: read-only ranked daily
+ *                           action report built from existing Prospects/Meetings/Proposals data
+ *   CRM_Analytics.gs      - Pipeline Intelligence: read-only funnel/value/aging/risk/
+ *                           industry analytics built from existing CRM data only
+ *   CRM_Health.gs         - CRM Health Audit: read-only completeness/duplicate/
+ *                           consistency/integrity/staleness checks + a 0-100 CRM Health Score
+ *   CRM_Automation.gs     - Daily CRM Maintenance report, Automation Status, and an
+ *                           optional installable daily trigger — reporting only, no
+ *                           automatic edits, reuses CRM_Health.gs/CRM_Analytics.gs
+ *   CRM_NextAction.gs     - Next-Action Engine: read-only, ranked "what should I act
+ *                           on next?" report across Prospects/Meetings/Proposals/
+ *                           Clients, reusing Sprint 7's Lead Score as-is
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -37,6 +52,7 @@ function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('RCS CRM')
     .addItem('Build / Update CRM', 'buildRCSCRM')
+    .addItem('Daily Command Center', 'openDailyCommandCenter_')
     .addItem('Import Prospects...', 'showImportDialog_')
     .addItem('Sync Prospects', 'menuSyncProspects_')
     .addSubMenu(ui.createMenu('Auto Sync')
@@ -55,6 +71,14 @@ function onOpen() {
       .addItem('Score Selected Prospect(s)', 'menuScoreSelectedProspects_')
       .addItem('Score All Prospects', 'menuScoreAllProspects_')
       .addItem('Show Top Leads', 'menuShowTopLeads_'))
+    .addItem('Pipeline Intelligence', 'openPipelineIntelligence_')
+    .addItem('CRM Health', 'openCrmHealthAudit_')
+    .addItem('Next Actions', 'openNextActions_')
+    .addSubMenu(ui.createMenu('Automation')
+      .addItem('Run CRM Maintenance', 'menuRunCrmMaintenance_')
+      .addItem('Automation Status', 'menuAutomationStatus_')
+      .addItem('Enable Daily Maintenance', 'enableDailyMaintenance_')
+      .addItem('Disable Daily Maintenance', 'disableDailyMaintenance_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
@@ -82,6 +106,9 @@ function buildRCSCRM() {
       // dropdown-list columns. Guarded so Code.gs still builds a working
       // CRM even if CRM_Sync.gs hasn't been added to the project yet.
       if (typeof ensureSyncStatusBlock_ === 'function') ensureSyncStatusBlock_(sheet);
+      // Automation panel (CRM_Automation.gs) — columns K:L, separate from
+      // the GitHub Sync panel above. Same guard for the same reason.
+      if (typeof ensureAutomationStatusBlock_ === 'function') ensureAutomationStatusBlock_(sheet);
       return;
     }
 
