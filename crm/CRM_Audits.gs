@@ -103,6 +103,13 @@ function runUrlAudit_(rawUrl) {
   }
 }
 
+// Public entry point for google.script.run — Apps Script client calls should
+// go through a non-underscore-suffixed function rather than reaching into an
+// internal-convention name directly. Delegates to runUrlAudit_() unchanged.
+function runUrlAudit(rawUrl) {
+  return runUrlAudit_(rawUrl);
+}
+
 // ---------------------------------------------------------------------------
 // URL handling
 // ---------------------------------------------------------------------------
@@ -568,6 +575,6 @@ const AUDIT_URL_DIALOG_HTML = '<!DOCTYPE html><html><head><base target="_top">' 
   '  }).withFailureHandler(function (err) {' +
   '    btn.disabled = false;' +
   '    status.textContent = "Audit failed: " + ((err && err.message) || String(err) || "Unknown error.");' +
-  '  }).runUrlAudit_(input.value);' +
+  '  }).runUrlAudit(input.value);' +
   '});' +
   '</script></body></html>';
