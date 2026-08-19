@@ -345,6 +345,14 @@ function formatResearchSummary_(research) {
   return lines.length > 0 ? lines.join('\n') : 'No research results were returned.';
 }
 
+// Retry policy for transient Gemini failures only (503/429/408/500/504 —
+// Google's documented "temporary, back off and retry" codes). 400/401/403/404
+// are permanent request problems (bad request, bad key, model not found) and
+// are never retried — the first response decides those immediately.
+const GEMINI_MAX_ATTEMPTS = 3;
+const GEMINI_RETRYABLE_CODES = [429, 500, 503, 504, 408];
+const GEMINI_RETRY_BASE_DELAY_MS = 500; // attempt 1->2 wait ~500-1000ms, 2->3 wait ~1000-1500ms
+
 // ---------------------------------------------------------------------------
 // Gemini analysis (isolated provider call) — combines research + audit +
 // CRM context into JSON so results can be parsed deterministically; the
@@ -358,19 +366,11 @@ function callGeminiAnalysis_(apiKey, context) {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { responseMimeType: 'application/json', temperature: 0.4 }
     };
-    const response = UrlFetchApp.fetch(GEMINI_GENERATE_URL, {
-      method: 'post',
-      contentType: 'application/json',
-      headers: { 'x-goog-api-key': apiKey }, // header, not query string — never lands in a URL that could be logged
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    });
-    const code = response.getResponseCode();
-    if (code === 401 || code === 403) return { ok: false, message: 'Gemini rejected the request — check GEMINI_API_KEY.' };
-    if (code === 404) return { ok: false, message: 'Gemini analysis failed (HTTP 404) — the model "' + GEMINI_MODEL + '" was not found. It may have been retired; check Google\'s current Gemini API model list and update GEMINI_MODEL in CRM_OutreachAutomation.gs.' };
-    if (code < 200 || code >= 300) return { ok: false, message: 'Gemini analysis failed (HTTP ' + code + ').' };
 
-    const data = JSON.parse(response.getContentText());
+    const fetched = fetchGeminiWithRetries_(payload, apiKey);
+    if (!fetched.ok) return fetched;
+
+    const data = JSON.parse(fetched.contentText);
     const candidates = data.candidates || [];
     const textPart = candidates.length > 0 && candidates[0].content && candidates[0].content.parts && candidates[0].content.parts[0]
       ? candidates[0].content.parts[0].text
@@ -395,6 +395,49 @@ function callGeminiAnalysis_(apiKey, context) {
   } catch (e) {
     return { ok: false, message: 'Gemini analysis error: ' + describeOutreachApiError_(e) };
   }
+}
+
+// Up to GEMINI_MAX_ATTEMPTS total requests. A retryable HTTP code (503/429/
+// 408/500/504) waits an increasing, jittered delay and tries again; any
+// other non-2xx code (including 400/401/403/404) returns immediately on the
+// first response — never retried. Returns either { ok:true, contentText } on
+// a 2xx response, or a well-formed { ok:false, message } failure result.
+function fetchGeminiWithRetries_(payload, apiKey) {
+  let lastCode = null;
+  for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+    const response = UrlFetchApp.fetch(GEMINI_GENERATE_URL, {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'x-goog-api-key': apiKey }, // header, not query string — never lands in a URL that could be logged
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    const code = response.getResponseCode();
+    if (code >= 200 && code < 300) return { ok: true, contentText: response.getContentText() };
+
+    lastCode = code;
+    if (code === 401 || code === 403) return { ok: false, message: 'Gemini rejected the request — check GEMINI_API_KEY.' };
+    if (code === 404) return { ok: false, message: 'Gemini analysis failed (HTTP 404) — the model "' + GEMINI_MODEL + '" was not found. It may have been retired; check Google\'s current Gemini API model list and update GEMINI_MODEL in CRM_OutreachAutomation.gs.' };
+
+    const retryable = GEMINI_RETRYABLE_CODES.indexOf(code) !== -1;
+    if (!retryable) return { ok: false, message: 'Gemini analysis failed (HTTP ' + code + ').' };
+
+    if (attempt === GEMINI_MAX_ATTEMPTS) {
+      return { ok: false, message: 'Gemini temporarily unavailable after ' + GEMINI_MAX_ATTEMPTS + ' attempts (HTTP ' + code + '). Please try again later.' };
+    }
+    Utilities.sleep(geminiRetryDelayMs_(attempt));
+  }
+  return { ok: false, message: 'Gemini analysis failed (HTTP ' + lastCode + ').' };
+}
+
+// Exponential backoff with jitter: attempt 1's wait is base*2^0 plus up to
+// one base unit of jitter, attempt 2's is base*2^1 plus jitter, etc. — never
+// the same delay twice in a row, and never unbounded (only ever called up to
+// GEMINI_MAX_ATTEMPTS-1 times per call, from the loop above).
+function geminiRetryDelayMs_(attempt) {
+  const backoff = GEMINI_RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+  const jitter = Math.floor(Math.random() * GEMINI_RETRY_BASE_DELAY_MS);
+  return backoff + jitter;
 }
 
 function buildGeminiPrompt_(context) {

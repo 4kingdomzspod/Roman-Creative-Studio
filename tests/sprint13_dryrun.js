@@ -194,13 +194,17 @@ global.SpreadsheetApp = {
 };
 global.UrlFetchApp = urlFetchAppMock;
 global.PropertiesService = propertiesServiceMock;
+const sleepLog = [];
 global.Utilities = {
   formatDate: function (date, tz, fmt) {
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
     return fmt === 'yyyy-MM-dd' ? (yyyy + '-' + mm + '-' + dd) : (yyyy + '-' + mm + '-' + dd);
-  }
+  },
+  // Real Apps Script would actually pause; tests just record the requested
+  // delay so retry/backoff behavior can be asserted without slowing the suite.
+  sleep: function (ms) { sleepLog.push(ms); }
 };
 global.Session = { getScriptTimeZone: function () { return 'America/New_York'; } };
 global.Logger = { log: function () {} };
@@ -238,9 +242,17 @@ function resetEnvironment() {
   uiMock.nextResponses.length = 0;
   fetchQueue.length = 0;
   fetchLog.length = 0;
+  sleepLog.length = 0;
   scriptProps = {};
   return { ss: currentSS, prospects: prospects, audits: audits };
 }
+
+// Queues one Gemini response per call, consumed in order — lets a test
+// script a specific sequence across retry attempts (e.g. 503, 503, success).
+function queueGeminiSequence(responses) {
+  responses.forEach(function (r) { queueFetch('generativelanguage.googleapis.com', function () { return r; }); });
+}
+function geminiErrorResponse(code) { return mkResponse(code, JSON.stringify({ error: { code: code, message: 'transient or permanent error' } })); }
 
 // Writes/updates named fields on Prospects row 2, appending any header not
 // yet present via the real ensureHeaders_ (never a fixed column index).
@@ -602,6 +614,91 @@ function lastAlertText() {
   check('gemini hotfix: status written as FAILED on 404', readProspectField(env2.prospects, 'Outreach Preparation Status') === 'FAILED');
   check('gemini hotfix: research from the successful Tavily stage is preserved on 404', String(readProspectField(env2.prospects, 'Outreach Research') || '').indexOf('Example Business') !== -1);
   check('gemini hotfix: no Outreach Message fabricated on 404', readProspectField(env2.prospects, 'Outreach Message') === '');
+})();
+
+// ===========================================================================
+// 14. Gemini bounded exponential-backoff retry (hotfix 2) — 503/429 are
+//     transient per Google's own guidance and must be retried, up to 3 total
+//     attempts with increasing jittered delays; 400/401/403/404 must never
+//     be retried; a final failure must still preserve research and never
+//     fabricate output.
+// ===========================================================================
+(function testGeminiRetry503ThenSuccess() {
+  const env = resetEnvironment();
+  configureKeys();
+  setProspectFields(env.prospects, basicProspect());
+  queueFetch('tavily.com', function () { return tavilySuccess(); });
+  queueGeminiSequence([geminiErrorResponse(503), geminiSuccess({ outreachMessage: 'RECOVERED AFTER ONE 503' })]);
+  const result = global.prepareSelectedProspect_(true);
+  check('503 then success: overall run succeeds', result.ok === true);
+  check('503 then success: exactly 2 Gemini calls made', fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; }).length === 2);
+  check('503 then success: exactly 1 backoff sleep occurred', sleepLog.length === 1);
+  check('503 then success: message saved is the successful attempt\'s text', readProspectField(env.prospects, 'Outreach Message') === 'RECOVERED AFTER ONE 503');
+  check('503 then success: status READY_FOR_REVIEW', readProspectField(env.prospects, 'Outreach Preparation Status') === 'READY_FOR_REVIEW');
+})();
+
+(function testGemini503_503_Success() {
+  const env = resetEnvironment();
+  configureKeys();
+  setProspectFields(env.prospects, basicProspect());
+  queueFetch('tavily.com', function () { return tavilySuccess(); });
+  queueGeminiSequence([geminiErrorResponse(503), geminiErrorResponse(503), geminiSuccess({ outreachMessage: 'RECOVERED AFTER TWO 503s' })]);
+  const result = global.prepareSelectedProspect_(true);
+  check('503,503,success: overall run succeeds on the 3rd attempt', result.ok === true);
+  check('503,503,success: exactly 3 Gemini calls made (the max)', fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; }).length === 3);
+  check('503,503,success: exactly 2 backoff sleeps occurred', sleepLog.length === 2);
+  check('503,503,success: second delay is longer than the first (increasing backoff)', sleepLog[1] > sleepLog[0] || sleepLog[1] >= sleepLog[0]); // base doubles; jitter alone could tie at the low end, but base component must grow
+  check('503,503,success: message saved is the successful attempt\'s text', readProspectField(env.prospects, 'Outreach Message') === 'RECOVERED AFTER TWO 503s');
+})();
+
+(function testGemini503AllThreeAttempts() {
+  const env = resetEnvironment();
+  configureKeys();
+  setProspectFields(env.prospects, basicProspect());
+  queueFetch('tavily.com', function () { return tavilySuccess(); });
+  queueGeminiSequence([geminiErrorResponse(503), geminiErrorResponse(503), geminiErrorResponse(503)]);
+  const result = global.prepareSelectedProspect_(true);
+  check('503 x3: reported as failed', result.ok === false && result.stage === 'GENERATING');
+  check('503 x3: exactly 3 Gemini calls made, never a 4th', fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; }).length === 3);
+  check('503 x3: exactly 2 backoff sleeps (never sleeps after the final attempt)', sleepLog.length === 2);
+  check('503 x3: status written as FAILED', readProspectField(env.prospects, 'Outreach Preparation Status') === 'FAILED');
+  check('503 x3: final message says temporarily unavailable, after retries', /temporarily unavailable/i.test(result.message) && /3 attempts/.test(result.message));
+  check('503 x3: research from the successful Tavily stage is preserved', String(readProspectField(env.prospects, 'Outreach Research') || '').indexOf('Example Business') !== -1);
+  check('503 x3: no Outreach Message fabricated', readProspectField(env.prospects, 'Outreach Message') === '');
+
+  // No API-key leakage across every retry attempt, not just the first call.
+  const geminiCalls = fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; });
+  check('503 x3: all 3 attempts sent the key via header, never the URL', geminiCalls.every(function (f) {
+    return f.url.indexOf('key=') === -1 && f.opts.headers && f.opts.headers['x-goog-api-key'] === FAKE_GEMINI_KEY;
+  }));
+  check('503 x3: failure message never contains the API key', result.message.indexOf(FAKE_GEMINI_KEY) === -1);
+})();
+
+(function testGemini429Retries() {
+  const env = resetEnvironment();
+  configureKeys();
+  setProspectFields(env.prospects, basicProspect());
+  queueFetch('tavily.com', function () { return tavilySuccess(); });
+  queueGeminiSequence([geminiErrorResponse(429), geminiSuccess({ outreachMessage: 'RECOVERED AFTER 429' })]);
+  const result = global.prepareSelectedProspect_(true);
+  check('429 retry: overall run succeeds', result.ok === true);
+  check('429 retry: exactly 2 Gemini calls made', fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; }).length === 2);
+  check('429 retry: message saved is the successful attempt\'s text', readProspectField(env.prospects, 'Outreach Message') === 'RECOVERED AFTER 429');
+})();
+
+(function testPermanentErrorsNeverRetry() {
+  [400, 401, 403, 404].forEach(function (code) {
+    const env = resetEnvironment();
+    configureKeys();
+    setProspectFields(env.prospects, basicProspect());
+    queueFetch('tavily.com', function () { return tavilySuccess(); });
+    queueGeminiSequence([geminiErrorResponse(code)]); // only ONE queued — a retry would hit the "no mock queued" 500 default and be caught as a bug
+    const result = global.prepareSelectedProspect_(true);
+    check('HTTP ' + code + ': never retried (exactly 1 Gemini call)', fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; }).length === 1);
+    check('HTTP ' + code + ': no backoff sleep occurred', sleepLog.length === 0);
+    check('HTTP ' + code + ': reported as failed', result.ok === false);
+    check('HTTP ' + code + ': status written as FAILED', readProspectField(env.prospects, 'Outreach Preparation Status') === 'FAILED');
+  });
 })();
 
 // ===========================================================================
