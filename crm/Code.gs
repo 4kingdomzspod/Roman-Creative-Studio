@@ -4,7 +4,8 @@
  * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization +
  * Sprint 8 Daily Sales Command Center + Sprint 9 Pipeline Intelligence &
  * Analytics + Sprint 10 CRM Data Quality & Health Audit + Sprint 11
- * Automation & Daily Maintenance + Sprint 12 Next-Action Engine
+ * Automation & Daily Maintenance + Sprint 12 Next-Action Engine + Sprint 13
+ * Automated Outreach Preparation Engine
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -37,6 +38,10 @@
  *   CRM_NextAction.gs     - Next-Action Engine: read-only, ranked "what should I act
  *                           on next?" report across Prospects/Meetings/Proposals/
  *                           Clients, reusing Sprint 7's Lead Score as-is
+ *   CRM_OutreachAutomation.gs - Prepares (never sends) a personalized outreach
+ *                           message for one selected prospect: Tavily research +
+ *                           the existing Website Audit + Gemini analysis, saved
+ *                           to Prospects as READY_FOR_REVIEW
  *
  * Safe to run repeatedly: sheets, headers, and Settings values are only
  * ever added when missing — existing row data is never overwritten or
@@ -79,6 +84,10 @@ function onOpen() {
       .addItem('Automation Status', 'menuAutomationStatus_')
       .addItem('Enable Daily Maintenance', 'enableDailyMaintenance_')
       .addItem('Disable Daily Maintenance', 'disableDailyMaintenance_'))
+    .addSubMenu(ui.createMenu('Outreach Automation')
+      .addItem('Prepare Selected Prospect', 'menuPrepareSelectedProspect_')
+      .addItem('Outreach Automation Status', 'menuOutreachAutomationStatus_')
+      .addItem('Configure API Status', 'menuConfigureApiStatus_'))
     .addSeparator()
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
