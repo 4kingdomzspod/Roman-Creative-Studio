@@ -51,7 +51,11 @@ const OUTREACH_AUTOMATION_STATES = {
 const OUTREACH_AUTOMATION_EXCLUDED_STATUSES = ['archived', 'do not contact', 'closed — lost', 'closed — not interested'];
 
 const TAVILY_SEARCH_URL = 'https://api.tavily.com/search';
-const GEMINI_MODEL = 'gemini-2.0-flash';
+// gemini-2.0-flash was shut down by Google on 2026-06-01 (all requests to it
+// now 404). gemini-3.7-flash is the current stable model for this endpoint —
+// verified against Google's Gemini API docs. If Google retires this model in
+// turn, this is the one constant that needs to change.
+const GEMINI_MODEL = 'gemini-3.7-flash';
 const GEMINI_GENERATE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent';
 
 // ---------------------------------------------------------------------------
@@ -363,6 +367,7 @@ function callGeminiAnalysis_(apiKey, context) {
     });
     const code = response.getResponseCode();
     if (code === 401 || code === 403) return { ok: false, message: 'Gemini rejected the request — check GEMINI_API_KEY.' };
+    if (code === 404) return { ok: false, message: 'Gemini analysis failed (HTTP 404) — the model "' + GEMINI_MODEL + '" was not found. It may have been retired; check Google\'s current Gemini API model list and update GEMINI_MODEL in CRM_OutreachAutomation.gs.' };
     if (code < 200 || code >= 300) return { ok: false, message: 'Gemini analysis failed (HTTP ' + code + ').' };
 
     const data = JSON.parse(response.getContentText());

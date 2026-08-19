@@ -566,6 +566,45 @@ function lastAlertText() {
 })();
 
 // ===========================================================================
+// 13. Gemini endpoint/model hotfix — gemini-2.0-flash was shut down by
+//     Google (2026-06-01), which is what produced the live 404. Verifies the
+//     corrected model/endpoint is actually what gets called, and that a 404
+//     (from a future retirement of gemini-3.7-flash too) still fails safely
+//     with a clear, non-leaking diagnostic instead of a generic message.
+// ===========================================================================
+(function testGeminiEndpointHotfix() {
+  const env = resetEnvironment();
+  configureKeys();
+  setProspectFields(env.prospects, basicProspect());
+  queueFetch('tavily.com', function () { return tavilySuccess(); });
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); });
+  global.prepareSelectedProspect_(true);
+
+  const geminiCall = fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; })[0];
+  check('gemini hotfix: a Gemini call was made', !!geminiCall);
+  if (geminiCall) {
+    check('gemini hotfix: request URL uses the corrected gemini-3.7-flash model', geminiCall.url.indexOf('/models/gemini-3.7-flash:generateContent') !== -1);
+    check('gemini hotfix: request URL no longer references the retired gemini-2.0-flash model', geminiCall.url.indexOf('gemini-2.0-flash') === -1);
+  }
+
+  // A 404 (e.g. a future model retirement) must still fail safely — FAILED
+  // state, prior successful stages preserved, no fabricated output, and a
+  // clear diagnostic message that names the model but never the API key.
+  const env2 = resetEnvironment();
+  configureKeys();
+  setProspectFields(env2.prospects, basicProspect());
+  queueFetch('tavily.com', function () { return tavilySuccess(); });
+  queueFetch('generativelanguage.googleapis.com', function () { return mkResponse(404, JSON.stringify({ error: { code: 404, message: 'models/gemini-3.7-flash is not found for API version v1beta' } })); });
+  const result404 = global.prepareSelectedProspect_(true);
+  check('gemini hotfix: 404 reported as failed at GENERATING stage', result404.ok === false && result404.stage === 'GENERATING');
+  check('gemini hotfix: 404 message names the configured model', result404.message.indexOf('gemini-3.7-flash') !== -1);
+  check('gemini hotfix: 404 message never contains the API key', result404.message.indexOf(FAKE_GEMINI_KEY) === -1);
+  check('gemini hotfix: status written as FAILED on 404', readProspectField(env2.prospects, 'Outreach Preparation Status') === 'FAILED');
+  check('gemini hotfix: research from the successful Tavily stage is preserved on 404', String(readProspectField(env2.prospects, 'Outreach Research') || '').indexOf('Example Business') !== -1);
+  check('gemini hotfix: no Outreach Message fabricated on 404', readProspectField(env2.prospects, 'Outreach Message') === '');
+})();
+
+// ===========================================================================
 // Bonus structural checks (not in the required 12, cheap extra confidence)
 // ===========================================================================
 (function testStructural() {
