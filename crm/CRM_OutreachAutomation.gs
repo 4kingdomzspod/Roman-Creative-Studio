@@ -26,6 +26,13 @@
  * every network call/error path below was written to only ever surface a
  * plain status word ("Configured"/"Missing") or a generic failure message,
  * never the key value or the raw request.
+ *
+ * Sprint 13B adds "Prepare Eligible Prospects" — the same pipeline above,
+ * run sequentially (never concurrently, never on a trigger/schedule) across
+ * every eligible Prospects row, up to OUTREACH_AUTOMATION_MAX_BATCH_SIZE per
+ * click. It is a thin scan-and-loop wrapper: prepareOneProspectRow_ is the
+ * one and only place the research/audit/Gemini/retry/eligibility logic
+ * lives, called identically by both the single-row and batch entry points.
  */
 
 const OUTREACH_AUTOMATION_FIELDS = [
@@ -50,6 +57,12 @@ const OUTREACH_AUTOMATION_STATES = {
 // prospect should never get a freshly generated outreach message).
 const OUTREACH_AUTOMATION_EXCLUDED_STATUSES = ['archived', 'do not contact', 'closed — lost', 'closed — not interested'];
 
+// Sprint 13B — Prepare Eligible Prospects (batch). Sequential only, capped
+// per run so a single "Prepare Eligible Prospects" click can't accidentally
+// burn through a large multiple of the Tavily/Gemini quota. Change this one
+// constant to raise/lower the cap; nothing else needs to change.
+const OUTREACH_AUTOMATION_MAX_BATCH_SIZE = 10;
+
 const TAVILY_SEARCH_URL = 'https://api.tavily.com/search';
 // gemini-2.0-flash was shut down by Google on 2026-06-01 (all requests to it
 // now 404). gemini-3.7-flash is the current stable model for this endpoint —
@@ -64,6 +77,10 @@ const GEMINI_GENERATE_URL = 'https://generativelanguage.googleapis.com/v1beta/mo
 
 function menuPrepareSelectedProspect_() {
   prepareSelectedProspect_(true);
+}
+
+function menuPrepareEligibleProspects_() {
+  prepareEligibleProspectsBatch_(true);
 }
 
 function menuOutreachAutomationStatus_() {
@@ -98,7 +115,10 @@ function formatApiConfigStatus_() {
 }
 
 // ---------------------------------------------------------------------------
-// Main workflow — exactly one selected Prospects row.
+// Main workflow — exactly one selected Prospects row. Thin wrapper: resolves
+// the selection, then delegates the actual pipeline to prepareOneProspectRow_
+// (shared with the Sprint 13B batch below — see that function for the full
+// research/audit/Gemini/save logic, which lives in exactly one place).
 // ---------------------------------------------------------------------------
 
 // interactive=true shows UI alerts/confirmations (menu use); interactive=false
@@ -135,29 +155,204 @@ function prepareSelectedProspect_(interactive) {
   const headers = getLiveProspectsHeaders_(prospects); // CRM_Outreach.gs
   const idx = {};
   headers.forEach(function (h, i) { idx[h] = i; });
+
+  const result = prepareOneProspectRow_(prospects, headers, idx, row, config, { interactive: interactive, onAlreadyPrepared: 'ask' });
+  if (result.ok && interactive) {
+    ui.alert('Outreach Automation — Ready for Review', formatPreparationResult_(result), ui.ButtonSet.OK);
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Sprint 13B — batch: "Prepare Eligible Prospects". Scans every Prospects
+// row, filters to eligible ones (reusing the exact same
+// outreachAutomationExclusionReason_ classifier the single-row path uses),
+// caps at OUTREACH_AUTOMATION_MAX_BATCH_SIZE, then runs each one through the
+// SAME prepareOneProspectRow_ pipeline sequentially — never concurrently,
+// never a scheduled/triggered run. An already-prepared prospect is skipped
+// automatically (never overwritten without the explicit single-row
+// confirmation), and one prospect's failure never stops the rest.
+// ---------------------------------------------------------------------------
+
+function prepareEligibleProspectsBatch_(interactive) {
+  const ui = SpreadsheetApp.getUi();
+  const config = getOutreachAutomationConfig_();
+  const missingKeys = [];
+  if (!config.tavilyKey) missingKeys.push('TAVILY_API_KEY');
+  if (!config.geminiKey) missingKeys.push('GEMINI_API_KEY');
+  if (missingKeys.length > 0) {
+    const message = 'Outreach preparation needs ' + missingKeys.join(' and ') +
+      ' set in Script Properties (Project Settings > Script Properties) first. No prospect data was changed.';
+    if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+    return { ok: false, message: message };
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const prospects = ss.getSheetByName('Prospects');
+  if (!prospects) {
+    const message = 'Prospects sheet not found.';
+    if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+    return { ok: false, message: message };
+  }
+
+  ensureOutreachAutomationColumns_(prospects);
+  const headers = getLiveProspectsHeaders_(prospects); // CRM_Outreach.gs
+  const idx = {};
+  headers.forEach(function (h, i) { idx[h] = i; });
+
+  const eligibleRows = [];
+  let excludedCount = 0;
+  const lastRow = prospects.getLastRow();
+  if (lastRow >= 2) {
+    const data = prospects.getRange(2, 1, lastRow - 1, headers.length).getValues();
+    data.forEach(function (rowValues, i) {
+      function field(name) { return idx[name] !== undefined ? rowValues[idx[name]] : ''; }
+      const business = String(field('Business') || '').trim();
+      const status = String(field('Status') || '').trim();
+      const archivedDate = field('Archived Date');
+      const website = String(field('Website') || '').trim();
+      const reason = outreachAutomationExclusionReason_(business, status, archivedDate, website);
+      if (reason) { excludedCount++; return; }
+      eligibleRows.push(2 + i); // sheet row number
+    });
+  }
+
+  const totalEligible = eligibleRows.length;
+  const toProcess = eligibleRows.slice(0, OUTREACH_AUTOMATION_MAX_BATCH_SIZE);
+
+  if (totalEligible === 0) {
+    const message = 'No eligible prospects to prepare outreach for (excluded: ' + excludedCount + ').';
+    if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+    return { ok: false, message: message, eligible: 0, excluded: excludedCount };
+  }
+
+  if (interactive) {
+    const confirmMessage = 'Eligible prospects: ' + totalEligible +
+      '\nMaximum that will be processed this run: ' + toProcess.length + ' (cap: ' + OUTREACH_AUTOMATION_MAX_BATCH_SIZE + ')' +
+      '\n\nResearch and messages will be prepared but NOT sent.\n\nContinue?';
+    const confirmed = ui.alert('Outreach Automation — Prepare Eligible Prospects', confirmMessage, ui.ButtonSet.YES_NO) === ui.Button.YES;
+    if (!confirmed) {
+      return { ok: false, message: 'Batch preparation cancelled.', cancelled: true, eligible: totalEligible, excluded: excludedCount };
+    }
+  }
+
+  // Sequential, one prospect at a time — never concurrent, never a
+  // trigger/schedule. A per-row exception (should the pipeline ever throw
+  // instead of returning a failure result) is caught here so it counts as
+  // one failure rather than aborting every remaining prospect in the batch.
+  const counts = { prepared: 0, skipped: 0, failed: 0 };
+  const failures = [];
+  toProcess.forEach(function (row) {
+    let result;
+    try {
+      result = prepareOneProspectRow_(prospects, headers, idx, row, config, { interactive: false, onAlreadyPrepared: 'skip' });
+    } catch (e) {
+      result = { ok: false, message: 'Unexpected error: ' + describeOutreachApiError_(e) };
+    }
+    if (result.ok) {
+      counts.prepared++;
+    } else if (result.skipped) {
+      counts.skipped++;
+    } else {
+      counts.failed++;
+      failures.push((result.business || 'Row ' + row) + ': ' + result.message);
+    }
+  });
+
+  const summary = {
+    eligible: totalEligible,
+    processed: toProcess.length,
+    prepared: counts.prepared,
+    skipped: counts.skipped,
+    failed: counts.failed,
+    excluded: excludedCount
+  };
+  if (interactive) ui.alert('Outreach Automation — Batch Summary', formatBatchSummary_(summary, failures), ui.ButtonSet.OK);
+  return Object.assign({ ok: true }, summary, { failures: failures });
+}
+
+function formatBatchSummary_(summary, failures) {
+  const lines = [
+    'Eligible: ' + summary.eligible,
+    'Prepared: ' + summary.prepared,
+    'Skipped: ' + summary.skipped,
+    'Failed: ' + summary.failed,
+    'Excluded: ' + summary.excluded,
+    '',
+    'All prepared messages are saved as READY_FOR_REVIEW for human review — nothing was sent to any business.'
+  ];
+  if (failures.length > 0) {
+    lines.push('');
+    lines.push('Failures:');
+    failures.slice(0, 10).forEach(function (f) { lines.push('- ' + f); });
+    if (failures.length > 10) lines.push('...and ' + (failures.length - 10) + ' more.');
+  }
+  return lines.join('\n');
+}
+
+// ---------------------------------------------------------------------------
+// Eligibility — single source of truth, used by both the single-row path
+// (for its specific rejection message) and the batch filter above (for
+// counting exclusions). Never duplicated, never reimplemented differently
+// in two places.
+// ---------------------------------------------------------------------------
+
+function isExcludedFromOutreachAutomation_(status, archivedDate) {
+  const statusKey = String(status || '').trim().toLowerCase();
+  return OUTREACH_AUTOMATION_EXCLUDED_STATUSES.indexOf(statusKey) !== -1 || String(archivedDate || '').trim() !== '';
+}
+
+// Returns null when eligible, or a short machine-readable reason code when
+// not: 'blank_business' | 'excluded_status' | 'missing_website'.
+function outreachAutomationExclusionReason_(business, status, archivedDate, website) {
+  if (business === '') return 'blank_business';
+  if (isExcludedFromOutreachAutomation_(status, archivedDate)) return 'excluded_status';
+  if (website === '') return 'missing_website';
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// The actual preparation pipeline for ONE Prospects row — the single place
+// Tavily research, the Website Audit reuse, Gemini analysis (with its
+// retry logic), response validation, and eligibility are implemented. Called
+// by both prepareSelectedProspect_ (one row, interactive, asks before
+// overwriting) and prepareEligibleProspectsBatch_ (many rows, silent,
+// automatically skips anything already prepared instead of asking).
+//
+// opts: { interactive: bool, onAlreadyPrepared: 'ask' | 'skip' }
+//   'ask'  — prompts the same YES/NO confirmation the single-row flow always
+//            has (interactive:false treats a suppressed prompt as declined).
+//   'skip' — never prompts; an already-prepared prospect is always left
+//            untouched and reported back as skipped (used by the batch, so
+//            up to 10 prospects never means up to 10 modal dialogs).
+// ---------------------------------------------------------------------------
+
+function prepareOneProspectRow_(prospects, headers, idx, row, config, opts) {
+  const ui = SpreadsheetApp.getUi();
+  const interactive = !!opts.interactive;
   const rowValues = prospects.getRange(row, 1, 1, headers.length).getValues()[0];
   function field(name) { return idx[name] !== undefined ? rowValues[idx[name]] : ''; }
 
   const business = String(field('Business') || '').trim();
-  if (business === '') {
+  const status = String(field('Status') || '').trim();
+  const archivedDate = field('Archived Date');
+  const website = String(field('Website') || '').trim();
+
+  const reason = outreachAutomationExclusionReason_(business, status, archivedDate, website);
+  if (reason === 'blank_business') {
     const message = 'The selected row has no Business name — nothing to prepare.';
     if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
     return { ok: false, message: message };
   }
-
-  const status = String(field('Status') || '').trim();
-  const archivedDate = field('Archived Date');
-  if (isExcludedFromOutreachAutomation_(status, archivedDate)) {
+  if (reason === 'excluded_status') {
     const message = business + ' is ' + (status || 'Archived') + ' — not eligible for outreach preparation.';
     if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-    return { ok: false, message: message };
+    return { ok: false, message: message, business: business };
   }
-
-  const website = String(field('Website') || '').trim();
-  if (website === '') {
+  if (reason === 'missing_website') {
     const message = business + ' has no Website on file — a Website is required to prepare outreach.';
     if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-    return { ok: false, message: message };
+    return { ok: false, message: message, business: business };
   }
 
   const existingBrief = String(field(OUTREACH_BRIEF_COLUMN) || '').trim(); // CRM_Outreach.gs — read-only, never overwritten by this file
@@ -168,13 +363,17 @@ function prepareSelectedProspect_(interactive) {
   const alreadyReady = existingStatus === OUTREACH_AUTOMATION_STATES.READY;
   const hasPriorOutput = existingMessage !== '';
   if (alreadyReady || hasPriorOutput) {
+    if (opts.onAlreadyPrepared === 'skip') {
+      const message = business + ' already has a prepared outreach message — skipped (not overwritten automatically).';
+      return { ok: false, message: message, skipped: true, business: business };
+    }
     const question = business + ' already has a prepared outreach message' +
       (alreadyReady ? ' (READY_FOR_REVIEW)' : '') + '. Regenerate and overwrite it?';
     const confirmed = interactive ? (ui.alert('Outreach Automation', question, ui.ButtonSet.YES_NO) === ui.Button.YES) : false;
     if (!confirmed) {
       const message = 'Kept the existing prepared outreach for ' + business + ' — nothing was changed.';
       if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-      return { ok: false, message: message, skipped: true };
+      return { ok: false, message: message, skipped: true, business: business };
     }
   }
 
@@ -198,7 +397,7 @@ function prepareSelectedProspect_(interactive) {
       setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
       const message = business + ': research step failed — ' + research.message;
       if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-      return { ok: false, message: message, stage: 'RESEARCHING' };
+      return { ok: false, message: message, stage: 'RESEARCHING', business: business };
     }
     researchText = formatResearchSummary_(research);
     setField('Outreach Research', researchText);
@@ -212,7 +411,7 @@ function prepareSelectedProspect_(interactive) {
     setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
     const message = business + ': Website Audit step failed — ' + auditResult.message + ' Outreach cannot be marked ready without a successful audit.';
     if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-    return { ok: false, message: message, stage: 'AUDITING' };
+    return { ok: false, message: message, stage: 'AUDITING', business: business };
   }
 
   // Stage 3 — Gemini analysis of research + audit + CRM context.
@@ -229,7 +428,7 @@ function prepareSelectedProspect_(interactive) {
     setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
     const message = business + ': analysis/message generation step failed — ' + analysis.message;
     if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-    return { ok: false, message: message, stage: 'GENERATING' };
+    return { ok: false, message: message, stage: 'GENERATING', business: business };
   }
 
   // Stage 4 — save + READY_FOR_REVIEW. Only these fields are written; every
@@ -243,7 +442,7 @@ function prepareSelectedProspect_(interactive) {
   }
   setStatus(OUTREACH_AUTOMATION_STATES.READY);
 
-  const result = {
+  return {
     ok: true,
     business: business,
     website: website,
@@ -253,13 +452,6 @@ function prepareSelectedProspect_(interactive) {
     auditRanNew: auditResult.ranNew,
     status: OUTREACH_AUTOMATION_STATES.READY
   };
-  if (interactive) ui.alert('Outreach Automation — Ready for Review', formatPreparationResult_(result), ui.ButtonSet.OK);
-  return result;
-}
-
-function isExcludedFromOutreachAutomation_(status, archivedDate) {
-  const statusKey = String(status || '').trim().toLowerCase();
-  return OUTREACH_AUTOMATION_EXCLUDED_STATUSES.indexOf(statusKey) !== -1 || String(archivedDate || '').trim() !== '';
 }
 
 // ---------------------------------------------------------------------------
@@ -345,6 +537,14 @@ function formatResearchSummary_(research) {
   return lines.length > 0 ? lines.join('\n') : 'No research results were returned.';
 }
 
+// Retry policy for transient Gemini failures only (503/429/408/500/504 —
+// Google's documented "temporary, back off and retry" codes). 400/401/403/404
+// are permanent request problems (bad request, bad key, model not found) and
+// are never retried — the first response decides those immediately.
+const GEMINI_MAX_ATTEMPTS = 3;
+const GEMINI_RETRYABLE_CODES = [429, 500, 503, 504, 408];
+const GEMINI_RETRY_BASE_DELAY_MS = 500; // attempt 1->2 wait ~500-1000ms, 2->3 wait ~1000-1500ms
+
 // ---------------------------------------------------------------------------
 // Gemini analysis (isolated provider call) — combines research + audit +
 // CRM context into JSON so results can be parsed deterministically; the
@@ -358,19 +558,11 @@ function callGeminiAnalysis_(apiKey, context) {
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { responseMimeType: 'application/json', temperature: 0.4 }
     };
-    const response = UrlFetchApp.fetch(GEMINI_GENERATE_URL, {
-      method: 'post',
-      contentType: 'application/json',
-      headers: { 'x-goog-api-key': apiKey }, // header, not query string — never lands in a URL that could be logged
-      payload: JSON.stringify(payload),
-      muteHttpExceptions: true
-    });
-    const code = response.getResponseCode();
-    if (code === 401 || code === 403) return { ok: false, message: 'Gemini rejected the request — check GEMINI_API_KEY.' };
-    if (code === 404) return { ok: false, message: 'Gemini analysis failed (HTTP 404) — the model "' + GEMINI_MODEL + '" was not found. It may have been retired; check Google\'s current Gemini API model list and update GEMINI_MODEL in CRM_OutreachAutomation.gs.' };
-    if (code < 200 || code >= 300) return { ok: false, message: 'Gemini analysis failed (HTTP ' + code + ').' };
 
-    const data = JSON.parse(response.getContentText());
+    const fetched = fetchGeminiWithRetries_(payload, apiKey);
+    if (!fetched.ok) return fetched;
+
+    const data = JSON.parse(fetched.contentText);
     const candidates = data.candidates || [];
     const textPart = candidates.length > 0 && candidates[0].content && candidates[0].content.parts && candidates[0].content.parts[0]
       ? candidates[0].content.parts[0].text
@@ -395,6 +587,49 @@ function callGeminiAnalysis_(apiKey, context) {
   } catch (e) {
     return { ok: false, message: 'Gemini analysis error: ' + describeOutreachApiError_(e) };
   }
+}
+
+// Up to GEMINI_MAX_ATTEMPTS total requests. A retryable HTTP code (503/429/
+// 408/500/504) waits an increasing, jittered delay and tries again; any
+// other non-2xx code (including 400/401/403/404) returns immediately on the
+// first response — never retried. Returns either { ok:true, contentText } on
+// a 2xx response, or a well-formed { ok:false, message } failure result.
+function fetchGeminiWithRetries_(payload, apiKey) {
+  let lastCode = null;
+  for (let attempt = 1; attempt <= GEMINI_MAX_ATTEMPTS; attempt++) {
+    const response = UrlFetchApp.fetch(GEMINI_GENERATE_URL, {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { 'x-goog-api-key': apiKey }, // header, not query string — never lands in a URL that could be logged
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+    const code = response.getResponseCode();
+    if (code >= 200 && code < 300) return { ok: true, contentText: response.getContentText() };
+
+    lastCode = code;
+    if (code === 401 || code === 403) return { ok: false, message: 'Gemini rejected the request — check GEMINI_API_KEY.' };
+    if (code === 404) return { ok: false, message: 'Gemini analysis failed (HTTP 404) — the model "' + GEMINI_MODEL + '" was not found. It may have been retired; check Google\'s current Gemini API model list and update GEMINI_MODEL in CRM_OutreachAutomation.gs.' };
+
+    const retryable = GEMINI_RETRYABLE_CODES.indexOf(code) !== -1;
+    if (!retryable) return { ok: false, message: 'Gemini analysis failed (HTTP ' + code + ').' };
+
+    if (attempt === GEMINI_MAX_ATTEMPTS) {
+      return { ok: false, message: 'Gemini temporarily unavailable after ' + GEMINI_MAX_ATTEMPTS + ' attempts (HTTP ' + code + '). Please try again later.' };
+    }
+    Utilities.sleep(geminiRetryDelayMs_(attempt));
+  }
+  return { ok: false, message: 'Gemini analysis failed (HTTP ' + lastCode + ').' };
+}
+
+// Exponential backoff with jitter: attempt 1's wait is base*2^0 plus up to
+// one base unit of jitter, attempt 2's is base*2^1 plus jitter, etc. — never
+// the same delay twice in a row, and never unbounded (only ever called up to
+// GEMINI_MAX_ATTEMPTS-1 times per call, from the loop above).
+function geminiRetryDelayMs_(attempt) {
+  const backoff = GEMINI_RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1);
+  const jitter = Math.floor(Math.random() * GEMINI_RETRY_BASE_DELAY_MS);
+  return backoff + jitter;
 }
 
 function buildGeminiPrompt_(context) {
