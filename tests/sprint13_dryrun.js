@@ -296,6 +296,229 @@ function lastAlertText() {
   return a ? String(a[1]) : '';
 }
 
+// Row-parameterized variants of setProspectFields/readProspectField, for
+// Sprint 13B's multi-row batch scenarios. setProspectFields/readProspectField
+// above are kept exactly as-is (row 2 only) so every Sprint 13A test above
+// this line is untouched.
+function setProspectFieldsAt(prospects, row, fields) {
+  global.ensureHeaders_(prospects, Object.keys(fields));
+  const headers = global.getLiveProspectsHeaders_(prospects);
+  const idx = {};
+  headers.forEach(function (h, i) { idx[h] = i; });
+  const rowVals = prospects.getRange(row, 1, 1, headers.length).getValues()[0];
+  Object.keys(fields).forEach(function (h) { rowVals[idx[h]] = fields[h]; });
+  prospects.getRange(row, 1, 1, headers.length).setValues([rowVals]);
+}
+
+function readProspectFieldAt(prospects, row, name) {
+  const headers = global.getLiveProspectsHeaders_(prospects);
+  const idx = headers.indexOf(name);
+  if (idx === -1) return undefined;
+  return prospects.getRange(row, idx + 1).getValue();
+}
+
+function seedProspectRows(prospects, rowsFieldsArray) {
+  rowsFieldsArray.forEach(function (fields, i) { setProspectFieldsAt(prospects, 2 + i, fields); });
+}
+
+function eligibleRow(n) {
+  return { Business: 'Batch Biz ' + n, Website: 'https://batchbiz' + n + '.com', Status: 'New', Industry: 'Contractors', Priority: 'Medium' };
+}
+
+// ===========================================================================
+// SPRINT 13B — Prepare Eligible Prospects (batch)
+// ===========================================================================
+
+(function testBatchEligibilityFiltering() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [
+    { Business: '', Website: 'https://blank.com', Status: 'New' },                              // blank Business
+    { Business: 'Archived Biz', Website: 'https://a.com', Status: 'Archived' },                  // excluded status
+    { Business: 'DNC Biz', Website: 'https://b.com', Status: 'Do Not Contact' },                 // excluded status
+    { Business: 'Lost Biz', Website: 'https://c.com', Status: 'Closed — Lost' },                 // excluded status
+    { Business: 'NotInterested Biz', Website: 'https://d.com', Status: 'Closed — Not Interested' }, // excluded status
+    { Business: 'NoWebsite Biz', Website: '', Status: 'New' },                                   // missing Website
+    { Business: 'Eligible One', Website: 'https://eligibleone.com', Status: 'New' },
+    { Business: 'Eligible Two', Website: 'https://eligibletwo.com', Status: 'Contacted' }
+  ]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  const result = global.prepareEligibleProspectsBatch_(true);
+
+  check('eligibility filtering: exactly 2 eligible', result.eligible === 2);
+  check('eligibility filtering: exactly 6 excluded (blank/4 statuses/missing website)', result.excluded === 6);
+  check('eligibility filtering: both eligible prospects prepared', result.prepared === 2);
+  check('eligibility filtering: excluded rows were never touched', readProspectFieldAt(env.prospects, 3, 'Outreach Preparation Status') === '');
+  check('eligibility filtering: confirmation dialog stated the eligible count', uiMock.alerts.some(function (a) { return /Eligible prospects: 2/.test(String(a[1])); }));
+  check('eligibility filtering: confirmation dialog explicitly says NOT sent', uiMock.alerts.some(function (a) { return /NOT sent/.test(String(a[1])); }));
+})();
+
+(function testBatchMaxSize() {
+  const env = resetEnvironment();
+  configureKeys();
+  const rows = [];
+  for (let n = 1; n <= 12; n++) rows.push(eligibleRow(n));
+  seedProspectRows(env.prospects, rows);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  const result = global.prepareEligibleProspectsBatch_(true);
+
+  check('max batch size: 12 eligible found', result.eligible === 12);
+  check('max batch size: only 10 processed (default cap)', result.processed === 10);
+  check('max batch size: only 10 prepared', result.prepared === 10);
+  check('max batch size: confirmation dialog names both the eligible count and the cap', uiMock.alerts.some(function (a) { return /Eligible prospects: 12/.test(String(a[1])) && /10/.test(String(a[1])); }));
+  // Rows 12 and 13 (the 11th/12th eligible prospect) are past the cap and must be untouched.
+  check('max batch size: the 11th eligible prospect (row 12) was never processed', readProspectFieldAt(env.prospects, 12, 'Outreach Preparation Status') === '');
+  check('max batch size: the 12th eligible prospect (row 13) was never processed', readProspectFieldAt(env.prospects, 13, 'Outreach Preparation Status') === '');
+})();
+
+(function testBatchSequentialProcessing() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('A'), eligibleRow('B'), eligibleRow('C')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  global.prepareEligibleProspectsBatch_(true);
+
+  const tavilyCalls = fetchLog.filter(function (f) { return f.url.indexOf('tavily.com') !== -1; });
+  const businessesInOrder = tavilyCalls.map(function (f) { return JSON.parse(f.opts.payload).query; });
+  check('sequential processing: one Tavily call per eligible prospect, in row order', businessesInOrder.length === 3 &&
+    businessesInOrder[0].indexOf('Batch Biz A') === 0 && businessesInOrder[1].indexOf('Batch Biz B') === 0 && businessesInOrder[2].indexOf('Batch Biz C') === 0);
+})();
+
+(function testBatchSkipsAlreadyPrepared() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [
+    Object.assign(eligibleRow('Ready'), { 'Outreach Message': 'ALREADY PREPARED — DO NOT TOUCH', 'Outreach Preparation Status': 'READY_FOR_REVIEW' }),
+    eligibleRow('Fresh')
+  ]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  const result = global.prepareEligibleProspectsBatch_(true);
+
+  check('skip already-prepared: counted as skipped, not failed or prepared-again', result.skipped === 1);
+  check('skip already-prepared: the fresh prospect was still prepared', result.prepared === 1);
+  check('skip already-prepared: NO confirmation dialog was shown for the already-prepared row (fully automatic skip)', uiMock.alerts.filter(function (a) { return a[2] === uiMock.ButtonSet.YES_NO; }).length === 1); // only the one batch-start confirmation
+  check('skip already-prepared: existing message left byte-identical', readProspectFieldAt(env.prospects, 2, 'Outreach Message') === 'ALREADY PREPARED — DO NOT TOUCH');
+})();
+
+(function testBatchOneFailureDoesNotStopOthers() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('Failing'), eligibleRow('SucceedsA'), eligibleRow('SucceedsB')]);
+  queueFetch('tavily.com', function () { return mkResponse(500, 'server error'); }); // row 2 only
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);           // rows 3, 4
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  const result = global.prepareEligibleProspectsBatch_(true);
+
+  check('one failure does not stop batch: all 3 eligible were attempted', result.eligible === 3 && result.processed === 3);
+  check('one failure does not stop batch: exactly 1 failed', result.failed === 1);
+  check('one failure does not stop batch: the other 2 still prepared', result.prepared === 2);
+  check('one failure does not stop batch: failing row marked FAILED', readProspectFieldAt(env.prospects, 2, 'Outreach Preparation Status') === 'FAILED');
+  check('one failure does not stop batch: subsequent rows reached READY_FOR_REVIEW', readProspectFieldAt(env.prospects, 3, 'Outreach Preparation Status') === 'READY_FOR_REVIEW' && readProspectFieldAt(env.prospects, 4, 'Outreach Preparation Status') === 'READY_FOR_REVIEW');
+  check('one failure does not stop batch: failure is named in the summary', result.failures.length === 1 && result.failures[0].indexOf('Batch Biz Failing') === 0);
+})();
+
+(function testBatchFinalCounts() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [
+    { Business: '', Website: 'https://x.com', Status: 'New' },                                    // excluded
+    Object.assign(eligibleRow('AlreadyDone'), { 'Outreach Message': 'X', 'Outreach Preparation Status': 'READY_FOR_REVIEW' }), // skipped
+    eligibleRow('WillFail'),
+    eligibleRow('WillSucceed')
+  ]);
+  queueFetch('tavily.com', function () { return mkResponse(500, 'server error'); }); // consumed by WillFail (row 4, the only one still calling Tavily first)
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  const result = global.prepareEligibleProspectsBatch_(true);
+
+  check('final counts: eligible = prepared + skipped + failed (for a fully-processed batch)', result.eligible === result.prepared + result.skipped + result.failed);
+  check('final counts: eligible=3, excluded=1', result.eligible === 3 && result.excluded === 1);
+  check('final counts: prepared=1, skipped=1, failed=1', result.prepared === 1 && result.skipped === 1 && result.failed === 1);
+  check('final counts: summary dialog lists all five figures', /Eligible: 3/.test(lastAlertText()) && /Prepared: 1/.test(lastAlertText()) && /Skipped: 1/.test(lastAlertText()) && /Failed: 1/.test(lastAlertText()) && /Excluded: 1/.test(lastAlertText()));
+})();
+
+(function testBatchNoAutomaticSending() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('One'), eligibleRow('Two')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  global.prepareEligibleProspectsBatch_(true);
+
+  const sendLikeHosts = ['sendgrid', 'twilio', 'smtp', 'mailgun', 'mail.google', 'messages'];
+  check('no automatic sending: no send/SMS/email-provider host was ever contacted', !fetchLog.some(function (f) { return sendLikeHosts.some(function (h) { return f.url.toLowerCase().indexOf(h) !== -1; }); }));
+  check('no automatic sending: batch summary explicitly says nothing was sent', /nothing was sent/i.test(lastAlertText()));
+  check('no automatic sending: every prepared record is READY_FOR_REVIEW, not any "sent" state', readProspectFieldAt(env.prospects, 2, 'Outreach Preparation Status') === 'READY_FOR_REVIEW' && readProspectFieldAt(env.prospects, 3, 'Outreach Preparation Status') === 'READY_FOR_REVIEW');
+})();
+
+(function testBatchNoKeyLeakage() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('One'), eligibleRow('Two')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  global.prepareEligibleProspectsBatch_(true);
+
+  const haystacks = [];
+  uiMock.alerts.forEach(function (a) { a.forEach(function (part) { haystacks.push(String(part)); }); });
+  fetchLog.forEach(function (f) { haystacks.push(f.url); });
+  const joined = haystacks.join('\n');
+  check('batch: Tavily key never appears in a URL/alert', joined.indexOf(FAKE_TAVILY_KEY) === -1);
+  check('batch: Gemini key never appears in a URL/alert', joined.indexOf(FAKE_GEMINI_KEY) === -1);
+
+  const geminiCalls = fetchLog.filter(function (f) { return f.url.indexOf('generativelanguage.googleapis.com') !== -1; });
+  check('batch: every Gemini call across the batch sent the key via header, not URL', geminiCalls.length > 0 && geminiCalls.every(function (f) {
+    return f.url.indexOf('key=') === -1 && f.opts.headers && f.opts.headers['x-goog-api-key'] === FAKE_GEMINI_KEY;
+  }));
+})();
+
+(function testBatchMissingKeysNeverStarts() {
+  const env = resetEnvironment();
+  seedProspectRows(env.prospects, [eligibleRow('One')]);
+  // No keys configured at all.
+  const result = global.prepareEligibleProspectsBatch_(true);
+  check('batch missing keys: rejected before any row is touched', result.ok === false);
+  check('batch missing keys: no network calls made', fetchLog.length === 0);
+  check('batch missing keys: no confirmation dialog ever shown', !uiMock.alerts.some(function (a) { return a[2] === uiMock.ButtonSet.YES_NO; }));
+})();
+
+(function testBatchCancelledMakesNoChanges() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('One'), eligibleRow('Two')]);
+  uiMock.nextResponses = [uiMock.Button.NO]; // decline the confirmation
+  const result = global.prepareEligibleProspectsBatch_(true);
+  check('batch cancelled: reported as cancelled', result.ok === false && result.cancelled === true);
+  check('batch cancelled: no network calls made', fetchLog.length === 0);
+  check('batch cancelled: no prospect was touched', readProspectFieldAt(env.prospects, 2, 'Outreach Preparation Status') === '' && readProspectFieldAt(env.prospects, 3, 'Outreach Preparation Status') === '');
+})();
+
+// Sprint 13A behavior unchanged after the 13B refactor — re-run one
+// representative single-row scenario here as an extra guard, in addition to
+// every existing Sprint 13A test above (all still present, all still pass).
+(function testSprint13ABehaviorUnchangedAfterRefactor() {
+  const env = resetEnvironment();
+  configureKeys();
+  setProspectFields(env.prospects, basicProspect());
+  queueFetch('tavily.com', function () { return tavilySuccess(); });
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); });
+  const result = global.prepareSelectedProspect_(true);
+  check('13A unchanged: single-row prepare still succeeds identically', result.ok === true && result.status === 'READY_FOR_REVIEW');
+  check('13A unchanged: single-row success dialog still shown with NOT SENT', /NOT SENT/.test(lastAlertText()));
+})();
+
 // ===========================================================================
 // 1. Missing keys
 // ===========================================================================
