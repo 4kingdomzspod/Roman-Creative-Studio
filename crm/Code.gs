@@ -5,7 +5,8 @@
  * Sprint 8 Daily Sales Command Center + Sprint 9 Pipeline Intelligence &
  * Analytics + Sprint 10 CRM Data Quality & Health Audit + Sprint 11
  * Automation & Daily Maintenance + Sprint 12 Next-Action Engine + Sprint 13
- * Automated Outreach Preparation Engine (+ Sprint 13B batch preparation)
+ * Automated Outreach Preparation Engine (+ Sprint 13B batch preparation,
+ * Sprint 13C resumable batch execution)
  * ---------------------------------------------------------------------------
  * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
  * script is bound to. Container-bound script only — no Web App, API
@@ -89,6 +90,7 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Outreach Automation')
       .addItem('Prepare Selected Prospect', 'menuPrepareSelectedProspect_')
       .addItem('Prepare Eligible Prospects', 'menuPrepareEligibleProspects_')
+      .addItem('Resume Batch', 'menuResumeOutreachBatch_')
       .addItem('Outreach Automation Status', 'menuOutreachAutomationStatus_')
       .addItem('Configure API Status', 'menuConfigureApiStatus_'))
     .addSeparator()

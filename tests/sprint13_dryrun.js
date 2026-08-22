@@ -123,7 +123,48 @@ const uiMock = {
 let scriptProps = {};
 const propertiesServiceMock = {
   getScriptProperties: function () {
-    return { getProperty: function (k) { return Object.prototype.hasOwnProperty.call(scriptProps, k) ? scriptProps[k] : null; } };
+    return {
+      getProperty: function (k) { return Object.prototype.hasOwnProperty.call(scriptProps, k) ? scriptProps[k] : null; },
+      setProperty: function (k, v) { scriptProps[k] = v; },
+      deleteProperty: function (k) { delete scriptProps[k]; }
+    };
+  }
+};
+
+// LockService: succeeds by default; tests can flip lockShouldSucceed to
+// simulate contention (a manual Resume click racing an auto-resume trigger).
+let lockShouldSucceed = true;
+const lockServiceMock = {
+  getScriptLock: function () {
+    return {
+      tryLock: function () { return lockShouldSucceed; },
+      releaseLock: function () {}
+    };
+  }
+};
+
+// ScriptApp triggers: real create/delete/list semantics, no real scheduling
+// — same style already used for CRM_Automation.gs's daily-maintenance
+// trigger, just re-declared here since this harness only loads the files
+// Sprint 13 actually depends on.
+let triggerStore = [];
+const scriptAppMock = {
+  getProjectTriggers: function () { return triggerStore.slice(); },
+  newTrigger: function (handlerName) {
+    const builder = {
+      timeBased: function () { return builder; },
+      after: function () { return builder; },
+      create: function () {
+        const t = { getHandlerFunction: function () { return handlerName; } };
+        triggerStore.push(t);
+        return t;
+      }
+    };
+    return builder;
+  },
+  deleteTrigger: function (t) {
+    const i = triggerStore.indexOf(t);
+    if (i !== -1) triggerStore.splice(i, 1);
   }
 };
 
@@ -194,6 +235,8 @@ global.SpreadsheetApp = {
 };
 global.UrlFetchApp = urlFetchAppMock;
 global.PropertiesService = propertiesServiceMock;
+global.LockService = lockServiceMock;
+global.ScriptApp = scriptAppMock;
 const sleepLog = [];
 global.Utilities = {
   formatDate: function (date, tz, fmt) {
@@ -244,6 +287,8 @@ function resetEnvironment() {
   fetchLog.length = 0;
   sleepLog.length = 0;
   scriptProps = {};
+  triggerStore = [];
+  lockShouldSucceed = true;
   return { ss: currentSS, prospects: prospects, audits: audits };
 }
 
@@ -517,6 +562,215 @@ function eligibleRow(n) {
   const result = global.prepareSelectedProspect_(true);
   check('13A unchanged: single-row prepare still succeeds identically', result.ok === true && result.status === 'READY_FOR_REVIEW');
   check('13A unchanged: single-row success dialog still shown with NOT SENT', /NOT SENT/.test(lastAlertText()));
+})();
+
+// ===========================================================================
+// SPRINT 13C — Resumable batch execution
+// ===========================================================================
+
+function readBatchState() {
+  const raw = scriptProps['OUTREACH_BATCH_STATE_JSON'];
+  return raw ? JSON.parse(raw) : null;
+}
+
+// OUTREACH_BATCH_TIME_BUDGET_MS is a top-level `const` in the .gs source
+// (4.5*60*1000 = 270000), so — like every other hardcoded sprint const in
+// this file — it isn't attached to global; this mirrors that exact value.
+const BATCH_TIME_BUDGET_MS = 270000;
+
+// Deterministically forces the batch loop's elapsed-time check to trip
+// after however many Date.now() calls `sequence` allows before exceeding
+// the budget. Real time never actually passes in these tests.
+function withFakeClockSequence(sequence, fn) {
+  const realNow = Date.now;
+  let i = 0;
+  Date.now = function () { const v = sequence[Math.min(i, sequence.length - 1)]; i++; return v; };
+  try { return fn(); } finally { Date.now = realNow; }
+}
+
+(function testBatchTimeoutSafeProcessingAndResume() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('A'), eligibleRow('B'), eligibleRow('C')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+
+  // Clock sequence: startTime=0, first budget check=1000 (within budget,
+  // process row A), second budget check=300000 (300000 > 270000 -> stop).
+  const first = withFakeClockSequence([0, 1000, BATCH_TIME_BUDGET_MS + 30000], function () {
+    return global.prepareEligibleProspectsBatch_(true);
+  });
+
+  check('timeout-safe: first execution stops itself before finishing', first.ok === true && first.done === false);
+  check('timeout-safe: exactly 1 of 3 processed this execution', first.processed === 1 && first.prepared === 1);
+  check('timeout-safe: 2 correctly reported remaining', first.remaining === 2 && first.anotherRunRequired === true);
+  check('timeout-safe: only 1 Tavily call made (row B/C never started)', fetchLog.filter(function (f) { return f.url.indexOf('tavily.com') !== -1; }).length === 1);
+
+  const stateAfterFirst = readBatchState();
+  check('progress persistence: batch state saved to Script Properties', stateAfterFirst !== null && stateAfterFirst.active === true);
+  check('progress persistence: cursor reflects exactly what was processed', stateAfterFirst.cursor === 1 && stateAfterFirst.rows.length === 3);
+  check('progress persistence: row A already marked READY_FOR_REVIEW on the sheet', readProspectFieldAt(env.prospects, 2, 'Outreach Preparation Status') === 'READY_FOR_REVIEW');
+
+  check('resume behavior: exactly one auto-resume trigger was scheduled', triggerStore.length === 1 && triggerStore[0].getHandlerFunction() === 'resumeOutreachBatchTrigger_');
+  check('resume behavior: in-progress summary names the remaining count', /Remaining: 2/.test(lastAlertText()) && /continue automatically|Resume Batch/i.test(lastAlertText()));
+
+  // Resume — real (fast) clock this time, plenty of budget to finish B and C.
+  const second = global.resumeOutreachBatch_(true);
+  check('resume behavior: resuming finishes the remaining rows', second.ok === true && second.done === true);
+  check('resume behavior: cumulative counts are correct after resume', second.processed === 3 && second.prepared === 3 && second.remaining === 0);
+  check('resume behavior: rows B and C are now READY_FOR_REVIEW too', readProspectFieldAt(env.prospects, 3, 'Outreach Preparation Status') === 'READY_FOR_REVIEW' && readProspectFieldAt(env.prospects, 4, 'Outreach Preparation Status') === 'READY_FOR_REVIEW');
+
+  check('completion/cleanup: batch state removed from Script Properties', readBatchState() === null);
+  check('completion/cleanup: the resume trigger was removed', triggerStore.length === 0);
+  check('completion/cleanup: final dialog says the batch is complete', /Batch complete/.test(lastAlertText()) && /Remaining: 0/.test(lastAlertText()));
+})();
+
+(function testBatchNoDuplicateProcessing() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('A'), eligibleRow('B'), eligibleRow('C')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+
+  withFakeClockSequence([0, 1000, BATCH_TIME_BUDGET_MS + 30000], function () {
+    global.prepareEligibleProspectsBatch_(true);
+  });
+  const callsAfterFirstChunk = fetchLog.length;
+  const cursorAfterFirstChunk = readBatchState().cursor;
+
+  // User clicks "Prepare Eligible Prospects" again while the batch above is
+  // still active (2 remaining, waiting on its resume trigger).
+  const second = global.prepareEligibleProspectsBatch_(true);
+  check('no duplicate processing: a second start is refused, not a fresh batch', second.ok === false && second.alreadyActive === true);
+  check('no duplicate processing: no new eligibility scan / network calls happened', fetchLog.length === callsAfterFirstChunk);
+  check('no duplicate processing: the original batch progress is untouched', readBatchState().cursor === cursorAfterFirstChunk);
+})();
+
+(function testBatchLockContentionPreventsDoubleProcessing() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('A'), eligibleRow('B')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+
+  lockShouldSucceed = false; // simulate a resume trigger already holding the lock
+  const result = global.prepareEligibleProspectsBatch_(true);
+  check('lock contention: refused rather than processing concurrently', result.ok === false && result.locked === true);
+  check('lock contention: not one row was touched', fetchLog.length === 0);
+  const state = readBatchState();
+  check('lock contention: batch state exists but cursor is still 0', state !== null && state.active === true && state.cursor === 0);
+  lockShouldSucceed = true;
+
+  // Now let it actually run.
+  const resumed = global.resumeOutreachBatch_(true);
+  check('lock contention: a later resume with the lock available proceeds normally', resumed.ok === true && resumed.done === true && resumed.prepared === 2);
+})();
+
+(function testBatchAlreadyPreparedSkippedAcrossResume() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [
+    eligibleRow('First'),
+    Object.assign(eligibleRow('AlreadyDone'), { 'Outreach Message': 'DO NOT TOUCH', 'Outreach Preparation Status': 'READY_FOR_REVIEW' }),
+    eligibleRow('Last')
+  ]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+
+  // Row 2 (First) lands in chunk 1; rows 3 and 4 (AlreadyDone, Last) are
+  // deferred to the resume — proving the skip logic works correctly no
+  // matter which execution actually reaches that row.
+  const first = withFakeClockSequence([0, 1000, BATCH_TIME_BUDGET_MS + 30000], function () {
+    return global.prepareEligibleProspectsBatch_(true);
+  });
+  check('already-prepared across resume: chunk 1 processed only the first row', first.processed === 1 && first.prepared === 1);
+
+  const second = global.resumeOutreachBatch_(true);
+  check('already-prepared across resume: resume chunk skipped the already-done one', second.done === true && second.skipped === 1 && second.prepared === 2);
+  check('already-prepared across resume: its message was never overwritten', readProspectFieldAt(env.prospects, 3, 'Outreach Message') === 'DO NOT TOUCH');
+})();
+
+(function testBatchFailureAcrossResumeDoesNotStopBatch() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('First'), eligibleRow('Failing'), eligibleRow('Last')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); });                          // row 2 (First) — chunk 1
+  queueFetch('tavily.com', function () { return mkResponse(500, 'server error'); });            // row 3 (Failing) — resume
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);                      // row 4 (Last) — resume
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+
+  const first = withFakeClockSequence([0, 1000, BATCH_TIME_BUDGET_MS + 30000], function () {
+    return global.prepareEligibleProspectsBatch_(true);
+  });
+  check('failure across resume: chunk 1 succeeded on row 1', first.prepared === 1 && first.done === false);
+
+  const second = global.resumeOutreachBatch_(true);
+  check('failure across resume: the failing row did not stop the batch', second.done === true && second.failed === 1 && second.prepared === 2);
+  check('failure across resume: failure is named in the final summary', second.failures.length === 1 && second.failures[0].indexOf('Batch Biz Failing') === 0);
+  check('failure across resume: the row after the failure still completed', readProspectFieldAt(env.prospects, 4, 'Outreach Preparation Status') === 'READY_FOR_REVIEW');
+})();
+
+(function testBatchCompletionCleansUpStateAndTrigger() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('One'), eligibleRow('Two')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+  const result = global.prepareEligibleProspectsBatch_(true); // finishes in one chunk, no time pressure
+  check('completion cleanup: batch reports done with nothing remaining', result.done === true && result.remaining === 0);
+  check('completion cleanup: Script Properties batch key is gone', scriptProps['OUTREACH_BATCH_STATE_JSON'] === undefined);
+  check('completion cleanup: no trigger left behind', triggerStore.length === 0);
+})();
+
+(function testBatchResumeTriggerHandlerRunsSilently() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('A'), eligibleRow('B')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+
+  withFakeClockSequence([0, 1000, BATCH_TIME_BUDGET_MS + 30000], function () {
+    global.prepareEligibleProspectsBatch_(true);
+  });
+  const alertsBeforeTrigger = uiMock.alerts.length;
+
+  // Simulate Apps Script actually firing the scheduled trigger.
+  global.resumeOutreachBatchTrigger_();
+  check('trigger handler: shows no dialogs (non-interactive)', uiMock.alerts.length === alertsBeforeTrigger);
+  check('trigger handler: still finished the batch', readBatchState() === null && triggerStore.length === 0);
+  check('trigger handler: the remaining row was actually prepared', readProspectFieldAt(env.prospects, 3, 'Outreach Preparation Status') === 'READY_FOR_REVIEW');
+})();
+
+(function testBatchNoKeyLeakageAcrossResume() {
+  const env = resetEnvironment();
+  configureKeys();
+  seedProspectRows(env.prospects, [eligibleRow('A'), eligibleRow('B'), eligibleRow('C')]);
+  queueFetch('tavily.com', function () { return tavilySuccess(); }, true);
+  queueFetch('generativelanguage.googleapis.com', function () { return geminiSuccess(); }, true);
+  uiMock.nextResponses = [uiMock.Button.YES];
+
+  withFakeClockSequence([0, 1000, BATCH_TIME_BUDGET_MS + 30000], function () {
+    global.prepareEligibleProspectsBatch_(true);
+  });
+  global.resumeOutreachBatch_(true);
+
+  const haystacks = [];
+  uiMock.alerts.forEach(function (a) { a.forEach(function (part) { haystacks.push(String(part)); }); });
+  fetchLog.forEach(function (f) { haystacks.push(f.url); });
+  // The persisted batch-progress blob specifically must never carry a key —
+  // scriptProps as a whole legitimately does (TAVILY_API_KEY/GEMINI_API_KEY
+  // are its correct storage location), so that's deliberately not scanned.
+  haystacks.push(JSON.stringify(scriptProps['OUTREACH_BATCH_STATE_JSON'] || ''));
+  const joined = haystacks.join('\n');
+  check('batch resume: Tavily key never leaks across the whole start+resume cycle', joined.indexOf(FAKE_TAVILY_KEY) === -1);
+  check('batch resume: Gemini key never leaks across the whole start+resume cycle', joined.indexOf(FAKE_GEMINI_KEY) === -1);
 })();
 
 // ===========================================================================

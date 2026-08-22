@@ -28,11 +28,22 @@
  * never the key value or the raw request.
  *
  * Sprint 13B adds "Prepare Eligible Prospects" — the same pipeline above,
- * run sequentially (never concurrently, never on a trigger/schedule) across
- * every eligible Prospects row, up to OUTREACH_AUTOMATION_MAX_BATCH_SIZE per
- * click. It is a thin scan-and-loop wrapper: prepareOneProspectRow_ is the
- * one and only place the research/audit/Gemini/retry/eligibility logic
- * lives, called identically by both the single-row and batch entry points.
+ * run sequentially (never concurrently) across every eligible Prospects row,
+ * up to OUTREACH_AUTOMATION_MAX_BATCH_SIZE per batch. It is a thin
+ * scan-and-loop wrapper: prepareOneProspectRow_ is the one and only place
+ * the research/audit/Gemini/retry/eligibility logic lives, called
+ * identically by both the single-row and batch entry points.
+ *
+ * Sprint 13C makes that batch resumable, since even 10 prospects can exceed
+ * Apps Script's ~6-minute execution limit. Progress (which rows, how far
+ * along, running counts) is persisted to Script Properties — no CRM schema
+ * change — and each execution stops itself after OUTREACH_BATCH_TIME_BUDGET_MS
+ * regardless of how many rows are left, scheduling a single idempotent
+ * time-based trigger (same removeAndRecreate pattern CRM_Automation.gs's
+ * daily-maintenance trigger already uses) to continue automatically, with
+ * "Resume Batch" always available as a manual fallback. LockService guards
+ * against two executions (a manual click and an auto-resume) claiming the
+ * same chunk at once.
  */
 
 const OUTREACH_AUTOMATION_FIELDS = [
@@ -63,6 +74,15 @@ const OUTREACH_AUTOMATION_EXCLUDED_STATUSES = ['archived', 'do not contact', 'cl
 // constant to raise/lower the cap; nothing else needs to change.
 const OUTREACH_AUTOMATION_MAX_BATCH_SIZE = 10;
 
+// Sprint 13C — resumable batch execution. Progress lives only in Script
+// Properties (transient, cleared when the batch finishes) — never a new CRM
+// column. 4.5 minutes leaves real safety margin under Apps Script's 6-minute
+// per-execution limit even on a slow Tavily/Gemini round trip.
+const OUTREACH_BATCH_STATE_KEY = 'OUTREACH_BATCH_STATE_JSON';
+const OUTREACH_BATCH_TIME_BUDGET_MS = 4.5 * 60 * 1000;
+const OUTREACH_BATCH_TRIGGER_HANDLER = 'resumeOutreachBatchTrigger_';
+const OUTREACH_BATCH_RESUME_DELAY_MS = 60 * 1000;
+
 const TAVILY_SEARCH_URL = 'https://api.tavily.com/search';
 // gemini-2.0-flash was shut down by Google on 2026-06-01 (all requests to it
 // now 404). gemini-3.7-flash is the current stable model for this endpoint —
@@ -81,6 +101,10 @@ function menuPrepareSelectedProspect_() {
 
 function menuPrepareEligibleProspects_() {
   prepareEligibleProspectsBatch_(true);
+}
+
+function menuResumeOutreachBatch_() {
+  resumeOutreachBatch_(true);
 }
 
 function menuOutreachAutomationStatus_() {
@@ -164,18 +188,34 @@ function prepareSelectedProspect_(interactive) {
 }
 
 // ---------------------------------------------------------------------------
-// Sprint 13B — batch: "Prepare Eligible Prospects". Scans every Prospects
-// row, filters to eligible ones (reusing the exact same
-// outreachAutomationExclusionReason_ classifier the single-row path uses),
-// caps at OUTREACH_AUTOMATION_MAX_BATCH_SIZE, then runs each one through the
-// SAME prepareOneProspectRow_ pipeline sequentially — never concurrently,
-// never a scheduled/triggered run. An already-prepared prospect is skipped
-// automatically (never overwritten without the explicit single-row
-// confirmation), and one prospect's failure never stops the rest.
+// Sprint 13B/13C — batch: "Prepare Eligible Prospects" / "Resume Batch".
+// Scans every Prospects row, filters to eligible ones (reusing the exact
+// same outreachAutomationExclusionReason_ classifier the single-row path
+// uses), caps the batch at OUTREACH_AUTOMATION_MAX_BATCH_SIZE, then runs
+// each one through the SAME prepareOneProspectRow_ pipeline sequentially —
+// never concurrently. An already-prepared prospect is skipped automatically
+// (never overwritten without the explicit single-row confirmation), and one
+// prospect's failure never stops the rest.
+//
+// Sprint 13C: a single execution may not have time to finish all of them
+// (Apps Script's ~6-minute limit), so progress is persisted to Script
+// Properties (OUTREACH_BATCH_STATE_KEY) after every row. If time runs out
+// mid-batch, the current execution stops itself, schedules one idempotent
+// resume trigger, and returns — the next execution (that trigger, or a
+// manual "Resume Batch") picks up exactly where this one left off.
 // ---------------------------------------------------------------------------
 
 function prepareEligibleProspectsBatch_(interactive) {
   const ui = SpreadsheetApp.getUi();
+
+  const existing = getOutreachBatchState_();
+  if (existing && existing.active) {
+    const message = 'A batch is already in progress (' + (existing.rows.length - existing.cursor) + ' of ' +
+      existing.rows.length + ' remaining). It will continue automatically, or run Resume Batch now.';
+    if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+    return { ok: false, message: message, alreadyActive: true };
+  }
+
   const config = getOutreachAutomationConfig_();
   const missingKeys = [];
   if (!config.tavilyKey) missingKeys.push('TAVILY_API_KEY');
@@ -228,7 +268,7 @@ function prepareEligibleProspectsBatch_(interactive) {
 
   if (interactive) {
     const confirmMessage = 'Eligible prospects: ' + totalEligible +
-      '\nMaximum that will be processed this run: ' + toProcess.length + ' (cap: ' + OUTREACH_AUTOMATION_MAX_BATCH_SIZE + ')' +
+      '\nMaximum batch size: ' + OUTREACH_AUTOMATION_MAX_BATCH_SIZE + ' (this run will process ' + toProcess.length + ')' +
       '\n\nResearch and messages will be prepared but NOT sent.\n\nContinue?';
     const confirmed = ui.alert('Outreach Automation — Prepare Eligible Prospects', confirmMessage, ui.ButtonSet.YES_NO) === ui.Button.YES;
     if (!confirmed) {
@@ -236,51 +276,199 @@ function prepareEligibleProspectsBatch_(interactive) {
     }
   }
 
-  // Sequential, one prospect at a time — never concurrent, never a
-  // trigger/schedule. A per-row exception (should the pipeline ever throw
-  // instead of returning a failure result) is caught here so it counts as
-  // one failure rather than aborting every remaining prospect in the batch.
-  const counts = { prepared: 0, skipped: 0, failed: 0 };
-  const failures = [];
-  toProcess.forEach(function (row) {
-    let result;
-    try {
-      result = prepareOneProspectRow_(prospects, headers, idx, row, config, { interactive: false, onAlreadyPrepared: 'skip' });
-    } catch (e) {
-      result = { ok: false, message: 'Unexpected error: ' + describeOutreachApiError_(e) };
-    }
-    if (result.ok) {
-      counts.prepared++;
-    } else if (result.skipped) {
-      counts.skipped++;
-    } else {
-      counts.failed++;
-      failures.push((result.business || 'Row ' + row) + ': ' + result.message);
-    }
+  saveOutreachBatchState_({
+    active: true,
+    rows: toProcess,
+    cursor: 0,
+    prepared: 0,
+    skipped: 0,
+    failed: 0,
+    totalEligible: totalEligible,
+    excluded: excludedCount,
+    failures: [],
+    startedAt: new Date().toISOString()
   });
 
-  const summary = {
-    eligible: totalEligible,
-    processed: toProcess.length,
-    prepared: counts.prepared,
-    skipped: counts.skipped,
-    failed: counts.failed,
-    excluded: excludedCount
-  };
-  if (interactive) ui.alert('Outreach Automation — Batch Summary', formatBatchSummary_(summary, failures), ui.ButtonSet.OK);
-  return Object.assign({ ok: true }, summary, { failures: failures });
+  return runOutreachBatchChunk_(interactive);
+}
+
+// Manual continuation of an already-started batch — the fallback the batch
+// always offers alongside its automatic resume trigger.
+function resumeOutreachBatch_(interactive) {
+  const ui = SpreadsheetApp.getUi();
+  const state = getOutreachBatchState_();
+  if (!state || !state.active) {
+    const message = 'No batch is currently in progress.';
+    if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+    return { ok: false, message: message };
+  }
+  return runOutreachBatchChunk_(interactive);
+}
+
+// The installable time-trigger's handler — same try/catch + Logger.log
+// pattern CRM_Automation.gs's dailyMaintenanceTrigger_ already uses for
+// safe unattended execution.
+function resumeOutreachBatchTrigger_() {
+  try {
+    runOutreachBatchChunk_(false);
+  } catch (e) {
+    Logger.log('resumeOutreachBatchTrigger_ failed: ' + e.message);
+  }
+}
+
+// Processes rows from the persisted batch state, starting at its cursor,
+// one at a time, reusing prepareOneProspectRow_ unchanged — until either
+// every row is done or OUTREACH_BATCH_TIME_BUDGET_MS elapses, whichever
+// comes first. Progress is saved after every single row, so a mid-batch
+// crash/timeout never loses more than the row in flight. LockService
+// prevents a manual Resume Batch click and an auto-resume trigger (or two
+// overlapping triggers) from both claiming the same chunk at once.
+function runOutreachBatchChunk_(interactive) {
+  const ui = SpreadsheetApp.getUi();
+  const state = getOutreachBatchState_();
+  if (!state || !state.active) {
+    return { ok: false, message: 'No batch is currently in progress.' };
+  }
+
+  const lock = LockService.getScriptLock();
+  const gotLock = lock.tryLock(5000);
+  if (!gotLock) {
+    const message = 'Another batch execution is already running — please wait for it to finish.';
+    if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+    return { ok: false, message: message, locked: true };
+  }
+
+  try {
+    const config = getOutreachAutomationConfig_();
+    if (!config.tavilyKey || !config.geminiKey) {
+      const message = 'Outreach preparation needs TAVILY_API_KEY and GEMINI_API_KEY set in Script Properties — batch paused, resume once they are set.';
+      if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+      return { ok: false, message: message };
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const prospects = ss.getSheetByName('Prospects');
+    const headers = getLiveProspectsHeaders_(prospects); // CRM_Outreach.gs
+    const idx = {};
+    headers.forEach(function (h, i) { idx[h] = i; });
+
+    const startTime = Date.now();
+    while (state.cursor < state.rows.length) {
+      if (Date.now() - startTime > OUTREACH_BATCH_TIME_BUDGET_MS) break; // out of time this execution — resume later
+
+      const row = state.rows[state.cursor];
+      let result;
+      try {
+        result = prepareOneProspectRow_(prospects, headers, idx, row, config, { interactive: false, onAlreadyPrepared: 'skip' });
+      } catch (e) {
+        result = { ok: false, message: 'Unexpected error: ' + describeOutreachApiError_(e) };
+      }
+
+      if (result.ok) {
+        state.prepared++;
+      } else if (result.skipped) {
+        state.skipped++;
+      } else {
+        state.failed++;
+        state.failures.push((result.business || 'Row ' + row) + ': ' + result.message);
+        if (state.failures.length > 10) state.failures = state.failures.slice(0, 10);
+      }
+      state.cursor++;
+      saveOutreachBatchState_(state); // after EVERY row — never more than one row of progress at risk
+    }
+
+    const remaining = state.rows.length - state.cursor;
+    const done = remaining === 0;
+    if (done) {
+      clearOutreachBatchState_(); // deletes state + any pending resume trigger
+    } else {
+      scheduleOutreachBatchResume_(); // idempotent — replaces any existing pending trigger, never duplicates
+    }
+
+    const summary = {
+      totalEligible: state.totalEligible,
+      prepared: state.prepared,
+      skipped: state.skipped,
+      failed: state.failed,
+      excluded: state.excluded,
+      remaining: remaining,
+      anotherRunRequired: !done
+    };
+    if (interactive) {
+      ui.alert(done ? 'Outreach Automation — Batch Complete' : 'Outreach Automation — Batch In Progress',
+        formatBatchSummary_(summary, state.failures), ui.ButtonSet.OK);
+    }
+    return {
+      ok: true,
+      done: done,
+      eligible: state.totalEligible,
+      excluded: state.excluded,
+      processed: state.cursor,
+      prepared: state.prepared,
+      skipped: state.skipped,
+      failed: state.failed,
+      remaining: remaining,
+      anotherRunRequired: !done,
+      failures: state.failures.slice()
+    };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Batch state — Script Properties only (OUTREACH_BATCH_STATE_KEY), never a
+// CRM column: it's execution progress, not CRM data, and is deleted the
+// moment the batch completes. Trigger management mirrors CRM_Automation.gs's
+// MAINTENANCE_TRIGGER_HANDLER/removeMaintenanceTriggers_ pattern exactly —
+// remove-then-create guarantees at most one pending resume trigger ever.
+// ---------------------------------------------------------------------------
+
+function getOutreachBatchState_() {
+  const raw = PropertiesService.getScriptProperties().getProperty(OUTREACH_BATCH_STATE_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return null; // corrupt/unreadable state is treated as "no batch in progress", never crashes
+  }
+}
+
+function saveOutreachBatchState_(state) {
+  PropertiesService.getScriptProperties().setProperty(OUTREACH_BATCH_STATE_KEY, JSON.stringify(state));
+}
+
+function clearOutreachBatchState_() {
+  PropertiesService.getScriptProperties().deleteProperty(OUTREACH_BATCH_STATE_KEY);
+  removeOutreachBatchTriggers_();
+}
+
+function removeOutreachBatchTriggers_() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === OUTREACH_BATCH_TRIGGER_HANDLER) ScriptApp.deleteTrigger(t);
+  });
+}
+
+function scheduleOutreachBatchResume_() {
+  removeOutreachBatchTriggers_();
+  ScriptApp.newTrigger(OUTREACH_BATCH_TRIGGER_HANDLER).timeBased().after(OUTREACH_BATCH_RESUME_DELAY_MS).create();
 }
 
 function formatBatchSummary_(summary, failures) {
   const lines = [
-    'Eligible: ' + summary.eligible,
+    'Eligible: ' + summary.totalEligible,
     'Prepared: ' + summary.prepared,
     'Skipped: ' + summary.skipped,
     'Failed: ' + summary.failed,
     'Excluded: ' + summary.excluded,
-    '',
-    'All prepared messages are saved as READY_FOR_REVIEW for human review — nothing was sent to any business.'
+    'Remaining: ' + summary.remaining,
+    ''
   ];
+  lines.push(summary.anotherRunRequired
+    ? 'This batch is not finished — ' + summary.remaining + ' prospect(s) remain. It will continue automatically in about a minute, or run Resume Batch now.'
+    : 'Batch complete — nothing remaining.');
+  lines.push('');
+  lines.push('All prepared messages are saved as READY_FOR_REVIEW for human review — nothing was sent to any business.');
   if (failures.length > 0) {
     lines.push('');
     lines.push('Failures:');
@@ -710,6 +898,13 @@ function formatOutreachAutomationStatus_(ss) {
     'Gemini: ' + (config.geminiKey ? 'Configured' : 'Missing'),
     ''
   ];
+
+  const batchState = getOutreachBatchState_();
+  if (batchState && batchState.active) {
+    lines.push('Batch in progress: ' + (batchState.rows.length - batchState.cursor) + ' of ' + batchState.rows.length + ' remaining (Prepared ' +
+      batchState.prepared + ' / Skipped ' + batchState.skipped + ' / Failed ' + batchState.failed + ' so far).');
+    lines.push('');
+  }
 
   const prospects = ss.getSheetByName('Prospects');
   const lastRow = prospects ? prospects.getLastRow() : 0;
