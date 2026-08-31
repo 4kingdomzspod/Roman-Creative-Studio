@@ -30,8 +30,11 @@
  *                           Follow-Up Message, built on top of the Outreach Brief
  *   CRM_Scoring.gs        - RCS Lead Priority Score: deterministic 0-100 score +
  *                           tier + reasons from existing Prospects/Website Audits data
- *   CRM_CommandCenter.gs  - Daily Sales Command Center: read-only ranked daily
- *                           action report built from existing Prospects/Meetings/Proposals data
+ *   CRM_CommandCenter.gs  - Daily Revenue Command Center: read-only ranked daily
+ *                           action queue (prospects/follow-ups/meetings/proposals/
+ *                           outstanding payments) + $10K Tracker/Funnel/Revenue Math,
+ *                           built from existing Prospects/Meetings/Proposals/Revenue
+ *                           data and CRM_Analytics.gs's funnel/value engine
  *   CRM_Analytics.gs      - Pipeline Intelligence: read-only funnel/value/aging/risk/
  *                           industry analytics built from existing CRM data only
  *   CRM_Health.gs         - CRM Health Audit: read-only completeness/duplicate/
@@ -63,7 +66,7 @@ function onOpen() {
   const ui = SpreadsheetApp.getUi();
   ui.createMenu('RCS CRM')
     .addItem('Build / Update CRM', 'buildRCSCRM')
-    .addItem('Daily Command Center', 'openDailyCommandCenter_')
+    .addItem('Daily Revenue Command Center', 'openDailyCommandCenter_')
     .addItem('Import Prospects...', 'showImportDialog_')
     .addItem('Sync Prospects', 'menuSyncProspects_')
     .addItem('Repair Prospects', 'menuRepairProspects_')
