@@ -26,14 +26,24 @@ const DASHBOARD_ROWS = {
 DASHBOARD_ROWS.metricsHeader = DASHBOARD_ROWS.pipelineFirstRow + PIPELINE_LIST_ROWS + 1; // 41
 DASHBOARD_ROWS.metricsLabel = DASHBOARD_ROWS.metricsHeader + 1; // 42
 DASHBOARD_ROWS.metricsValue = DASHBOARD_ROWS.metricsHeader + 2; // 43
+DASHBOARD_ROWS.sprintHeader = DASHBOARD_ROWS.metricsValue + 2; // 45 — one blank row after Conversion & Client Metrics
+DASHBOARD_ROWS.sprintLabel = DASHBOARD_ROWS.sprintHeader + 1;
+DASHBOARD_ROWS.sprintValue = DASHBOARD_ROWS.sprintHeader + 2;
+DASHBOARD_ROWS.sprint2Label = DASHBOARD_ROWS.sprintValue + 2; // second row of cards, one blank row below the first
+DASHBOARD_ROWS.sprint2Value = DASHBOARD_ROWS.sprint2Label + 1;
 
 // KPI cards, in the exact order requested. Every formula reads live from
 // the source sheets — no hardcoded counts, totals, or business metrics
 // anywhere on this sheet.
+// "New Leads"/"Contacted" locate the Status column by header name (same
+// INDEX/MATCH technique "Hot Leads" below already uses) rather than the
+// hardcoded Prospects!I2:I this used to read — Status happens to sit in
+// column I today, but a schema change (a column inserted/reordered) would
+// silently break a literal column-letter reference without this.
 const DASHBOARD_KPIS = [
   { label: 'Total Prospects', formula: '=COUNTA(Prospects!A2:A)', format: '0' },
-  { label: 'New Leads', formula: '=COUNTIF(Prospects!I2:I,"New")', format: '0' },
-  { label: 'Contacted', formula: '=COUNTIF(Prospects!I2:I,"Contacted")', format: '0' },
+  { label: 'New Leads', formula: '=IFERROR(COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Status",Prospects!A1:Z1,0)),"New"),0)', format: '0' },
+  { label: 'Contacted', formula: '=IFERROR(COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Status",Prospects!A1:Z1,0)),"Contacted"),0)', format: '0' },
   { label: 'Follow Ups Due', formula: '=COUNTIFS(\'Follow Ups\'!A2:A,"<>",\'Follow Ups\'!B2:B,"<="&TODAY(),\'Follow Ups\'!B2:B,"<>")', format: '0' },
   { label: 'Meetings Booked', formula: '=COUNTA(Meetings!A2:A)', format: '0' },
   { label: 'Proposals Sent', formula: '=COUNTA(Proposals!D2:D)', format: '0' },
@@ -60,6 +70,54 @@ const DASHBOARD_METRICS = [
   { label: 'Hot Leads', formula: '=IFERROR(COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Score Tier",Prospects!A1:Z1,0)),"Hot"),0)', format: '0' }
 ];
 
+// 90-Day $10K Sprint — every formula reads live from Revenue/Proposals/
+// Prospects/Follow Ups, same as every other Dashboard card; nothing here is
+// a manually-entered or invented number. Revenue!E ("Paid" checkbox) is
+// what distinguishes Cash Collected from Outstanding — same column the
+// existing "Monthly Revenue" KPI above already relies on.
+//
+// Deals Won counts Proposals accepted (a won deal, before it necessarily
+// has its own Revenue row yet); Deals Needed divides the remaining amount
+// by the average Revenue deal size and falls back to "—" (never a
+// fabricated number) until there's at least one Revenue row to average.
+const REVENUE_SPRINT_GOAL = 10000;
+
+const DASHBOARD_SPRINT_KPIS_ROW1 = [
+  { label: '$10,000 Goal', formula: '=' + REVENUE_SPRINT_GOAL, format: '$#,##0' },
+  { label: 'RCS Revenue', formula: '=IFERROR(SUM(Revenue!D2:D),0)', format: '$#,##0.00' },
+  { label: 'Cash Collected', formula: '=IFERROR(SUMIF(Revenue!E2:E,TRUE,Revenue!D2:D),0)', format: '$#,##0.00' },
+  { label: 'Outstanding', formula: '=IFERROR(SUMIF(Revenue!E2:E,FALSE,Revenue!D2:D),0)', format: '$#,##0.00' },
+  { label: 'Remaining', formula: '=MAX(0,' + REVENUE_SPRINT_GOAL + '-IFERROR(SUMIF(Revenue!E2:E,TRUE,Revenue!D2:D),0))', format: '$#,##0.00' },
+  { label: 'Revenue This Week', formula: '=IFERROR(SUMIFS(Revenue!D2:D,Revenue!F2:F,">="&(TODAY()-6),Revenue!F2:F,"<="&TODAY(),Revenue!E2:E,TRUE),0)', format: '$#,##0.00' },
+  { label: 'Average Deal', formula: '=IFERROR(AVERAGE(Revenue!D2:D),0)', format: '$#,##0.00' },
+  { label: 'Deals Won', formula: '=IFERROR(COUNTIF(Proposals!E2:E,"Accepted"),0)', format: '0' }
+];
+
+const DASHBOARD_SPRINT_KPIS_ROW2 = [
+  { label: 'Deals Needed', formula: '=IFERROR(ROUNDUP(MAX(0,' + REVENUE_SPRINT_GOAL + '-SUMIF(Revenue!E2:E,TRUE,Revenue!D2:D))/AVERAGE(Revenue!D2:D),0),"—")', format: '0' },
+  {
+    label: 'Active Pipeline',
+    formula: '=IFERROR(COUNTA(Prospects!A2:A)' +
+      '-COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Status",Prospects!A1:Z1,0)),"Won")' +
+      '-COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Status",Prospects!A1:Z1,0)),"Closed — Lost")' +
+      '-COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Status",Prospects!A1:Z1,0)),"Closed — Not Interested")' +
+      '-COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Status",Prospects!A1:Z1,0)),"Do Not Contact")' +
+      '-COUNTIF(INDEX(Prospects!A2:Z,0,MATCH("Status",Prospects!A1:Z1,0)),"Archived"),0)',
+    format: '0'
+  },
+  { label: 'Overdue Follow-ups', formula: '=IFERROR(COUNTIFS(\'Follow Ups\'!A2:A,"<>",\'Follow Ups\'!B2:B,"<"&TODAY(),\'Follow Ups\'!B2:B,"<>"),0)', format: '0' }
+];
+
+function writeSprintSection_(sheet) {
+  writeSectionHeader_(sheet, DASHBOARD_ROWS.sprintHeader, 1, DASHBOARD_COLS, '90-Day $10K Sprint');
+  DASHBOARD_SPRINT_KPIS_ROW1.forEach(function (kpi, i) {
+    writeKpiCard_(sheet, i, DASHBOARD_ROWS.sprintLabel, kpi.label, kpi.formula, kpi.format);
+  });
+  DASHBOARD_SPRINT_KPIS_ROW2.forEach(function (kpi, i) {
+    writeKpiCard_(sheet, i, DASHBOARD_ROWS.sprint2Label, kpi.label, kpi.formula, kpi.format);
+  });
+}
+
 function buildDashboard_(sheet) {
   sheet.clear();
   sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).breakApart();
@@ -71,6 +129,7 @@ function buildDashboard_(sheet) {
   writeKpiSection_(sheet);
   writePipelineSummary_(sheet);
   writeConversionMetrics_(sheet);
+  writeSprintSection_(sheet);
 
   sheet.setFrozenRows(2);
 }
