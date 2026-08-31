@@ -67,6 +67,7 @@ function onOpen() {
     .addItem('Import Prospects...', 'showImportDialog_')
     .addItem('Sync Prospects', 'menuSyncProspects_')
     .addItem('Repair Prospects', 'menuRepairProspects_')
+    .addItem('Sync Follow Ups', 'menuSyncFollowUps_')
     .addSubMenu(ui.createMenu('Auto Sync')
       .addItem('Enable Auto Sync', 'enableAutoSync_')
       .addItem('Disable Auto Sync', 'disableAutoSync_'))
