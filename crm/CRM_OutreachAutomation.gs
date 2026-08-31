@@ -571,75 +571,90 @@ function prepareOneProspectRow_(prospects, headers, idx, row, config, opts) {
   }
   function setStatus(state) { setField('Outreach Preparation Status', state); }
 
-  // Stage 1 — Tavily research. Reused if a prior run already gathered it
-  // and the field is still blank never happened, but reuse is only safe
-  // when we're re-running after a later-stage failure — a full regenerate
-  // (confirmed above) always re-researches, since the whole point of
-  // "regenerate" is a fresh pass.
-  let researchText = existingResearch;
-  const canReuseResearch = !hasPriorOutput && !alreadyReady && existingResearch !== '' && existingStatus === OUTREACH_AUTOMATION_STATES.FAILED;
-  if (!canReuseResearch) {
-    setStatus(OUTREACH_AUTOMATION_STATES.RESEARCHING);
-    const research = callTavilySearch_(config.tavilyKey, business, website);
-    if (!research.ok) {
-      setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
-      const message = business + ': research step failed — ' + research.message;
-      if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-      return { ok: false, message: message, stage: 'RESEARCHING', business: business };
+  // Stages 1-4, wrapped: Tavily/Gemini already guard their own exceptions
+  // internally, but getOrRunWebsiteAudit_ ultimately calls CRM_Audits.gs's
+  // network code, which doesn't promise the same. Without this, an
+  // unexpected throw here would leave the row stuck at whatever transient
+  // state (RESEARCHING/AUDITING/GENERATING) it was in — exactly the "stuck
+  // AUDITING forever, no detectable reason" failure mode. Any such
+  // exception now still resolves to FAILED with a message, the same
+  // terminal, retryable state every other failure path already produces.
+  try {
+    // Stage 1 — Tavily research. Reused if a prior run already gathered it
+    // and the field is still blank never happened, but reuse is only safe
+    // when we're re-running after a later-stage failure — a full regenerate
+    // (confirmed above) always re-researches, since the whole point of
+    // "regenerate" is a fresh pass.
+    let researchText = existingResearch;
+    const canReuseResearch = !hasPriorOutput && !alreadyReady && existingResearch !== '' && existingStatus === OUTREACH_AUTOMATION_STATES.FAILED;
+    if (!canReuseResearch) {
+      setStatus(OUTREACH_AUTOMATION_STATES.RESEARCHING);
+      const research = callTavilySearch_(config.tavilyKey, business, website);
+      if (!research.ok) {
+        setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
+        const message = business + ': research step failed — ' + research.message;
+        if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+        return { ok: false, message: message, stage: 'RESEARCHING', business: business };
+      }
+      researchText = formatResearchSummary_(research);
+      setField('Outreach Research', researchText);
     }
-    researchText = formatResearchSummary_(research);
-    setField('Outreach Research', researchText);
-  }
 
-  // Stage 2 — Website Audit: reuse Sprint 5's lookup; only run a fresh audit
-  // (CRM_Audits.gs, unchanged) if none is found yet.
-  setStatus(OUTREACH_AUTOMATION_STATES.AUDITING);
-  const auditResult = getOrRunWebsiteAudit_(business, website);
-  if (!auditResult.ok) {
+    // Stage 2 — Website Audit: reuse Sprint 5's lookup; only run a fresh audit
+    // (CRM_Audits.gs, unchanged) if none is found yet.
+    setStatus(OUTREACH_AUTOMATION_STATES.AUDITING);
+    const auditResult = getOrRunWebsiteAudit_(business, website);
+    if (!auditResult.ok) {
+      setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
+      const message = business + ': Website Audit step failed — ' + auditResult.message + ' Outreach cannot be marked ready without a successful audit.';
+      if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+      return { ok: false, message: message, stage: 'AUDITING', business: business };
+    }
+
+    // Stage 3 — Gemini analysis of research + audit + CRM context.
+    setStatus(OUTREACH_AUTOMATION_STATES.GENERATING);
+    const industry = String(field('Industry') || '').trim();
+    const city = String(field('City') || '').trim();
+    const priority = String(field('Priority') || '').trim();
+    const analysis = callGeminiAnalysis_(config.geminiKey, {
+      business: business, website: website, industry: industry, city: city,
+      priority: priority, status: status, existingBrief: existingBrief,
+      research: researchText, audit: auditResult.audit
+    });
+    if (!analysis.ok) {
+      setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
+      const message = business + ': analysis/message generation step failed — ' + analysis.message;
+      if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
+      return { ok: false, message: message, stage: 'GENERATING', business: business };
+    }
+
+    // Stage 4 — save + READY_FOR_REVIEW. Only these fields are written; every
+    // other Prospects column (including the unrelated Sprint 5 Outreach Brief
+    // and Sprint 7 scoring columns) is left exactly as it was.
+    setField('Outreach Angle', analysis.outreachAngle);
+    setField('Outreach Message', analysis.outreachMessage);
+    setField('Outreach Prepared At', new Date());
+    if (idx['Outreach Prepared At'] !== undefined) {
+      prospects.getRange(row, idx['Outreach Prepared At'] + 1).setNumberFormat('yyyy-mm-dd hh:mm');
+    }
+    setStatus(OUTREACH_AUTOMATION_STATES.READY);
+
+    return {
+      ok: true,
+      business: business,
+      website: website,
+      research: researchText,
+      outreachAngle: analysis.outreachAngle,
+      outreachMessage: analysis.outreachMessage,
+      auditRanNew: auditResult.ranNew,
+      status: OUTREACH_AUTOMATION_STATES.READY
+    };
+  } catch (e) {
     setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
-    const message = business + ': Website Audit step failed — ' + auditResult.message + ' Outreach cannot be marked ready without a successful audit.';
+    const message = business + ': unexpected error — ' + describeOutreachApiError_(e);
     if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-    return { ok: false, message: message, stage: 'AUDITING', business: business };
+    return { ok: false, message: message, stage: 'UNEXPECTED', business: business };
   }
-
-  // Stage 3 — Gemini analysis of research + audit + CRM context.
-  setStatus(OUTREACH_AUTOMATION_STATES.GENERATING);
-  const industry = String(field('Industry') || '').trim();
-  const city = String(field('City') || '').trim();
-  const priority = String(field('Priority') || '').trim();
-  const analysis = callGeminiAnalysis_(config.geminiKey, {
-    business: business, website: website, industry: industry, city: city,
-    priority: priority, status: status, existingBrief: existingBrief,
-    research: researchText, audit: auditResult.audit
-  });
-  if (!analysis.ok) {
-    setStatus(OUTREACH_AUTOMATION_STATES.FAILED);
-    const message = business + ': analysis/message generation step failed — ' + analysis.message;
-    if (interactive) ui.alert('Outreach Automation', message, ui.ButtonSet.OK);
-    return { ok: false, message: message, stage: 'GENERATING', business: business };
-  }
-
-  // Stage 4 — save + READY_FOR_REVIEW. Only these fields are written; every
-  // other Prospects column (including the unrelated Sprint 5 Outreach Brief
-  // and Sprint 7 scoring columns) is left exactly as it was.
-  setField('Outreach Angle', analysis.outreachAngle);
-  setField('Outreach Message', analysis.outreachMessage);
-  setField('Outreach Prepared At', new Date());
-  if (idx['Outreach Prepared At'] !== undefined) {
-    prospects.getRange(row, idx['Outreach Prepared At'] + 1).setNumberFormat('yyyy-mm-dd hh:mm');
-  }
-  setStatus(OUTREACH_AUTOMATION_STATES.READY);
-
-  return {
-    ok: true,
-    business: business,
-    website: website,
-    research: researchText,
-    outreachAngle: analysis.outreachAngle,
-    outreachMessage: analysis.outreachMessage,
-    auditRanNew: auditResult.ranNew,
-    status: OUTREACH_AUTOMATION_STATES.READY
-  };
 }
 
 // ---------------------------------------------------------------------------
@@ -926,12 +941,22 @@ function formatOutreachAutomationStatus_(ss) {
   Object.keys(OUTREACH_AUTOMATION_STATES).forEach(function (k) { counts[OUTREACH_AUTOMATION_STATES[k]] = 0; });
   let notStarted = 0;
 
+  const transientStates = [OUTREACH_AUTOMATION_STATES.RESEARCHING, OUTREACH_AUTOMATION_STATES.AUDITING, OUTREACH_AUTOMATION_STATES.GENERATING];
+  const stuckBusinesses = [];
+
   data.forEach(function (row) {
     const business = bIdx !== -1 ? String(row[bIdx] || '').trim() : '';
     if (business === '') return;
     const state = String(row[statusIdx] || '').trim();
     if (state === '' || counts[state] === undefined) { notStarted++; return; }
     counts[state]++;
+    // A transient state found here means a PRIOR run ended without ever
+    // reaching a terminal state (READY_FOR_REVIEW/FAILED) — the exception
+    // safety net in prepareOneProspectRow_ prevents new occurrences, but an
+    // execution timeout could still leave one. Listing it by name is the
+    // "detectable reason" — re-running Prepare Selected Prospect on it is
+    // always safe (never creates a duplicate; it updates this same row).
+    if (transientStates.indexOf(state) !== -1) stuckBusinesses.push(business + ' (' + state + ')');
   });
 
   lines.push('Ready for Review: ' + counts[OUTREACH_AUTOMATION_STATES.READY]);
@@ -939,5 +964,12 @@ function formatOutreachAutomationStatus_(ss) {
   lines.push('In progress (Researching/Auditing/Generating): ' +
     (counts[OUTREACH_AUTOMATION_STATES.RESEARCHING] + counts[OUTREACH_AUTOMATION_STATES.AUDITING] + counts[OUTREACH_AUTOMATION_STATES.GENERATING]));
   lines.push('Not yet prepared: ' + notStarted);
+
+  if (stuckBusinesses.length > 0) {
+    lines.push('');
+    lines.push('Possibly stuck (left in progress by a prior run — safe to retry via Prepare Selected Prospect):');
+    stuckBusinesses.slice(0, 10).forEach(function (b) { lines.push('- ' + b); });
+    if (stuckBusinesses.length > 10) lines.push('...and ' + (stuckBusinesses.length - 10) + ' more.');
+  }
   return lines.join('\n');
 }
