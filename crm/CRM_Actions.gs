@@ -13,6 +13,80 @@ function getHeaders_(sheetName) {
   return def ? def.headers : [];
 }
 
+// ---------------------------------------------------------------------------
+// Prospect initialization — the ONE canonical entry point every Prospect
+// creation path calls: CSV import and Auto Sync (CRM_Import.gs/CRM_Sync.gs,
+// same importProspectsFromCsv_), manual typing (Code.gs's onEdit), and the
+// Repair Prospects backfill below. A row that never gets initialized is
+// exactly the bug this closes: Status/Lead Score/Score Tier/Score Reasons
+// silently staying blank forever.
+//
+// Idempotent and non-destructive by construction: it only ever acts when
+// Status is currently blank, so calling it on an already-initialized row
+// (or twice on the same row) is always a safe no-op. It never touches Next
+// Follow Up — a brand-new prospect gets a Next Action ("Contact Prospect",
+// via the existing CRM_NextAction.gs), not an auto-scheduled follow-up.
+// Reuses CRM_Scoring.gs's scoreProspectRow_ unchanged — no second scoring
+// engine — and never fabricates Priority/contact info that isn't on file.
+// ---------------------------------------------------------------------------
+
+const PROSPECT_DEFAULT_STATUS = 'New';
+
+function initializeProspectRow_(prospects, headers, row) {
+  const idx = {};
+  headers.forEach(function (h, i) { idx[h] = i; });
+  function field(name) { return idx[name] !== undefined ? prospects.getRange(row, idx[name] + 1).getValue() : ''; }
+
+  const business = String(field('Business') || '').trim();
+  if (business === '') return { changed: false };
+
+  const currentStatus = String(field('Status') || '').trim();
+  if (currentStatus !== '') return { changed: false, business: business }; // already initialized — never overwritten
+
+  if (idx['Status'] !== undefined) prospects.getRange(row, idx['Status'] + 1).setValue(PROSPECT_DEFAULT_STATUS);
+
+  // Score columns are provisioned additively (CRM_Scoring.gs), same as every
+  // other optional Prospects column in this CRM — guarded so this still
+  // works even if scoring has never been run on this sheet before.
+  if (typeof ensureScoreColumns_ === 'function') ensureScoreColumns_(prospects);
+  const liveHeaders = typeof getLiveProspectsHeaders_ === 'function' ? getLiveProspectsHeaders_(prospects) : headers;
+  if (typeof scoreProspectRow_ === 'function') scoreProspectRow_(prospects, liveHeaders, row);
+
+  return { changed: true, business: business };
+}
+
+// "RCS CRM > Repair Prospects" — safe backfill for records that predate (or
+// otherwise missed) initialization. Reuses initializeProspectRow_ exactly;
+// safe to run any number of times, on any number of prospects, including
+// ones already fully initialized (no-op for those).
+function menuRepairProspects_() {
+  const ui = SpreadsheetApp.getUi();
+  const prospects = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Prospects');
+  if (!prospects) { ui.alert('Prospects sheet not found.'); return; }
+
+  const lastRow = prospects.getLastRow();
+  if (lastRow < 2) {
+    ui.alert('Repair Prospects', 'No prospects on file yet.', ui.ButtonSet.OK);
+    return;
+  }
+
+  const headers = typeof getLiveProspectsHeaders_ === 'function' ? getLiveProspectsHeaders_(prospects) : getHeaders_('Prospects');
+  let initialized = 0, alreadyOk = 0, blank = 0;
+  for (let r = 2; r <= lastRow; r++) {
+    const result = initializeProspectRow_(prospects, headers, r);
+    if (result.changed) initialized++;
+    else if (result.business) alreadyOk++;
+    else blank++;
+  }
+
+  ui.alert('Repair Prospects',
+    'Initialized (blank Status -> New + scored): ' + initialized +
+    '\nAlready had a Status (untouched): ' + alreadyOk +
+    (blank ? '\nRows with no Business name (skipped): ' + blank : '') +
+    '\n\nNo existing Status, Priority, contact info, or other data was changed. Safe to run again anytime.',
+    ui.ButtonSet.OK);
+}
+
 // Reads whichever rows are selected on the active sheet, provided that
 // sheet is Prospects. Returns null (after alerting) if the selection isn't
 // usable, so callers can just check for null and bail.

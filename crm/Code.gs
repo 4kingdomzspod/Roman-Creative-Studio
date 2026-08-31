@@ -18,7 +18,10 @@
  *   CRM_Settings.gs       - Settings dropdown lists + validation application
  *   CRM_Dashboard.gs      - the formula-driven Dashboard sheet
  *   CRM_Import.gs         - "Import Prospects..." CSV dialog + import logic
- *   CRM_Actions.gs        - Move to Outreach / Convert to Client / Archive Lead
+ *   CRM_Actions.gs        - Move to Outreach / Convert to Client / Archive Lead;
+ *                           initializeProspectRow_ / Repair Prospects — the
+ *                           canonical Prospect initialization every creation
+ *                           path (import, sync, manual entry) calls
  *   CRM_Sync.gs           - "Sync Prospects" + Auto Sync (GitHub -> Prospects)
  *   CRM_Audits.gs         - Website Audit: fetch + score a site, log to Website Audits
  *   CRM_Outreach.gs       - Outreach Brief: turns a Website Audits record into a
@@ -63,6 +66,7 @@ function onOpen() {
     .addItem('Daily Command Center', 'openDailyCommandCenter_')
     .addItem('Import Prospects...', 'showImportDialog_')
     .addItem('Sync Prospects', 'menuSyncProspects_')
+    .addItem('Repair Prospects', 'menuRepairProspects_')
     .addSubMenu(ui.createMenu('Auto Sync')
       .addItem('Enable Auto Sync', 'enableAutoSync_')
       .addItem('Disable Auto Sync', 'disableAutoSync_'))
@@ -98,6 +102,34 @@ function onOpen() {
     .addItem('Convert to Client', 'menuConvertToClient_')
     .addItem('Archive Lead', 'menuArchiveLead_')
     .addToUi();
+}
+
+// Simple trigger (no installation needed, same as onOpen) — the manual-entry
+// counterpart to CSV import/Auto Sync both funneling through
+// initializeProspectRow_ (CRM_Actions.gs). Reacts only to a Business name
+// being typed directly into a Prospects row whose Status is still blank;
+// every other edit (including the Status/Score cells this itself writes)
+// is ignored on the column check below, so there is no re-trigger loop.
+// Simple triggers can't call services like UrlFetchApp, but
+// initializeProspectRow_ only ever reads/writes this spreadsheet's own
+// cells (its scoring step reads Website Audits, never fetches anything),
+// so it's fully compatible.
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+    const sheet = e.range.getSheet();
+    if (sheet.getName() !== 'Prospects') return;
+    if (e.range.getNumRows() !== 1 || e.range.getNumColumns() !== 1) return; // single-cell edits only
+    if (e.range.getRow() < 2) return; // header row
+
+    const headers = typeof getLiveProspectsHeaders_ === 'function' ? getLiveProspectsHeaders_(sheet) : getHeaders_('Prospects');
+    const businessCol = headers.indexOf('Business') + 1;
+    if (businessCol === 0 || e.range.getColumn() !== businessCol) return;
+
+    if (typeof initializeProspectRow_ === 'function') initializeProspectRow_(sheet, headers, e.range.getRow());
+  } catch (err) {
+    Logger.log('onEdit failed: ' + err.message);
+  }
 }
 
 function buildRCSCRM() {

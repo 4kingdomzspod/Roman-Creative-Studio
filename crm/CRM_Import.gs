@@ -166,7 +166,8 @@ function importProspectsFromCsv_(csvText) {
   }
 
   if (newRows.length > 0) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, targetHeaders.length).setValues(newRows);
+    const startRow = sheet.getLastRow() + 1;
+    sheet.getRange(startRow, 1, newRows.length, targetHeaders.length).setValues(newRows);
     result.imported = newRows.length;
 
     // Formatting/banding/validation were already pre-applied across a
@@ -175,6 +176,19 @@ function importProspectsFromCsv_(csvText) {
     // covers the rows that were just added.
     applyBasicFilter_(sheet, targetHeaders.length);
     autoResizeColumns_(sheet, targetHeaders.length);
+
+    // Every import path (this dialog and Auto Sync — CRM_Sync.gs calls this
+    // same function) funnels through here, so this is the one place that
+    // guarantees a newly created prospect actually enters the lifecycle
+    // (Status + deterministic score) instead of landing blank. Reuses
+    // initializeProspectRow_ (CRM_Actions.gs) — the same function the
+    // manual-entry safety net (onEdit, Code.gs) and Repair Prospects use.
+    if (typeof initializeProspectRow_ === 'function') {
+      const liveHeaders = typeof getLiveProspectsHeaders_ === 'function' ? getLiveProspectsHeaders_(sheet) : targetHeaders;
+      for (let i = 0; i < newRows.length; i++) {
+        initializeProspectRow_(sheet, liveHeaders, startRow + i);
+      }
+    }
   }
 
   return result;
