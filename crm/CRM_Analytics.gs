@@ -15,8 +15,9 @@
  * Reuses: buildProspectRecords_ / compareDateToToday_ / parseDateOrNull_ /
  * ACTIVE_PROPOSAL_STATUSES (CRM_CommandCenter.gs), getLiveProspectsHeaders_
  * (CRM_Outreach.gs), isExcludedFromTopLeads_ / formatScoreDate_
- * (CRM_Scoring.gs), getHeaders_ (CRM_Actions.gs). No scoring, exclusion, or
- * date logic is reimplemented — this file only reads, aggregates, and ranks.
+ * (CRM_Scoring.gs), getHeaders_ (CRM_Actions.gs), isExcludedProspect_
+ * (CRM_Health.gs — guarded). No scoring, exclusion, or date logic is
+ * reimplemented — this file only reads, aggregates, and ranks.
  */
 
 const ANALYTICS_STALE_DAYS = 30;   // "no recent activity" / "stalled" threshold
@@ -88,7 +89,7 @@ function buildAnalyticsProspectRecords_(prospects) {
   const extraByRow = [];
   data.forEach(function (row) {
     const business = String(readField_(row, idx, 'Business') || '').trim();
-    if (business === '') return;
+    if (business === '' || (typeof isExcludedProspect_ === 'function' && isExcludedProspect_(business))) return; // CRM_Health.gs — stays aligned with buildProspectRecords_'s own skip
     extraByRow.push({
       industry: String(readField_(row, idx, 'Industry') || '').trim(),
       archivedDateRaw: readField_(row, idx, 'Archived Date'),
@@ -470,6 +471,7 @@ function buildDataQuality_(prospects, ss) {
       prospects.getRange(2, 1, lastRow - 1, headers.length).getValues().forEach(function (row) {
         const business = String(readField_(row, idx, 'Business') || '').trim();
         if (business === '') { result.prospectsMissingBusiness++; return; }
+        if (typeof isExcludedProspect_ === 'function' && isExcludedProspect_(business)) return; // CRM_Health.gs — the agency itself, excluded from data-quality counts too
         const status = String(readField_(row, idx, 'Status') || '').trim();
         if (status === '') result.prospectsMissingStatus++;
 

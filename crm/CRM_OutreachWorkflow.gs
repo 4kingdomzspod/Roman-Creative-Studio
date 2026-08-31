@@ -333,6 +333,7 @@ function syncFollowUpsFromProspects_() {
     function field(name) { return pIdx[name] !== undefined ? row[pIdx[name]] : ''; }
     const business = String(field('Business') || '').trim();
     if (business === '') return;
+    if (typeof isExcludedProspect_ === 'function' && isExcludedProspect_(business)) return; // CRM_Health.gs — the agency itself never gets a synced follow-up
 
     const nextFollowUp = field('Next Follow Up');
     if (nextFollowUp === '' || nextFollowUp === null || nextFollowUp === undefined) return; // nothing to sync yet

@@ -69,7 +69,7 @@ function buildHealthProspectRecords_(prospects) {
   const extraByRow = [];
   data.forEach(function (row) {
     const business = String(readField_(row, idx, 'Business') || '').trim(); // CRM_Analytics.gs
-    if (business === '') return;
+    if (business === '' || isExcludedProspect_(business)) return; // stays aligned with buildProspectRecords_'s own skip (CRM_CommandCenter.gs)
     extraByRow.push({
       website: String(readField_(row, idx, 'Website') || '').trim(),
       phone: String(readField_(row, idx, 'Phone') || '').trim(),
@@ -113,6 +113,26 @@ function buildCompletenessSection_(prospects, ss, records) {
 // ---------------------------------------------------------------------------
 
 function normalizeBusinessKey_(s) { return String(s || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+
+// Roman Creative Studio is the agency running this CRM — the owner, never a
+// sales prospect. Exact match only, on the normalized name (never a
+// substring test), so a legitimate prospect whose name happens to contain
+// "roman" or "studio" is never accidentally excluded. Add further known
+// exact aliases here (e.g. a legal-entity suffix) only if the sheet is ever
+// found to record the agency under a second exact name.
+const AGENCY_BUSINESS_NAME_KEYS_ = ['roman creative studio'];
+
+// The one canonical "is this row the agency itself, not a sales prospect"
+// check, reused by every prospect-intelligence surface (Top Leads, Pipeline
+// Intelligence, Daily Revenue Command Center, Follow-Up sync, CSV/Sync
+// import) instead of each reimplementing its own name comparison. Callers in
+// files that may be evaluated without CRM_Health.gs loaded (some legacy
+// regression harnesses) guard with `typeof isExcludedProspect_ === 'function'`
+// — the same defensive pattern already used everywhere else in this CRM for
+// an optional cross-file dependency.
+function isExcludedProspect_(business) {
+  return AGENCY_BUSINESS_NAME_KEYS_.indexOf(normalizeBusinessKey_(business)) !== -1;
+}
 
 function normalizeDomainKey_(s) {
   let v = String(s || '').trim().toLowerCase();

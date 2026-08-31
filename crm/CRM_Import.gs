@@ -147,6 +147,11 @@ function importProspectsFromCsv_(csvText) {
       result.errorMessages.push('Row ' + (r + 1) + ': missing Business Name — skipped.');
       continue;
     }
+    if (typeof isExcludedProspect_ === 'function' && isExcludedProspect_(businessValue)) { // CRM_Health.gs
+      result.skipped++;
+      result.errorMessages.push('Row ' + (r + 1) + ': "' + businessValue + '" is the agency itself — never imported as a prospect.');
+      continue;
+    }
 
     const mappedRow = new Array(targetHeaders.length).fill('');
     Object.keys(colMap).forEach(function (csvIdx) {

@@ -10,8 +10,10 @@
  * Reuses: getLiveProspectsHeaders_ / findLatestAuditForBusiness_ /
  * isAuditDataComplete_ / OUTREACH_BRIEF_COLUMN (CRM_Outreach.gs),
  * isExcludedFromTopLeads_ / formatScoreDate_ (CRM_Scoring.gs), getHeaders_
- * (CRM_Actions.gs). No scoring model, audit logic, or exclusion rule is
- * reimplemented here — this file only reads and ranks.
+ * (CRM_Actions.gs), isExcludedProspect_ (CRM_Health.gs — guarded, since this
+ * file's own buildProspectRecords_ is reused by legacy regression harnesses
+ * that may not load CRM_Health.gs). No scoring model, audit logic, or
+ * exclusion rule is reimplemented here — this file only reads and ranks.
  *
  * The $10K Tracker / Funnel / Revenue Math section reuses CRM_Analytics.gs's
  * buildAnalyticsProspectRecords_ / getDistinctBusinesses_ / getSheetRows_ /
@@ -87,6 +89,7 @@ function buildProspectRecords_(prospects) {
 
     const business = String(field('Business') || '').trim();
     if (business === '') return; // blank Business rows are skipped, never guessed
+    if (typeof isExcludedProspect_ === 'function' && isExcludedProspect_(business)) return; // CRM_Health.gs — the agency itself, never a sales prospect
 
     const status = String(field('Status') || '').trim();
     const priority = String(field('Priority') || '').trim();

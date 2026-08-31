@@ -160,6 +160,7 @@ function menuShowTopLeads_() {
   data.forEach(function (row) {
     const business = String(row[bIdx] || '').trim();
     if (business === '') return;
+    if (typeof isExcludedProspect_ === 'function' && isExcludedProspect_(business)) return; // CRM_Health.gs — the agency itself, never shown in Top Leads
 
     const scoreVal = row[scoreIdx];
     if (scoreVal === '' || scoreVal === null || scoreVal === undefined) return; // not scored yet
