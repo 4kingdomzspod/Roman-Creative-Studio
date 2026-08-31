@@ -1,0 +1,11 @@
+# Raw footage / exports / editor project media — never committed (RCS Content System, agency/content-system/SYSTEM.md)
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.braw
+*.r3d
+*.wav
+*.drp
+*.dra
+.DS_Store
