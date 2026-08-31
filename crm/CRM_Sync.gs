@@ -5,27 +5,35 @@
  * outreach/prospects.csv from GitHub and runs it through the exact same
  * importProspectsFromCsv_() (CRM_Import.gs) used by the manual CSV import —
  * same column matching/aliases, same duplicate skipping, same append-only
- * behavior. Nothing about how a row gets imported differs between "upload
- * a file" and "sync from GitHub" — only where the CSV text comes from.
+ * behavior (which itself calls initializeProspectRow_, unchanged) — nothing
+ * about how a row gets imported differs between "upload a file" and "sync
+ * from GitHub" — only where the CSV text comes from.
  *
  * The GitHub Sync panel lives on Settings in columns H:I (separate from the
  * six dropdown-list columns in A:F) and is the single source of truth for
  * Auto Sync Enabled / Last Sync Time / Last Commit SHA / Last Sync Result —
  * no hidden state in PropertiesService or anywhere else, so what's on the
  * sheet is always the whole story.
+ *
+ * GITHUB_TOKEN: read only from Script Properties (getGithubToken_) via the
+ * same mechanism already used for the Tavily/Gemini keys
+ * (CRM_OutreachAutomation.gs) — never hard-coded, never logged, never
+ * written to a Sheet, never echoed in an error message. Required: a missing
+ * token fails immediately with one clear, actionable message before any
+ * GitHub request is attempted (no repeated unauthenticated calls). Sent via
+ * `Authorization: Bearer <token>`, GitHub's current documented format.
  */
 
-// Where "Sync Prospects" pulls outreach/prospects.csv from. GITHUB_TOKEN is
-// only needed if this repo is ever made private — a public repo's contents
-// and commit history are readable by GitHub's API with no auth. Leave it
-// blank for a public repo. If set, it's sent as an Authorization header and
-// is never written to a log, an alert, or the Settings sheet — the only
-// thing GitHub-Sync-related that becomes visible anywhere is the commit SHA.
 const GITHUB_OWNER = 'RomanCreativeStudio';
 const GITHUB_REPO = 'Roman-Creative-Studio';
 const GITHUB_BRANCH = 'main';
 const GITHUB_CSV_PATH = 'outreach/prospects.csv';
-const GITHUB_TOKEN = '';
+const GITHUB_API_VERSION = '2022-11-28';
+const GITHUB_TOKEN_PROPERTY = 'GITHUB_TOKEN';
+
+function getGithubToken_() {
+  return String(PropertiesService.getScriptProperties().getProperty(GITHUB_TOKEN_PROPERTY) || '').trim();
+}
 
 const SYNC_LABEL_COL = 8;  // column H
 const SYNC_VALUE_COL = 9;  // column I
@@ -83,61 +91,94 @@ function updateSyncStatus_(settingsSheet, sha, resultText) {
 // GitHub calls
 // ---------------------------------------------------------------------------
 
-function githubHeaders_() {
-  const headers = { 'Accept': 'application/vnd.github+json' };
-  if (GITHUB_TOKEN) headers['Authorization'] = 'token ' + GITHUB_TOKEN;
-  return headers;
+function githubHeaders_(token) {
+  return {
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': GITHUB_API_VERSION,
+    'Authorization': 'Bearer ' + token
+  };
+}
+
+// Single classifier shared by every GitHub call below — the one place that
+// tells apart authentication failure / permission failure / actual rate
+// limit / missing repo-or-file / other HTTP failure, so a 403 is never
+// blindly reported as "rate limit" (GitHub returns 403 for several
+// different reasons; only X-RateLimit-Remaining: 0 actually means that).
+// Never reads or echoes the token — only the response GitHub sent back.
+function classifyGithubResponse_(response, contextLabel) {
+  const code = response.getResponseCode();
+  if (code >= 200 && code < 300) return { ok: true, code: code };
+
+  let bodyMessage = '';
+  try { bodyMessage = String(JSON.parse(response.getContentText() || '{}').message || ''); } catch (e) { /* non-JSON body — ignore */ }
+
+  if (code === 401) {
+    return { ok: false, kind: 'auth', message: 'GitHub authentication failed (401) — GITHUB_TOKEN is invalid, expired, or revoked. Generate a new token and update it in Script Properties.' };
+  }
+
+  if (code === 403) {
+    const headers = response.getHeaders() || {};
+    const remaining = headers['X-RateLimit-Remaining'] || headers['x-ratelimit-remaining'];
+    const reset = headers['X-RateLimit-Reset'] || headers['x-ratelimit-reset'];
+    if (String(remaining) === '0') {
+      return { ok: false, kind: 'rate_limit', message: 'GitHub API rate limit reached (403) — 0 requests remaining, resets ' + formatRateLimitReset_(reset) + '.' };
+    }
+    if (/abuse detection/i.test(bodyMessage)) {
+      return { ok: false, kind: 'rate_limit', message: 'GitHub API secondary rate limit triggered (403) — please wait a few minutes and try again.' };
+    }
+    return { ok: false, kind: 'permission', message: 'GitHub denied the request (403) — GITHUB_TOKEN likely lacks access to ' + GITHUB_OWNER + '/' + GITHUB_REPO + ' (check the token\'s repository access/scopes).' };
+  }
+
+  if (code === 404) {
+    return { ok: false, kind: 'not_found', message: 'GitHub returned 404 while ' + contextLabel + ' — the repository/branch/file may not exist, or GITHUB_TOKEN may not have access to it.' };
+  }
+
+  return { ok: false, kind: 'other', message: 'GitHub API returned HTTP ' + code + ' while ' + contextLabel + '.' };
+}
+
+function formatRateLimitReset_(resetHeader) {
+  const ts = Number(resetHeader);
+  if (!ts || isNaN(ts)) return 'at an unknown time';
+  return Utilities.formatDate(new Date(ts * 1000), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm');
 }
 
 // One lightweight call: the latest commit that actually touched
 // GITHUB_CSV_PATH. This is what "no unnecessary CSV downloads" is built
 // on — checking this is cheap, so runProspectsSync_ can skip the (larger)
 // raw file fetch and the import entirely when nothing has changed.
-function getLatestProspectsCommitSha_() {
+function getLatestProspectsCommitSha_(token) {
   const url = 'https://api.github.com/repos/' + GITHUB_OWNER + '/' + GITHUB_REPO +
     '/commits?path=' + encodeURIComponent(GITHUB_CSV_PATH) + '&sha=' + GITHUB_BRANCH + '&per_page=1';
 
   try {
-    const response = UrlFetchApp.fetch(url, { headers: githubHeaders_(), muteHttpExceptions: true });
-    const code = response.getResponseCode();
-
-    if (code === 403) {
-      return { ok: false, message: 'GitHub API rate limit reached (403). This is more likely on Google\'s shared IP pool for unauthenticated requests — set GITHUB_TOKEN in the script for a higher limit if this keeps happening.' };
-    }
-    if (code !== 200) {
-      return { ok: false, message: 'GitHub API returned HTTP ' + code + ' while looking up commits for ' + GITHUB_CSV_PATH + '.' };
-    }
+    const response = UrlFetchApp.fetch(url, { headers: githubHeaders_(token), muteHttpExceptions: true });
+    const outcome = classifyGithubResponse_(response, 'looking up commits for ' + GITHUB_CSV_PATH);
+    if (!outcome.ok) return outcome;
 
     const commits = JSON.parse(response.getContentText());
     if (!commits || commits.length === 0) {
-      return { ok: false, message: 'No commit history found for ' + GITHUB_CSV_PATH + ' on branch ' + GITHUB_BRANCH + ' — the file may not exist at this path.' };
+      return { ok: false, kind: 'not_found', message: 'No commit history found for ' + GITHUB_CSV_PATH + ' on branch ' + GITHUB_BRANCH + ' — the file may not exist at this path.' };
     }
 
     return { ok: true, sha: commits[0].sha };
   } catch (e) {
-    return { ok: false, message: 'Network error while contacting the GitHub API: ' + e.message };
+    return { ok: false, kind: 'network', message: 'Network error while contacting the GitHub API: ' + e.message };
   }
 }
 
 // Fetches the file's raw content pinned to a specific commit SHA, so what
 // gets imported is guaranteed to match the SHA that was just checked — no
 // race with something else being pushed in between the two calls.
-function fetchRawFileAtCommit_(sha) {
+function fetchRawFileAtCommit_(sha, token) {
   const url = 'https://raw.githubusercontent.com/' + GITHUB_OWNER + '/' + GITHUB_REPO + '/' + sha + '/' + GITHUB_CSV_PATH;
 
   try {
-    const response = UrlFetchApp.fetch(url, { headers: githubHeaders_(), muteHttpExceptions: true });
-    const code = response.getResponseCode();
-
-    if (code === 404) {
-      return { ok: false, message: GITHUB_CSV_PATH + ' was not found at commit ' + sha.slice(0, 7) + ' — it may have been moved or deleted.' };
-    }
-    if (code !== 200) {
-      return { ok: false, message: 'GitHub returned HTTP ' + code + ' while fetching ' + GITHUB_CSV_PATH + ' at commit ' + sha.slice(0, 7) + '.' };
-    }
+    const response = UrlFetchApp.fetch(url, { headers: githubHeaders_(token), muteHttpExceptions: true });
+    const outcome = classifyGithubResponse_(response, 'fetching ' + GITHUB_CSV_PATH + ' at commit ' + sha.slice(0, 7));
+    if (!outcome.ok) return outcome;
     return { ok: true, csvText: response.getContentText() };
   } catch (e) {
-    return { ok: false, message: 'Network error while fetching the file from GitHub: ' + e.message };
+    return { ok: false, kind: 'network', message: 'Network error while fetching the file from GitHub: ' + e.message };
   }
 }
 
@@ -164,7 +205,15 @@ function runProspectsSync_(interactive) {
 
   ensureSyncStatusBlock_(settingsSheet);
 
-  const shaResult = getLatestProspectsCommitSha_();
+  // Required, checked before any GitHub request is attempted — never falls
+  // back to an unauthenticated call, and never retries one on a schedule.
+  const token = getGithubToken_();
+  if (!token) {
+    reportSyncResult_(interactive, 'GitHub sync requires GITHUB_TOKEN in Apps Script → Project Settings → Script Properties.');
+    return;
+  }
+
+  const shaResult = getLatestProspectsCommitSha_(token);
   if (!shaResult.ok) {
     reportSyncResult_(interactive, 'Sync failed: ' + shaResult.message);
     return;
@@ -179,7 +228,7 @@ function runProspectsSync_(interactive) {
     return;
   }
 
-  const rawResult = fetchRawFileAtCommit_(shaResult.sha);
+  const rawResult = fetchRawFileAtCommit_(shaResult.sha, token);
   if (!rawResult.ok) {
     reportSyncResult_(interactive, 'Sync failed: ' + rawResult.message);
     return;
