@@ -33,8 +33,8 @@ Hook always comes **before** the signature montage. Example:
 | Episode numbering | `EP. 01`, `EP. 02`, … zero-padded two digits |
 | Progress tracker | Small lower-third or corner overlay: `DAY XX / 90` + `$X / $10,000`. One reusable graphic (compound clip/Fusion template) with 2 editable text fields — never rebuilt, values pulled from STATE.md |
 | CTA | End-card, gold text on charcoal: default `"Follow to watch Day X/90"` — vary wording per episode's actual next-step/hook |
-| Transitions | Hard cuts primary. J-cuts and L-cuts for dialogue-to-B-roll. Subtle speed ramps only. No spin/zoom/whoosh-transition effects. |
-| SFX | Minimal: one whoosh on montage cuts, one soft tick on progress-tracker reveal, one subtle riser into the hook. Use CapCut's built-in royalty-free library or an already-licensed pack — never an unlicensed download. |
+| Transitions | Hard cuts primary. J-cuts and L-cuts for dialogue-to-B-roll. Subtle speed ramps only. No spin/zoom/whoosh **visual transition presets** (an audio whoosh SFX under a hard cut, as used in the intro montage, is a different thing and is fine — see INTRO-MONTAGE.md §Sound Design). |
+| SFX | Minimal, sparse, intentional — never on every cut. Intro montage's specific SFX map: [INTRO-MONTAGE.md](INTRO-MONTAGE.md) §Sound Design. Use CapCut's built-in royalty-free library or an already-licensed pack — never an unlicensed download. |
 | Music | One recurring theme + 2–3 rotation alternates, commercially licensed (Epidemic Sound/Artlist if licensed, else YouTube Audio Library or CapCut's commercial-use tracks). Duck under dialogue automatically; hard rule: dialogue must stay intelligible. |
 
 Avoid: excess emojis, word-by-word animation, transition effects, zoom effects, visual clutter, influencer-style effects.

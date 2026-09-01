@@ -3,9 +3,9 @@
 ## Primary delivery
 - Resolution: 1080 × 1920 (9:16 vertical)
 - Frame rate: 30fps (match source; do not conform 24/25fps footage up to 30)
-- Codec: H.264
+- Codec: H.264, high bitrate (≥20 Mbps)
 - Container: MP4
-- Audio: AAC, dialogue intelligible, music/SFX not clipping
+- Audio: AAC 320kbps, dialogue intelligible, music/SFX not clipping
 
 ## Platform-specific limits (bitrate caps, duration limits, file-size caps)
 **VERIFY CURRENT PLATFORM SETTINGS** — TikTok/Instagram encoding recommendations change over time; check each platform's current upload spec before export rather than trusting a fixed number here.
