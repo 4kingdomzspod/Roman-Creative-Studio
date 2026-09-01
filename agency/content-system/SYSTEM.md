@@ -4,7 +4,7 @@
 **Tools:** CapCut Desktop (daily production) · DaVinci Resolve Free (weekly/advanced development).
 **Goal:** selected footage → publish-ready episode in ~20–30 min.
 
-State/versioning/changelog live in [STATE.md](STATE.md), not here. Brand color/font/logo *rules* live in `docs/brand-governance/SocialMediaBrandingRules.md` and `docs/visual-identity/` — not duplicated here; values are cited where an editor needs them in-context.
+State/versioning/changelog live in [STATE.md](STATE.md), not here. Brand color/font/logo *rules* live in `docs/brand-governance/SocialMediaBrandingRules.md` and `docs/visual-identity/` — not duplicated here; values are cited where an editor needs them in-context. Intro montage, DaVinci/CapCut build sheets, asset naming, episode checklist, and export settings each have their own file (linked in [README.md](README.md)) — not duplicated here either.
 
 ---
 
@@ -19,7 +19,7 @@ conflict/problem → action → result/realization → next step → CTA
 Hook always comes **before** the signature montage. Example:
 > "I'm giving myself 90 days to make $10,000." → rapid clips → **90 DAYS → $10K / EP. 01 — THE BEGINNING**
 
-**Signature montage:** 3–5 clips, ~0.3–0.8s each. Reusable across episodes; may evolve as the series develops (log evolution in STATE.md changelog, not here).
+**Signature montage:** the reusable RCS intro — full spec in [INTRO-MONTAGE.md](INTRO-MONTAGE.md). Evolution/version changes logged in STATE.md, not here.
 
 ## 3. Reusable Visual System
 | Element | Spec |
@@ -49,12 +49,12 @@ One 9:16 (1080×1920) master edit. TikTok and Reels share ~80–90% of the same 
 
 ## 6. CapCut Master Template
 One saved CapCut project = the master. Reusable slots (in edit order):
-1. Hook 2. B-roll/proof 3. Signature montage 4. Episode title 5. Main story 6. Conflict 7. Action 8. Result 9. Next step 10. CTA
+1. Hook 2. B-roll/proof 3. Signature montage (see [INTRO-MONTAGE.md](INTRO-MONTAGE.md) / [CAPCUT-BUILD.md](CAPCUT-BUILD.md)) 4. Episode title 5. Main story 6. Conflict 7. Action 8. Result 9. Next step 10. CTA
 
 Track layout: `V3` progress tracker + titles (compound clip) · `V2` B-roll/overlay · `V1` main footage per slot · `A1` sync dialogue · `A2` music · `A3` SFX. Caption style, title style, progress-tracker compound clip, music, and SFX tracks are saved once in the master and duplicated per episode — daily edits only replace footage in slots 1–10 and update the two progress-tracker numbers.
 
 ## 7. DaVinci Resolve Free Template
-Same 10 slots, mirrored as Media Pool bins + Edit-page timeline markers in one saved "RCS Episode" project.
+Same 10 slots, mirrored as Media Pool bins + Edit-page timeline markers in one saved "RCS Episode" project. Slot 3 (signature montage) implementation detail: [DAVINCI-BUILD.md](DAVINCI-BUILD.md).
 - **Edit page:** same track layout as CapCut (§6).
 - **Color page:** node chain = Node1 (exposure/WB) → Node2 (contrast/highlights-shadows) → Node3 (saturation/skin tone) → Node4 (creative LUT, disabled until §4 step 3 is satisfied).
 - **Fairlight:** dialogue/music/SFX levels, same 3-track split as CapCut.
@@ -86,7 +86,7 @@ Publish: TikTok <date/link> · Reels <date/link>
 QC: <pass/fail, see §10>
 Review notes: <what worked, what to fix>
 ```
-Status values track the workflow in [README.md](README.md): PLAN → FILM → INGEST → SELECT → EDIT → QC → EXPORT → PUBLISH → REVIEW → DONE.
+Status values track the workflow in [README.md](README.md): PLAN → FILM → INGEST → SELECT → EDIT → QC → EXPORT → PUBLISH → REVIEW → DONE. Step-by-step checklist per status: [EPISODE-WORKFLOW.md](EPISODE-WORKFLOW.md).
 
 ## 10. QC Checklist (~60 seconds, pre-publish)
 - [ ] Hook lands in first 1–2s
@@ -98,7 +98,7 @@ Status values track the workflow in [README.md](README.md): PLAN → FILM → IN
 - [ ] Visual quality: exposure/WB consistent shot-to-shot
 - [ ] Progress tracker shows correct DAY XX/90 and $X/$10,000
 - [ ] CTA present and matches next-step
-- [ ] Export: 1080×1920 H.264 MP4, correct fps, under platform size limit
+- [ ] Export settings correct — see [EXPORT-STANDARD.md](EXPORT-STANDARD.md)
 
 ## 11. Versioning Policy
 v1.0 = initial working prototype. v1.1 = proven improvements from real episodes (not theory). v2.0 = major workflow change. Only bump after actual episode experience. Changelog entries live in STATE.md.
