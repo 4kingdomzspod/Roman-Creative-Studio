@@ -27,6 +27,33 @@ const AUDIT_MAX_HTML_CHARS = 500000;
 const AUDIT_WEIGHTS = { mobile: 0.25, seo: 0.35, performance: 0.20, accessibility: 0.20 };
 
 // ---------------------------------------------------------------------------
+// Manual audit fallback — for a prospect whose automated audit can't run
+// (blocked, 403/404, timeout, etc.). Reuses the existing Website Audits
+// schema/row-writer (saveAuditRecord_) unchanged for the automated path;
+// adds exactly two columns so a saved record's origin is never ambiguous.
+// Score/Notes are reused as-is (a manual score is a score; manual findings
+// are notes) rather than duplicating them under new field names.
+// ---------------------------------------------------------------------------
+
+const MANUAL_AUDIT_COLUMNS = ['Audit Status', 'Audit Source'];
+const AUDIT_SOURCE_AUTOMATED = 'Automated';
+const AUDIT_SOURCE_MANUAL = 'Manual';
+const AUDIT_STATUS_COMPLETED = 'Completed';
+const AUDIT_STATUS_MANUAL_FINDINGS_ONLY = 'Manual - Findings Only (No Score)';
+
+// Additive only, same pattern as CRM_Scoring.gs's ensureScoreColumns_ —
+// appends whichever of MANUAL_AUDIT_COLUMNS are missing, never reorders or
+// overwrites. Called from saveAuditRecord_ so both the automated and manual
+// paths provision it on demand; a Website Audits sheet built before this
+// fix gets the columns the first time either path writes a row.
+function ensureManualAuditColumns_(sheet) {
+  ensureHeaders_(sheet, MANUAL_AUDIT_COLUMNS); // Code.gs
+  const lastCol = sheet.getLastColumn();
+  applyBasicFilter_(sheet, lastCol); // Code.gs
+  autoResizeColumns_(sheet, lastCol); // Code.gs
+}
+
+// ---------------------------------------------------------------------------
 // Menu entry points
 // ---------------------------------------------------------------------------
 
@@ -108,6 +135,159 @@ function runUrlAudit_(rawUrl) {
 // internal-convention name directly. Delegates to runUrlAudit_() unchanged.
 function runUrlAudit(rawUrl) {
   return runUrlAudit_(rawUrl);
+}
+
+// ---------------------------------------------------------------------------
+// Manual audit fallback ("RCS CRM → Website Audit → Record Manual Audit")
+// ---------------------------------------------------------------------------
+//
+// For a prospect whose automated audit can't run (blocked/403/404/timeout/
+// etc.). Never triggered automatically by a failed automated audit — that
+// failure is just shown to the user (existing behavior, unchanged); a human
+// decides to record a manual audit afterward, from this separate menu item.
+// Reuses getSelectedProspectRows_ (CRM_Actions.gs), the same "select a row
+// in Prospects first" convention every other prospect action uses, and
+// saveAuditRecord_ (this file) for the actual write — no second Website
+// Audits writer.
+
+function menuRecordManualAudit_() {
+  const rows = getSelectedProspectRows_(); // CRM_Actions.gs
+  if (!rows) return;
+
+  const ui = SpreadsheetApp.getUi();
+  if (rows.length !== 1) {
+    ui.alert('Record Manual Audit', 'Select exactly one prospect (a manual audit records findings for one business at a time).', ui.ButtonSet.OK);
+    return;
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const prospects = ss.getSheetByName('Prospects');
+  const pHeaders = getHeaders_('Prospects'); // CRM_Actions.gs — Business/Website are always in the static base schema
+  const bIdx = pHeaders.indexOf('Business');
+  const wIdx = pHeaders.indexOf('Website');
+  const rowValues = prospects.getRange(rows[0], 1, 1, pHeaders.length).getValues()[0];
+  const business = String(rowValues[bIdx] || '').trim();
+  const website = String(rowValues[wIdx] || '').trim();
+
+  if (business === '' || website === '') {
+    ui.alert('Record Manual Audit', 'This prospect needs both a Business name and a Website on file before recording a manual audit.', ui.ButtonSet.OK);
+    return;
+  }
+
+  const html = HtmlService.createHtmlOutput(buildManualAuditDialogHtml_(business, website)).setWidth(480).setHeight(420);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Record Manual Audit');
+}
+
+// Never throws — every failure mode (missing prospect, invalid score,
+// blank findings, a Sheets error mid-write) returns { ok: false, message }
+// so the dialog's callback always gets a result. Only ever writes a row via
+// saveAuditRecord_ with { source: 'Manual', ... } — never claims the
+// automated auditor produced this data, and never invents a score: a blank
+// score input stays blank on the sheet, it does not become 0 or a guess.
+function recordManualAudit_(business, website, scoreText, notes) {
+  try {
+    business = String(business || '').trim();
+    website = String(website || '').trim();
+    const findings = String(notes || '').trim();
+
+    if (business === '' || website === '') {
+      return { ok: false, message: 'Business and Website are required.' };
+    }
+    if (findings === '') {
+      return { ok: false, message: 'Enter what you found on the site — a manual audit needs at least some findings.' };
+    }
+
+    let score = '';
+    const scoreInput = String(scoreText || '').trim();
+    if (scoreInput !== '') {
+      const parsed = Number(scoreInput);
+      if (isNaN(parsed) || parsed < 0 || parsed > 100) {
+        return { ok: false, message: 'Manual score must be a number from 0 to 100, or left blank.' };
+      }
+      score = Math.round(parsed);
+    }
+
+    const status = score === '' ? AUDIT_STATUS_MANUAL_FINDINGS_ONLY : AUDIT_STATUS_COMPLETED;
+    const manualAudit = { score: score, notes: findings, mobileLabel: '', seoLabel: '', performanceLabel: '', accessibilityLabel: '' };
+    const saveResult = saveAuditRecord_(business, manualAudit, { source: AUDIT_SOURCE_MANUAL, status: status });
+
+    if (!saveResult.saved) {
+      return { ok: false, message: saveResult.message || 'Could not save the manual audit.' };
+    }
+    return { ok: true, business: business, website: website, score: score === '' ? null : score, status: status };
+  } catch (e) {
+    return { ok: false, message: 'Unexpected error while recording the manual audit: ' + ((e && e.message) || e) };
+  }
+}
+
+// Public entry point for google.script.run — same convention as
+// runUrlAudit/runUrlAudit_ above.
+function recordManualAudit(business, website, scoreText, notes) {
+  return recordManualAudit_(business, website, scoreText, notes);
+}
+
+// Minimal HTML-attribute/text escaping for values interpolated into the
+// dialog markup below (Business/Website are user-entered data on Prospects
+// and must not be trusted as safe HTML).
+function escapeHtml_(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Client-side dialog: Business/Website shown for confirmation (read-only —
+// if either is wrong, fix it on the Prospects row first, not here), an
+// optional 0-100 score field, a required findings/notes textarea, and a
+// Record button. Reports the same saved/not-saved shape as the automated
+// audit dialogs above.
+function buildManualAuditDialogHtml_(business, website) {
+  const safeBusiness = escapeHtml_(business);
+  const safeWebsite = escapeHtml_(website);
+  return '<!DOCTYPE html><html><head><base target="_top">' +
+    '<style>' +
+    'body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:4px 8px;}' +
+    'h3{margin:0 0 4px;font-size:15px;}' +
+    'p.hint{color:#666;margin-top:0;}' +
+    '.field{margin:10px 0;}' +
+    'label{display:block;font-weight:bold;margin-bottom:4px;}' +
+    'input[type=text],textarea{width:100%;box-sizing:border-box;padding:8px;border:1px solid #ccc;border-radius:4px;font-size:13px;font-family:inherit;}' +
+    'textarea{min-height:90px;resize:vertical;}' +
+    'button{background:#1a1a2e;color:#fff;border:none;padding:8px 16px;border-radius:4px;cursor:pointer;font-size:13px;}' +
+    'button:disabled{background:#999;cursor:default;}' +
+    '#status{margin-top:14px;line-height:1.5;white-space:pre-wrap;}' +
+    '</style></head><body>' +
+    '<h3>Record Manual Audit</h3>' +
+    '<p class="hint">Business: <strong>' + safeBusiness + '</strong><br>Website: <strong>' + safeWebsite + '</strong></p>' +
+    '<div class="field"><label for="scoreInput">Manual Score (0-100, optional — leave blank if you\'re not scoring it)</label>' +
+    '<input type="text" id="scoreInput" placeholder="e.g. 65"></div>' +
+    '<div class="field"><label for="notesInput">Findings / Notes (required)</label>' +
+    '<textarea id="notesInput" placeholder="What did you see on the site? e.g. no mobile-friendly layout, outdated contact info, no HTTPS..."></textarea></div>' +
+    '<button id="recordBtn">Record Manual Audit</button>' +
+    '<div id="status"></div>' +
+    '<script>' +
+    'document.getElementById("recordBtn").addEventListener("click", function () {' +
+    '  var score = document.getElementById("scoreInput").value;' +
+    '  var notes = document.getElementById("notesInput").value;' +
+    '  var status = document.getElementById("status");' +
+    '  var btn = document.getElementById("recordBtn");' +
+    '  if (!notes.trim()) { status.textContent = "Enter findings/notes first."; return; }' +
+    '  btn.disabled = true;' +
+    '  status.textContent = "Recording...";' +
+    '  google.script.run.withSuccessHandler(function (result) {' +
+    '    btn.disabled = false;' +
+    '    if (!result || !result.ok) { status.textContent = "Not saved: " + ((result && result.message) || "No result was returned."); return; }' +
+    '    status.textContent = "Saved as a Manual audit (Audit Source = Manual)." +' +
+    '      (result.score !== null ? " Score: " + result.score + "/100." : " No score recorded — findings only.") +' +
+    '      " This will never be shown as an automated result.";' +
+    '  }).withFailureHandler(function (err) {' +
+    '    btn.disabled = false;' +
+    '    status.textContent = "Not saved: " + ((err && err.message) || String(err) || "Unknown error.");' +
+    '  }).recordManualAudit(' + JSON.stringify(business) + ', ' + JSON.stringify(website) + ', score, notes);' +
+    '});' +
+    '</script></body></html>';
 }
 
 // ---------------------------------------------------------------------------
@@ -437,14 +617,24 @@ function performAndSaveAudit_(business, url) {
 // (missing sheet, missing/renamed schema, a Sheets API error mid-write) is
 // caught and turned into a returned result instead of an uncaught
 // exception, so a caller can never mistake "didn't throw" for "saved."
-function saveAuditRecord_(business, audit) {
+//
+// opts is optional and defaults to the automated path's existing behavior
+// unchanged ({ source: 'Automated', status: 'Completed' }) — the manual
+// audit fallback (below) is the only caller that ever passes a different
+// opts, so every existing call site (performAndSaveAudit_) keeps writing
+// exactly the row shape it always has.
+function saveAuditRecord_(business, audit, opts) {
+  const source = (opts && opts.source) || AUDIT_SOURCE_AUTOMATED;
+  const status = (opts && opts.status) || AUDIT_STATUS_COMPLETED;
+
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Website Audits');
     if (!sheet) {
       return { saved: false, message: 'Website Audits sheet not found.' };
     }
 
-    const headers = getHeaders_('Website Audits'); // CRM_Actions.gs
+    ensureManualAuditColumns_(sheet); // additive — safe/idempotent for the automated path too
+    const headers = getLiveProspectsHeaders_(sheet); // CRM_Outreach.gs — reads the sheet's actual current header row, not just the static 8-column schema
     if (!headers || headers.length === 0) {
       return { saved: false, message: 'Website Audits column schema not found.' };
     }
@@ -455,15 +645,21 @@ function saveAuditRecord_(business, audit) {
     const row = new Array(headers.length).fill('');
     row[idx['Business']] = business;
     row[idx['Date']] = formatAuditDate_(new Date());
-    row[idx['Mobile']] = audit.mobileLabel;
-    row[idx['SEO']] = audit.seoLabel;
-    row[idx['Performance']] = audit.performanceLabel;
-    row[idx['Accessibility']] = audit.accessibilityLabel;
-    row[idx['Score']] = audit.score;
-    row[idx['Notes']] = audit.notes;
+    row[idx['Mobile']] = audit.mobileLabel || '';
+    row[idx['SEO']] = audit.seoLabel || '';
+    row[idx['Performance']] = audit.performanceLabel || '';
+    row[idx['Accessibility']] = audit.accessibilityLabel || '';
+    // audit.score can legitimately be 0 (a real score), so this must not
+    // use `||` (0 is falsy) — only undefined/null/'' mean "no score at all."
+    row[idx['Score']] = (audit.score !== undefined && audit.score !== null && audit.score !== '') ? audit.score : '';
+    row[idx['Notes']] = audit.notes || '';
+    if (idx['Audit Status'] !== undefined) row[idx['Audit Status']] = status;
+    if (idx['Audit Source'] !== undefined) row[idx['Audit Source']] = source;
 
     // Always appended below the current last row — a repeat audit of the
     // same business becomes a new row, never a replacement of the old one.
+    // Applies identically to a manual re-audit: findLatestAuditForBusiness_
+    // (CRM_Outreach.gs) always resolves to whichever row was written last.
     const targetRow = sheet.getLastRow() + 1;
     sheet.getRange(targetRow, 1, 1, headers.length).setValues([row]);
 

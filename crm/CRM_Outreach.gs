@@ -153,7 +153,12 @@ function findLatestAuditForBusiness_(business, website) {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return null;
 
-  const data = sheet.getRange(2, 1, lastRow - 1, 8).getValues(); // Business,Date,Mobile,SEO,Performance,Accessibility,Score,Notes
+  // Business,Date,Mobile,SEO,Performance,Accessibility,Score,Notes,Audit Status,Audit Source
+  // (the last two are additive — CRM_Audits.gs's ensureManualAuditColumns_ —
+  // and simply read as blank on a sheet/row written before that fix; a
+  // width-10 read is always safe even then, Sheets returns '' beyond the
+  // sheet's actual data rather than erroring.)
+  const data = sheet.getRange(2, 1, lastRow - 1, 10).getValues();
   const key = business.trim().toLowerCase();
 
   const byName = pickLatestAuditRow_(data, function (row) {
@@ -182,7 +187,10 @@ function pickLatestAuditRow_(data, matches) {
 function formatAuditRow_(best) {
   return {
     business: best[0], date: best[1], mobile: best[2], seo: best[3],
-    performance: best[4], accessibility: best[5], score: best[6], notes: best[7]
+    performance: best[4], accessibility: best[5], score: best[6], notes: best[7],
+    // Blank ('') on any row written before CRM_Audits.gs's manual-audit fix —
+    // callers that don't look at these two fields are completely unaffected.
+    status: best[8] || '', source: best[9] || ''
   };
 }
 

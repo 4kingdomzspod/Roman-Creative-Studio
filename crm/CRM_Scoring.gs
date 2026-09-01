@@ -251,13 +251,19 @@ function computeLeadScore_(fields) {
   let total = 0;
 
   // Website Audit Score — up to 30. Missing/incomplete audit data = 0,
-  // never an invented value.
+  // never an invented value. A manual audit with no score entered (findings
+  // only) must score exactly like "no audit" here — audit.score of '' is
+  // deliberately NOT treated as 0 (Number('') === 0 in JS, which would
+  // otherwise silently fabricate a real-looking 0/100 for a site nobody
+  // actually scored).
   const audit = findLatestAuditForBusiness_(fields.business, fields.website); // CRM_Outreach.gs — reuses Sprint 5's URL fallback
-  const auditScore = audit ? Number(audit.score) : NaN;
-  if (audit && !isNaN(auditScore)) {
+  const hasAuditScore = audit && audit.score !== '' && audit.score !== null && audit.score !== undefined;
+  const auditScore = hasAuditScore ? Number(audit.score) : NaN;
+  if (hasAuditScore && !isNaN(auditScore)) {
     const pts = Math.round((auditScore / 100) * SCORE_WEIGHTS.auditMax);
     total += pts;
-    reasons.push('Website Audit: ' + auditScore + '/100 (+' + pts + ' pts)');
+    const sourceLabel = audit.source === 'Manual' ? ' (Manual)' : '';
+    reasons.push('Website Audit' + sourceLabel + ': ' + auditScore + '/100 (+' + pts + ' pts)');
   } else {
     reasons.push('No website audit on file (0 pts)');
   }
