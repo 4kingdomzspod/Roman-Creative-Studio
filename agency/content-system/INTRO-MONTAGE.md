@@ -23,25 +23,29 @@
 
 WORK (2–3, 5) sets the "building" tone early; RCS (4, 8) proves the business is real; LIFE (6) breaks rhythm and adds humanity; BUSINESS (7) shows momentum; STORY (1, 9, 10) bookends the emotional arc.
 
-## Master Timeline (locked)
-| Time | Shot | Duration | Speed | Transition In | Audio |
-|---|---|---|---|---|---|
-| 0:00.00–0:00.45 | 01 HOOK | 0.45s | 100% | Hard cut (open) | Bass hit, frame 1 |
-| 0:00.45–0:00.75 | 02 WORK | 0.30s | 100% | Hard cut | — |
-| 0:00.75–0:01.10 | 03 COMPUTER | 0.35s | 105% | Hard cut | Subtle key-click |
-| 0:01.10–0:01.40 | 04 RCS SCREEN | 0.30s | 100% | Hard cut | — |
-| 0:01.40–0:02.25 | 05 PLANNING | **0.85s** (see Momentum Bridge below) | 100% | Hard cut | Riser starts at 1:75 |
-| 0:02.25–0:02.55 | 06 MOVEMENT | 0.30s | 110% | Hard cut | Whoosh (audio SFX — not a visual transition, see §Editing Language) |
-| 0:02.55–0:02.85 | 07 OUTREACH | 0.30s | 100% | Hard cut | — |
-| 0:02.85–0:03.15 | 08 SCREEN ACTIVITY | 0.30s | 115% | Hard cut | Click ×2 |
-| 0:03.15–0:03.75 | 09 LATE NIGHT/MORNING | 0.60s | 90% (slight slow) | Hard cut | Riser peaks |
-| 0:03.75–0:05.25 | 10 IDENTITY | 1.50s | 100% | **Soft cut — sanctioned 2–3 frame cross-dissolve exception**, see §Editing Language | Bass drop / impact |
-| 0:05.25–0:07.00 | 11 TITLE | 1.75s | — | Cut to black or hold last frame | Beat-synced impact on line 2 |
-| 0:07.00–0:07.50 | EPISODE TRANSITION | 0.50s | — | Hard cut, no fade | Music cuts/ducks |
+## Master Timeline (locked — frame-accurate at 30fps)
+Frame numbers are cumulative-rounded (round each boundary, not each duration independently) so rounding never compounds into drift. Start/End are both inclusive frame indices; frame 0 = first frame of the timeline.
 
-**Total: 7.5s, 10 footage shots + title. No blank frames — every millisecond has picture.**
+| Time | Shot | Start–End (frame) | Duration | Speed | Transition In | Audio |
+|---|---|---|---|---|---|---|
+| 0:00.00–0:00.47 | 01 HOOK | 0–13 | 14f / 0.47s | 100% | Hard cut (open) | Bass hit, frame 0 |
+| 0:00.47–0:00.77 | 02 WORK | 14–22 | 9f / 0.30s | 100% | Hard cut | — |
+| 0:00.77–0:01.10 | 03 COMPUTER | 23–32 | 10f / 0.33s | 105% | Hard cut | Subtle key-click, frame 23 |
+| 0:01.10–0:01.40 | 04 RCS SCREEN | 33–41 | 9f / 0.30s | 100% | Hard cut | — |
+| 0:01.40–0:02.27 | 05 PLANNING | 42–67 | **26f / 0.87s** (see Momentum Bridge below) | 100% | Hard cut | Riser starts frame 53 (~0:01.75) |
+| 0:02.27–0:02.57 | 06 MOVEMENT | 68–76 | 9f / 0.30s | 110% | Hard cut | Whoosh, frame 68 (audio SFX — not a visual transition, see §Editing Language) |
+| 0:02.57–0:02.87 | 07 OUTREACH | 77–85 | 9f / 0.30s | 100% | Hard cut | — |
+| 0:02.87–0:03.17 | 08 SCREEN ACTIVITY | 86–94 | 9f / 0.30s | 115% | Hard cut | Click ×2, frame 86 |
+| 0:03.17–0:03.77 | 09 LATE NIGHT/MORNING | 95–112 | 18f / 0.60s | 90% (slight slow) | Hard cut | Riser peaks |
+| 0:03.77–0:05.27 | 10 IDENTITY | 113–157 | 45f / 1.50s | 100% | **Soft cut — sanctioned 3-frame (0.1s) cross-dissolve, top of the approved 2–3 frame range**, see §Editing Language | Bass drop / impact, frame 113 |
+| 0:05.27–0:07.00 | 11 TITLE | 158–209 | 52f / 1.73s | — | Cut to black or hold last frame | Secondary impact frame 158; accent on line 2 ~frame 183 (~0:06.10) |
+| 0:07.00–0:07.50 | EPISODE TRANSITION | 210–224 | 15f / 0.50s | Hard cut, no fade | Music cuts/ducks |
 
-**Momentum Bridge (0:01.75–0:02.25):** this is an audio-structure marker (riser entrance), not a separate shot or an empty gap. Shot 05 (Planning) physically holds on screen through this span rather than cutting away — its on-screen duration is 0.85s total (0:01.40–0:02.25): the first 0.35s plays as originally cut, then the same shot continues uncut while the riser builds underneath, until Shot 06 hard-cuts in at 0:02.25. No new shot placeholder was added to fill this — it uses Shot 05's own footage, held longer.
+**Total: 225 frames = exactly 7.5s at 30fps, 10 footage shots + title. Verified: every shot's End+1 = next shot's Start (no gaps, no overlaps); largest single-shot deviation from its nominal decimal-second value is ±1 frame (≈0.017s, imperceptible); Shot 10 (Identity) lands exactly on its nominal 45 frames/1.50s with zero drift.**
+
+**Momentum Bridge (0:01.75–0:02.25 nominal):** this is an audio-structure marker (riser entrance), not a separate shot or an empty gap. Shot 05 (Planning) physically holds on screen through this span rather than cutting away — frame-accurate on-screen duration is 26 frames/0.87s (frames 42–67): the first ~10-11 frames play as originally cut, then the same shot continues uncut while the riser builds underneath, until Shot 06 hard-cuts in at frame 68. No new shot placeholder was added to fill this — it uses Shot 05's own footage, held longer.
+- If Shot 05's real footage is a single continuous clip (e.g., a pan across notes/whiteboard), trim it to the full 26 frames — its own motion covers the hold.
+- If Shot 05's footage was chosen as a short static insert, either pick a candidate with more inherent movement, or apply a slow 103–105% push-in over the 26 frames (same keyframe technique as elsewhere in this doc) so it doesn't sit dead for 0.87s. No speed ramp — Shot 05 stays 100%.
 
 ## Music & Beat Structure
 Target tempo: 120 BPM (usable range 100–140). Beat length at 120 BPM: 0.5s/beat. Not a specific licensed track — any cinematic/modern instrumental in this BPM range with a riser-to-drop shape fits.
@@ -73,7 +77,7 @@ Line 1 (main): `90 DAYS.` / `BUILDING FROM ZERO.` — Bold/Semibold, all caps.
 Line 2 (secondary): `ROMAN CREATIVE STUDIO` — Medium, all caps, tracking +20–40 ("stamped" feel).
 Size: Line 1 ~9–11% of frame height/line; Line 2 ~40% the size of Line 1.
 Placement: Centered, lower-third or true center depending on footage brightness in Shot 10/11.
-Entrance: Line 1 fades + scales 96%→100% over 4–5 frames, timed to the 0:05.25 impact. Hold ~0.5s, then Line 2 fades in beneath it (staggered, not simultaneous).
+Entrance: Line 1 fades + scales 96%→100% over 4–5 frames starting at frame 158, timed to the title-entrance impact (completes ~frame 162–163). Line 2 is staggered, not simultaneous — its entrance is timed so it **completes at the ~0:06.10 beat accent** (frame ~183, §Music & Beat Structure), not just "~0.5s after Line 1 starts": start Line 2's fade+scale at frame ~178–179 (same 4–5 frame duration as Line 1), completing at ~183.
 Exit: Quick fade (3–4 frames), no slide-out.
 
 ## Motion Design
@@ -91,7 +95,7 @@ Exit: Quick fade (3–4 frames), no slide-out.
 ## Editing Language (applies to both editors)
 Primary: hard cut, match cut, movement-based cut. Secondary (sparingly, only when it improves the cut): whip, speed ramp, punch-in.
 **Sanctioned exceptions (this montage only, single-use each):**
-- 2–3 frame cross-dissolve into Shot 10 (Identity) only — nowhere else.
+- Cross-dissolve into Shot 10 (Identity) only — nowhere else. Pinned to **3 frames (0.1s)**, the top of the originally-approved 2–3 frame range, chosen because 2 frames can read as imperceptible at 30fps. Both editors should use this same value for consistency.
 - Optional 2–3 frame blur-to-sharp on the same Shot 10 transition (see §Motion Design) — not required.
 Avoid everywhere else: zoom-transition presets, spins, glitches, light leaks, unearned wipes.
 
