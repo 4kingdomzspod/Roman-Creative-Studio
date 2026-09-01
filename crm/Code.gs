@@ -77,6 +77,7 @@ function onOpen() {
     .addSubMenu(ui.createMenu('Website Audit')
       .addItem('Audit Selected Prospect', 'menuAuditSelectedProspect_')
       .addItem('Audit Website URL', 'menuAuditWebsiteUrl_')
+      .addItem('Audit Eligible Prospects', 'menuAuditEligibleProspects_')
       .addItem('Record Manual Audit', 'menuRecordManualAudit_'))
     .addSubMenu(ui.createMenu('Outreach Tools')
       .addItem('Generate Outreach Brief', 'menuGenerateOutreachBrief_')

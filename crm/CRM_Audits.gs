@@ -54,6 +54,115 @@ function ensureManualAuditColumns_(sheet) {
 }
 
 // ---------------------------------------------------------------------------
+// Audit eligibility / re-queue — a Prospects-level cache of "what happened
+// the last time this business's website was auditable" so a prospect that
+// was skipped (no Website on file at import time) is automatically picked
+// up once a Website is added later, without a second audit engine and
+// without ever re-auditing (duplicating) a business that already has a
+// Website Audits record.
+//
+// Four states, matching the CRM-wide model this column exists to represent:
+//   Not Audited        — default/blank; nothing has been attempted yet.
+//   Automated Success   — the automated engine (auditUrl_) succeeded and the
+//                          row was saved to Website Audits.
+//   Automated Failed    — the automated engine could not complete (bad URL,
+//                          403/404/timeout/etc.) — never written to Website
+//                          Audits (a failed audit still isn't a data point,
+//                          CRM_Audits.gs), so this column is the only place
+//                          that state is ever recorded.
+//   Manual Audit         — a human recorded findings via Record Manual Audit.
+//
+// This column is a CACHE, not the source of truth: Website Audits stays the
+// source of truth for anything that actually has a record there. Every
+// reader of this cache (classifyAuditQueueRow_ below) re-verifies against
+// the live Website Audits record before ever treating a row as eligible,
+// so a stale/blank cache (e.g. a sheet built before this fix, or a business
+// audited through a path that predates this column) self-heals instead of
+// triggering a duplicate audit.
+// ---------------------------------------------------------------------------
+
+const WEBSITE_AUDIT_STATE_COLUMN = ['Website Audit State'];
+const AUDIT_STATE_NOT_AUDITED = 'Not Audited';
+const AUDIT_STATE_AUTOMATED_SUCCESS = 'Automated Success';
+const AUDIT_STATE_AUTOMATED_FAILED = 'Automated Failed';
+const AUDIT_STATE_MANUAL_AUDIT = 'Manual Audit';
+
+// Same values as CRM_OutreachAutomation.gs's own OUTREACH_AUTOMATION_EXCLUDED_STATUSES,
+// declared independently here — this CRM's established convention is for
+// each feature to keep its own exclusion list (CRM_Scoring.gs's
+// SCORE_EXCLUDED_STATUSES, CRM_CommandCenter.gs's HOT_ACTION_EXCLUDED_STATUSES,
+// etc.) rather than share one cross-file constant.
+const AUDIT_QUEUE_EXCLUDED_STATUSES = ['archived', 'do not contact', 'closed — lost', 'closed — not interested'];
+
+// A single audit fetch is a handful of HTTP calls (not a Tavily+Gemini round
+// trip), so a capped batch comfortably finishes in one Apps Script
+// execution — no resumable-trigger machinery needed here. Run the action
+// again for any remainder, same as the user-facing message says.
+const AUDIT_ELIGIBLE_MAX_BATCH_SIZE = 15;
+
+function ensureWebsiteAuditStateColumn_(sheet) {
+  ensureHeaders_(sheet, WEBSITE_AUDIT_STATE_COLUMN); // Code.gs
+  const lastCol = sheet.getLastColumn();
+  applyBasicFilter_(sheet, lastCol); // Code.gs
+  autoResizeColumns_(sheet, lastCol); // Code.gs
+}
+
+// The only writer of the Website Audit State column. Provisions it on
+// demand so this is safe to call on a Prospects sheet built before this fix.
+function stampProspectAuditState_(prospects, row, state) {
+  ensureWebsiteAuditStateColumn_(prospects);
+  const headers = getLiveProspectsHeaders_(prospects); // CRM_Outreach.gs
+  const idx = headers.indexOf('Website Audit State');
+  if (idx === -1) return; // defensive only — ensureWebsiteAuditStateColumn_ just added it
+  prospects.getRange(row, idx + 1).setValue(state);
+}
+
+function isAuditQueueExcludedStatus_(status, archivedDate) {
+  const statusKey = String(status || '').trim().toLowerCase();
+  return AUDIT_QUEUE_EXCLUDED_STATUSES.indexOf(statusKey) !== -1 || String(archivedDate || '').trim() !== '';
+}
+
+// Resolves what a prospect's audit state SHOULD be, purely from the live
+// Website Audits record (if any) — the source of truth this cache defers
+// to. Never invents a "failed" state here: a failed automated audit has no
+// Website Audits row to find (by design, see saveAuditRecord_ below), so
+// this can only ever resolve to a real, already-saved success/manual record.
+function resolveWebsiteAuditStateFromRecord_(business, website) {
+  const existing = findLatestAuditForBusiness_(business, website); // CRM_Outreach.gs
+  if (!existing) return null;
+  return existing.source === AUDIT_SOURCE_MANUAL ? AUDIT_STATE_MANUAL_AUDIT : AUDIT_STATE_AUTOMATED_SUCCESS;
+}
+
+// Single source of truth for "is this Prospects row eligible to be queued
+// for an automated audit right now" — used by the batch scan below and its
+// own summary counts, so eligibility is never computed two different ways.
+//
+// reason codes: 'blank_business' | 'rcs_excluded' | 'excluded_status' |
+// 'missing_website' | 'already_audited' | 'previously_failed'
+function classifyAuditQueueRow_(business, status, archivedDate, website, cachedState) {
+  if (business === '') return { eligible: false, reason: 'blank_business' };
+  if (typeof isExcludedProspect_ === 'function' && isExcludedProspect_(business)) return { eligible: false, reason: 'rcs_excluded' }; // CRM_Health.gs
+  if (isAuditQueueExcludedStatus_(status, archivedDate)) return { eligible: false, reason: 'excluded_status' };
+  if (website === '') return { eligible: false, reason: 'missing_website' };
+
+  const stateKey = String(cachedState || '').trim();
+  // A previously-failed automated attempt is not retried automatically —
+  // it waits for a human (fix the site, retry manually, or record a Manual
+  // Audit), matching the documented "FAILED -> Manual Audit available"
+  // workflow rather than silently hammering a possibly-blocking site.
+  if (stateKey === AUDIT_STATE_AUTOMATED_FAILED) return { eligible: false, reason: 'previously_failed' };
+  if (stateKey === AUDIT_STATE_AUTOMATED_SUCCESS || stateKey === AUDIT_STATE_MANUAL_AUDIT) return { eligible: false, reason: 'already_audited' };
+
+  // Cached state is blank/Not Audited — verify live before treating as
+  // eligible, so a row that predates this column (or was audited through a
+  // path before this cache existed) is backfilled instead of re-audited.
+  const resolved = resolveWebsiteAuditStateFromRecord_(business, website);
+  if (resolved) return { eligible: false, reason: 'already_audited', backfillState: resolved };
+
+  return { eligible: true };
+}
+
+// ---------------------------------------------------------------------------
 // Menu entry points
 // ---------------------------------------------------------------------------
 
@@ -73,7 +182,7 @@ function menuAuditSelectedProspect_() {
     const rowValues = prospects.getRange(r, 1, 1, pHeaders.length).getValues()[0];
     const business = String(rowValues[bIdx] || '').trim();
     const website = String(rowValues[wIdx] || '').trim();
-    if (business !== '' && website !== '') candidates.push({ business: business, website: website });
+    if (business !== '' && website !== '') candidates.push({ business: business, website: website, row: r });
   });
   const skippedNoUrl = rows.length - candidates.length;
 
@@ -87,14 +196,21 @@ function menuAuditSelectedProspect_() {
     : 'Audit ' + candidates.length + ' selected prospects’ websites?';
   if (ui.alert('Website Audit', question, ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
 
+  // Stamps Website Audit State on the Prospects row this candidate came
+  // from either way — keeps the audit-eligibility cache (above) in sync
+  // with every path that can produce a real audit result, not just the
+  // batch below, so a prospect audited this way is never re-queued for a
+  // duplicate automated audit later.
   const results = candidates.map(function (c) {
     const normalized = normalizeUrl_(c.website);
     if (!normalized) {
+      stampProspectAuditState_(prospects, c.row, AUDIT_STATE_AUTOMATED_FAILED);
       return { ok: false, business: c.business, url: c.website, message: 'That doesn’t look like a usable website URL.' };
     }
     const audit = performAndSaveAudit_(c.business, normalized);
     audit.business = c.business;
     audit.url = normalized;
+    stampProspectAuditState_(prospects, c.row, (audit.ok && audit.saved) ? AUDIT_STATE_AUTOMATED_SUCCESS : AUDIT_STATE_AUTOMATED_FAILED);
     return audit;
   });
 
@@ -138,6 +254,140 @@ function runUrlAudit(rawUrl) {
 }
 
 // ---------------------------------------------------------------------------
+// "RCS CRM → Website Audit → Audit Eligible Prospects" — the re-queue fix.
+// Handles both halves of the reported gap: a prospect imported with a
+// Website is eligible immediately, and a prospect that had no Website at
+// import time (skipped) becomes eligible the moment a Website is added,
+// without needing to rebuild/re-import anything. No new prospect rows are
+// ever created here — only the existing row's Website Audit State cell and
+// (via the unmodified performAndSaveAudit_) Website Audits are written.
+// ---------------------------------------------------------------------------
+
+function menuAuditEligibleProspects_() {
+  auditEligibleProspectsBatch_(true);
+}
+
+// Scans every Prospects row via classifyAuditQueueRow_ and:
+//  - self-heals (backfills, never re-audits) any row whose cache is stale
+//    but which already has a real Website Audits record — this is what
+//    keeps "prospect imported with website" and "existing successful audit"
+//    behavior unchanged for data that predates this feature;
+//  - runs the existing, unmodified audit engine (performAndSaveAudit_) on
+//    every genuinely eligible row, capped at AUDIT_ELIGIBLE_MAX_BATCH_SIZE
+//    per run.
+function auditEligibleProspectsBatch_(interactive) {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const prospects = ss.getSheetByName('Prospects');
+  if (!prospects) {
+    const message = 'Prospects sheet not found.';
+    if (interactive) ui.alert('Website Audit', message, ui.ButtonSet.OK);
+    return { ok: false, message: message };
+  }
+
+  ensureWebsiteAuditStateColumn_(prospects);
+  const headers = getLiveProspectsHeaders_(prospects); // CRM_Outreach.gs
+  const idx = {};
+  headers.forEach(function (h, i) { idx[h] = i; });
+
+  const lastRow = prospects.getLastRow();
+  const eligibleRows = [];
+  const backfills = []; // { row, state } — rows that already have a real audit on file
+  let excluded = 0;
+
+  if (lastRow >= 2) {
+    const data = prospects.getRange(2, 1, lastRow - 1, headers.length).getValues();
+    data.forEach(function (rowValues, i) {
+      function field(name) { return idx[name] !== undefined ? rowValues[idx[name]] : ''; }
+      const business = String(field('Business') || '').trim();
+      const status = String(field('Status') || '').trim();
+      const archivedDate = field('Archived Date');
+      const website = String(field('Website') || '').trim();
+      const cachedState = field('Website Audit State');
+
+      const classification = classifyAuditQueueRow_(business, status, archivedDate, website, cachedState);
+      if (classification.eligible) {
+        eligibleRows.push(2 + i);
+      } else {
+        excluded++;
+        if (classification.backfillState) backfills.push({ row: 2 + i, state: classification.backfillState });
+      }
+    });
+  }
+
+  // Self-heal first — cheap (no network calls), and guarantees a prospect
+  // that already has a real Website Audits record is never counted toward,
+  // or processed by, the network-calling loop below.
+  backfills.forEach(function (b) { stampProspectAuditState_(prospects, b.row, b.state); });
+
+  const totalEligible = eligibleRows.length;
+  const toProcess = eligibleRows.slice(0, AUDIT_ELIGIBLE_MAX_BATCH_SIZE);
+
+  if (totalEligible === 0) {
+    const message = 'No newly-eligible prospects to audit (excluded or already audited: ' + excluded + ').';
+    if (interactive) ui.alert('Website Audit', message, ui.ButtonSet.OK);
+    return { ok: true, eligible: 0, excluded: excluded, processed: 0, audited: 0, failed: 0 };
+  }
+
+  if (interactive) {
+    const confirmMessage = 'Newly-eligible prospects (never audited): ' + totalEligible +
+      '\nThis run will process: ' + toProcess.length +
+      (totalEligible > toProcess.length ? ' (run again for the remaining ' + (totalEligible - toProcess.length) + ')' : '') +
+      '\n\nRun the automated Website Audit for each?';
+    if (ui.alert('Website Audit — Audit Eligible Prospects', confirmMessage, ui.ButtonSet.YES_NO) !== ui.Button.YES) {
+      return { ok: false, message: 'Cancelled.', eligible: totalEligible, excluded: excluded, cancelled: true };
+    }
+  }
+
+  let audited = 0, failed = 0;
+  const failures = [];
+  toProcess.forEach(function (row) {
+    const rowValues = prospects.getRange(row, 1, 1, headers.length).getValues()[0];
+    const business = String(rowValues[idx['Business']] || '').trim();
+    const website = String(rowValues[idx['Website']] || '').trim();
+    const normalized = normalizeUrl_(website);
+
+    if (!normalized) {
+      stampProspectAuditState_(prospects, row, AUDIT_STATE_AUTOMATED_FAILED);
+      failed++;
+      failures.push(business + ': that doesn’t look like a usable website URL.');
+      return;
+    }
+
+    const audit = performAndSaveAudit_(business, normalized); // CRM_Audits.gs — unchanged engine, no second implementation
+    if (audit.ok && audit.saved) {
+      stampProspectAuditState_(prospects, row, AUDIT_STATE_AUTOMATED_SUCCESS);
+      audited++;
+    } else {
+      stampProspectAuditState_(prospects, row, AUDIT_STATE_AUTOMATED_FAILED);
+      failed++;
+      failures.push(business + ': ' + (audit.message || audit.saveError || 'audit did not complete.'));
+    }
+  });
+
+  const remaining = totalEligible - toProcess.length;
+  const summary = {
+    ok: true, eligible: totalEligible, excluded: excluded, processed: toProcess.length,
+    audited: audited, failed: failed, remaining: remaining, failures: failures
+  };
+
+  if (interactive) {
+    const lines = [
+      'Eligible: ' + totalEligible,
+      'Processed: ' + toProcess.length,
+      'Automated Success: ' + audited,
+      'Automated Failed: ' + failed,
+      'Excluded / already audited: ' + excluded
+    ];
+    if (remaining > 0) lines.push('', remaining + ' more eligible — run Audit Eligible Prospects again to continue.');
+    if (failed > 0) lines.push('', 'Failed (Manual Audit is available for these):', failures.slice(0, 10).join('\n'));
+    ui.alert('Website Audit — Audit Eligible Prospects', lines.join('\n'), ui.ButtonSet.OK);
+  }
+
+  return summary;
+}
+
+// ---------------------------------------------------------------------------
 // Manual audit fallback ("RCS CRM → Website Audit → Record Manual Audit")
 // ---------------------------------------------------------------------------
 //
@@ -174,8 +424,32 @@ function menuRecordManualAudit_() {
     return;
   }
 
-  const html = HtmlService.createHtmlOutput(buildManualAuditDialogHtml_(business, website)).setWidth(480).setHeight(420);
+  const html = HtmlService.createHtmlOutput(buildManualAuditDialogHtml_(business, website, rows[0])).setWidth(480).setHeight(420);
   SpreadsheetApp.getUi().showModalDialog(html, 'Record Manual Audit');
+}
+
+// Scans Prospects for the row matching a given Business+Website, reusing
+// dedupeKey_'s exact trimmed/lowercased comparison (CRM_Import.gs) — the
+// same identity check used everywhere else duplicate/matching logic already
+// runs. Fallback used only when recordManualAudit_ wasn't given a row
+// directly (e.g. an older caller); returns null (never throws) if the sheet
+// or a match isn't found.
+function findProspectRowByBusinessWebsite_(prospects, headers, business, website) {
+  const idx = {};
+  headers.forEach(function (h, i) { idx[h] = i; });
+  if (idx['Business'] === undefined) return null;
+
+  const lastRow = prospects.getLastRow();
+  if (lastRow < 2) return null;
+
+  const targetKey = dedupeKey_(business, website); // CRM_Import.gs
+  const data = prospects.getRange(2, 1, lastRow - 1, headers.length).getValues();
+  for (let i = 0; i < data.length; i++) {
+    const b = data[i][idx['Business']];
+    const w = idx['Website'] !== undefined ? data[i][idx['Website']] : '';
+    if (dedupeKey_(b, w) === targetKey) return 2 + i;
+  }
+  return null;
 }
 
 // Never throws — every failure mode (missing prospect, invalid score,
@@ -184,7 +458,15 @@ function menuRecordManualAudit_() {
 // saveAuditRecord_ with { source: 'Manual', ... } — never claims the
 // automated auditor produced this data, and never invents a score: a blank
 // score input stays blank on the sheet, it does not become 0 or a guess.
-function recordManualAudit_(business, website, scoreText, notes) {
+//
+// `row` is optional (the dialog always supplies it — see
+// menuRecordManualAudit_ / buildManualAuditDialogHtml_ below — every prior
+// caller/test that omits it keeps working unchanged): when given, it's used
+// directly to stamp the audit-eligibility cache (CRM_Audits.gs, above);
+// otherwise the matching Prospects row is looked up by Business+Website.
+// Either way, a lookup miss never fails the manual audit itself — the
+// Website Audits row saved above is the real record.
+function recordManualAudit_(business, website, scoreText, notes, row) {
   try {
     business = String(business || '').trim();
     website = String(website || '').trim();
@@ -214,6 +496,22 @@ function recordManualAudit_(business, website, scoreText, notes) {
     if (!saveResult.saved) {
       return { ok: false, message: saveResult.message || 'Could not save the manual audit.' };
     }
+
+    try {
+      const prospects = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Prospects');
+      if (prospects) {
+        const liveHeaders = getLiveProspectsHeaders_(prospects); // CRM_Outreach.gs
+        const targetRow = (typeof row === 'number' && row >= 2)
+          ? row
+          : findProspectRowByBusinessWebsite_(prospects, liveHeaders, business, website);
+        if (targetRow) stampProspectAuditState_(prospects, targetRow, AUDIT_STATE_MANUAL_AUDIT);
+      }
+    } catch (stampErr) {
+      // The eligibility cache is a convenience, not the record of truth —
+      // never let a failure here change whether the manual audit itself is
+      // reported as saved.
+    }
+
     return { ok: true, business: business, website: website, score: score === '' ? null : score, status: status };
   } catch (e) {
     return { ok: false, message: 'Unexpected error while recording the manual audit: ' + ((e && e.message) || e) };
@@ -222,8 +520,8 @@ function recordManualAudit_(business, website, scoreText, notes) {
 
 // Public entry point for google.script.run — same convention as
 // runUrlAudit/runUrlAudit_ above.
-function recordManualAudit(business, website, scoreText, notes) {
-  return recordManualAudit_(business, website, scoreText, notes);
+function recordManualAudit(business, website, scoreText, notes, row) {
+  return recordManualAudit_(business, website, scoreText, notes, row);
 }
 
 // Minimal HTML-attribute/text escaping for values interpolated into the
@@ -243,9 +541,12 @@ function escapeHtml_(value) {
 // optional 0-100 score field, a required findings/notes textarea, and a
 // Record button. Reports the same saved/not-saved shape as the automated
 // audit dialogs above.
-function buildManualAuditDialogHtml_(business, website) {
+function buildManualAuditDialogHtml_(business, website, row) {
   const safeBusiness = escapeHtml_(business);
   const safeWebsite = escapeHtml_(website);
+  // Server-controlled (the caller's own selected-row number, never user
+  // input), so embedding it as a bare numeric/null literal is safe.
+  const rowLiteral = (typeof row === 'number' && row >= 2) ? String(row) : 'null';
   return '<!DOCTYPE html><html><head><base target="_top">' +
     '<style>' +
     'body{font-family:Arial,sans-serif;font-size:13px;color:#222;padding:4px 8px;}' +
@@ -285,7 +586,7 @@ function buildManualAuditDialogHtml_(business, website) {
     '  }).withFailureHandler(function (err) {' +
     '    btn.disabled = false;' +
     '    status.textContent = "Not saved: " + ((err && err.message) || String(err) || "Unknown error.");' +
-    '  }).recordManualAudit(' + JSON.stringify(business) + ', ' + JSON.stringify(website) + ', score, notes);' +
+    '  }).recordManualAudit(' + JSON.stringify(business) + ', ' + JSON.stringify(website) + ', score, notes, ' + rowLiteral + ');' +
     '});' +
     '</script></body></html>';
 }
