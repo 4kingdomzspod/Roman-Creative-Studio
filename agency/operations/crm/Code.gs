@@ -42,9 +42,7 @@ function setupRCSCRM() {
     let sh = ss.getSheetByName(name);
     if (!sh) sh = ss.insertSheet(name);
     const headers = HEADERS[name];
-    const current = sh.getRange(1,1,1,headers.length).getValues()[0];
-    if (current.every(v => v === '')) sh.getRange(1,1,1,headers.length).setValues([headers]);
-    else sh.getRange(1,1,1,headers.length).setValues([headers]);
+    sh.getRange(1,1,1,headers.length).setValues([headers]);
     sh.setFrozenRows(1);
     if (sh.getFilter()) sh.getFilter().remove();
     sh.getRange(1,1,1,headers.length).createFilter();
@@ -77,7 +75,8 @@ function setupSettings(ss) {
 function setupValidations(ss) {
   const list = (sheet, col, values) => ss.getSheetByName(sheet).getRange(2,col,999,1).setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInList(values,true).setAllowInvalid(false).build());
-  const checkbox = (sheet, col) => ss.getSheetByName(sheet).getRange(2,col,999,1).insertCheckboxes();
+  const checkbox = (sheet, col) => ss.getSheetByName(sheet).getRange(2,col,999,1).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireCheckbox().setAllowInvalid(false).build());
   list('Prospects',10,['New','Research','Contacted','Follow-Up','Responded','Meeting','Proposal','Negotiation','Won','Lost','Nurture']);
   list('Prospects',11,['High','Medium','Low']); checkbox('Prospects',16);
   list('Website Audits',14,['Draft','Complete']);
@@ -109,7 +108,6 @@ function stampAndAutomate_(e) {
   const name = sh.getName(); const v = e.value;
   const rowValues = sh.getRange(row,1,1,sh.getLastColumn()).getValues()[0];
   const set = (col,val) => sh.getRange(row,col).setValue(val);
-  const hasBusiness = rowValues[1] || rowValues[2] || rowValues[3];
 
   const idMap = {
     Prospects:['P',2], 'Website Audits':['A',3], 'Outreach Pipeline':['O',3], 'Follow Ups':['F',3],
@@ -121,7 +119,7 @@ function stampAndAutomate_(e) {
   if (name === 'Outreach Pipeline' && e.range.getColumn() === 8 && v === 'Sent') {
     if (!rowValues[5]) set(6,new Date());
     if (!rowValues[11]) set(12,addDays_(new Date(), defaultFollowUpDays_()));
-    createFollowUpIfMissing_(rowValues, row);
+    createFollowUpIfMissing_(rowValues);
     updateProspectFromOutreach_(rowValues);
     logActivity_(rowValues[1],rowValues[2],'Outreach','Outreach sent via ' + rowValues[4],'Sent',rowValues[10],rowValues[11]);
   }
@@ -162,13 +160,16 @@ function updateProspectStage_(id,stage) { if (!id) return; const sh=SpreadsheetA
 function updateProspectContactDate_(id) { if (!id) return; const sh=SpreadsheetApp.getActive().getSheetByName(SHEETS.PROSPECTS); const ids=sh.getRange(2,1,Math.max(sh.getLastRow()-1,1),1).getValues().flat(); const i=ids.indexOf(id); if(i>=0) sh.getRange(i+2,14).setValue(new Date()); }
 function updateProspectFromOutreach_(r) { if (r[1]) updateProspectStage_(r[1],'Contacted'); updateProspectContactDate_(r[1]); }
 
-function createFollowUpIfMissing_(r,row) {
+function createFollowUpIfMissing_(r) {
   const ss=SpreadsheetApp.getActive(), sh=ss.getSheetByName(SHEETS.FOLLOWUPS);
   const prospectId=r[1], business=r[2], contact=r[3], due=r[11]; if(!prospectId || !due) return;
-  const existing=sh.getRange(2,2,Math.max(sh.getLastRow()-1,1),1).getValues().flat();
-  if(existing.indexOf(prospectId) >= 0) return;
+  const last=Math.max(sh.getLastRow()-1,1);
+  const rows=sh.getRange(2,2,last,10).getValues();
+  const dueKey=new Date(due).setHours(0,0,0,0);
+  const duplicate=rows.some(x => x[0]===prospectId && x[3] && new Date(x[3]).setHours(0,0,0,0)===dueKey && x[6]!=='Completed');
+  if(duplicate) return;
   const nr=sh.getLastRow()+1;
-  sh.getRange(nr,1,1,12).setValues([[nextId_(SHEETS.FOLLOWUPS,'F'),prospectId,business,contact,due,'Initial',r[4],'Open','', '', '', 'Auto-created from outreach']]);
+  sh.getRange(nr,1,1,12).setValues([[nextId_(SHEETS.FOLLOWUPS,'F'),prospectId,business,contact,due,'Follow-Up 1',r[4],'Open','', '', '', 'Auto-created from outreach']]);
 }
 
 function createClientFromProposal_(r) {
