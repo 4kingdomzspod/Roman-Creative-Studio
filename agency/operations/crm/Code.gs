@@ -85,7 +85,8 @@ function setupValidations(ss) {
   list('Follow Ups',6,['Initial','Follow-Up 1','Follow-Up 2','Follow-Up 3','Proposal Follow-Up','Nurture','Other']);
   list('Follow Ups',7,['Email','Phone','Text','Instagram','Facebook','LinkedIn','In Person','Other']);
   list('Follow Ups',8,['Open','Completed','Skipped']);
-  list('Meetings',6,['Discovery','Proposal Review','Follow-Up','Kickoff','Other']); list('Meetings',7,['Scheduled','Completed','Cancelled','No-Show']); checkbox('Meetings',11);
+  list('Meetings',6,['Discovery','Proposal Review','Follow-Up','Kickoff','Other']);
+  list('Meetings',7,['Scheduled','Completed','Cancelled','No-Show']); checkbox('Meetings',11);
   list('Proposals',7,['Draft','Sent','Negotiating','Accepted','Declined','Expired']); checkbox('Proposals',10); checkbox('Proposals',12);
   list('Clients',11,['Onboarding','Active','Complete','Maintenance','Inactive']); checkbox('Clients',10); checkbox('Clients',13);
   list('Revenue',5,['Deposit','Milestone','Final','Care Plan','SEO','Other']); list('Revenue',7,['Pending','Paid','Partial','Refunded','Cancelled']);
@@ -95,11 +96,14 @@ function setupValidations(ss) {
 function nextId_(sheetName, prefix) {
   const sh = SpreadsheetApp.getActive().getSheetByName(sheetName);
   if (!sh) return prefix + '-0001';
-  const ids = sh.getRange(2,1,Math.max(sh.getLastRow()-1,1),1).getValues().flat();
+  const count = Math.max(sh.getLastRow() - 1, 1);
+  const ids = sh.getRange(2,1,count,1).getValues().flat();
   let max = 0;
   ids.forEach(id => { const m = String(id || '').match(new RegExp('^' + prefix + '-(\\d+)$')); if (m) max = Math.max(max, Number(m[1])); });
   return prefix + '-' + String(max + 1).padStart(4,'0');
 }
+
+function onEdit(e) { stampAndAutomate_(e); }
 
 function stampAndAutomate_(e) {
   if (!e || !e.range) return;
@@ -116,40 +120,54 @@ function stampAndAutomate_(e) {
   if (idMap[name] && !rowValues[0] && rowValues[idMap[name][1]-1]) set(1,nextId_(name,idMap[name][0]));
 
   if (name === 'Prospects' && rowValues[1] && !rowValues[12]) set(13,new Date());
-  if (name === 'Outreach Pipeline' && e.range.getColumn() === 8 && v === 'Sent') {
-    if (!rowValues[5]) set(6,new Date());
-    if (!rowValues[11]) set(12,addDays_(new Date(), defaultFollowUpDays_()));
-    createFollowUpIfMissing_(rowValues);
-    updateProspectFromOutreach_(rowValues);
-    logActivity_(rowValues[1],rowValues[2],'Outreach','Outreach sent via ' + rowValues[4],'Sent',rowValues[10],rowValues[11]);
+
+  if (name === 'Outreach Pipeline' && e.range.getColumn() === 8) {
+    if (v === 'Sent') {
+      if (!rowValues[5]) set(6,new Date());
+      if (!rowValues[11]) set(12,addDays_(new Date(), defaultFollowUpDays_()));
+      createFollowUpIfMissing_(sh.getRange(row,1,1,sh.getLastColumn()).getValues()[0]);
+      updateProspectFromOutreach_(sh.getRange(row,1,1,sh.getLastColumn()).getValues()[0]);
+      const updated = sh.getRange(row,1,1,sh.getLastColumn()).getValues()[0];
+      logActivity_(updated[1],updated[2],'Outreach','Outreach sent via ' + updated[4],'Sent',updated[10],updated[11]);
+    } else if (v === 'Responded') {
+      if (!rowValues[8]) set(9,new Date());
+      updateProspectStage_(rowValues[1],'Responded');
+      logActivity_(rowValues[1],rowValues[2],'Response','Prospect responded','Responded','Book meeting',null);
+    }
   }
+
   if (name === 'Follow Ups' && e.range.getColumn() === 8 && v === 'Completed') {
     if (!rowValues[8]) set(9,new Date());
     if (rowValues[1]) updateProspectContactDate_(rowValues[1]);
+    if (rowValues[10]) createNextFollowUp_(rowValues);
     logActivity_(rowValues[1],rowValues[2],'Follow-Up','Follow-up completed','Completed',rowValues[9],rowValues[10]);
   }
+
+  if (name === 'Meetings' && e.range.getColumn() === 7 && v === 'Scheduled') {
+    if (rowValues[1]) updateProspectStage_(rowValues[1],'Meeting');
+    logActivity_(rowValues[1],rowValues[2],'Meeting','Meeting scheduled','Scheduled',rowValues[12],rowValues[13]);
+  }
   if (name === 'Meetings' && e.range.getColumn() === 7 && v === 'Completed') {
-    if (rowValues[1]) updateProspectStage_(rowValues[1],'Responded');
     logActivity_(rowValues[1],rowValues[2],'Meeting','Meeting completed','Completed',rowValues[12],rowValues[13]);
   }
+
   if (name === 'Proposals' && e.range.getColumn() === 7 && v === 'Sent') {
     if (!rowValues[7]) set(8,new Date());
     if (!rowValues[13]) set(14,addDays_(new Date(),defaultFollowUpDays_()));
     updateProspectStage_(rowValues[1],'Proposal');
-    logActivity_(rowValues[1],rowValues[2],'Proposal','Proposal sent','Sent','Follow up',rowValues[13]);
+    const updated = sh.getRange(row,1,1,sh.getLastColumn()).getValues()[0];
+    logActivity_(updated[1],updated[2],'Proposal','Proposal sent','Sent','Follow up',updated[13]);
   }
   if (name === 'Proposals' && e.range.getColumn() === 7 && v === 'Accepted') {
     if (!rowValues[8]) set(9,new Date());
     updateProspectStage_(rowValues[1],'Won');
-    createClientFromProposal_(rowValues);
+    createClientFromProposal_(sh.getRange(row,1,1,sh.getLastColumn()).getValues()[0]);
     logActivity_(rowValues[1],rowValues[2],'Sale','Proposal accepted','Won','Onboard client',new Date());
   }
   if (name === 'Revenue' && e.range.getColumn() === 7 && v === 'Paid') {
     logActivity_(rowValues[1],rowValues[2],'Revenue','Payment recorded','Paid','Continue delivery',null);
   }
 }
-
-function onEdit(e) { stampAndAutomate_(e); }
 
 function defaultFollowUpDays_() {
   const v = SpreadsheetApp.getActive().getSheetByName(SHEETS.SETTINGS).getRange('B4').getValue();
@@ -172,12 +190,20 @@ function createFollowUpIfMissing_(r) {
   sh.getRange(nr,1,1,12).setValues([[nextId_(SHEETS.FOLLOWUPS,'F'),prospectId,business,contact,due,'Follow-Up 1',r[4],'Open','', '', '', 'Auto-created from outreach']]);
 }
 
+function createNextFollowUp_(r) {
+  const due=r[10], prospectId=r[1]; if(!due || !prospectId) return;
+  const sh=SpreadsheetApp.getActive().getSheetByName(SHEETS.FOLLOWUPS);
+  const nr=sh.getLastRow()+1;
+  const type=r[5] === 'Initial' ? 'Follow-Up 1' : r[5] === 'Follow-Up 1' ? 'Follow-Up 2' : r[5] === 'Follow-Up 2' ? 'Follow-Up 3' : 'Nurture';
+  sh.getRange(nr,1,1,12).setValues([[nextId_(SHEETS.FOLLOWUPS,'F'),prospectId,r[2],r[3],due,type,r[6],'Open','', '', '', 'Created from completed follow-up']]);
+}
+
 function createClientFromProposal_(r) {
   const ss=SpreadsheetApp.getActive(), sh=ss.getSheetByName(SHEETS.CLIENTS); if(!r[1]) return;
   const ids=sh.getRange(2,2,Math.max(sh.getLastRow()-1,1),1).getValues().flat(); if(ids.indexOf(r[1])>=0) return;
   const p=ss.getSheetByName(SHEETS.PROSPECTS), pids=p.getRange(2,1,Math.max(p.getLastRow()-1,1),1).getValues().flat(), i=pids.indexOf(r[1]);
   const pr=i>=0?p.getRange(i+1,1,1,17).getValues()[0]:[]; const nr=sh.getLastRow()+1;
-  sh.getRange(nr,1,1,14).setValues([[nextId_(SHEETS.CLIENTS,'C'),r[1],r[2],pr[2]||'',pr[3]||'',pr[4]||'',new Date(),r[5]||'RCS Website Project',r[4]||0,false,'Onboarding','',false,'Created automatically from accepted proposal']]);
+  sh.getRange(nr,1,1,14).setValues([[nextId_(SHEETS.CLIENTS,'C'),r[1],r[2],pr[2]||'',pr[3]||'',pr[4]||'',new Date(),r[5]||'RCS Website Project',r[4]||0,!!r[11],'Onboarding','',false,'Created automatically from accepted proposal']]);
 }
 
 function logActivity_(id,business,type,description,outcome,nextAction,nextDate) {
@@ -188,17 +214,19 @@ function logActivity_(id,business,type,description,outcome,nextAction,nextDate) 
 function buildDashboard(ss) {
   const sh=ss.getSheetByName(SHEETS.DASHBOARD); sh.clear(); sh.setFrozenRows(2);
   sh.getRange('A1:H1').merge().setValue('ROMAN CREATIVE STUDIO — 90-DAY REVENUE CRM').setFontSize(18).setFontWeight('bold');
-  sh.getRange('A3:B12').setValues([
+  sh.getRange('A3:B14').setValues([
     ['Metric','Value'],['90-Day Revenue Goal','=Settings!B2'],['Revenue Collected','=SUMIF(Revenue!G:G,"Paid",Revenue!F:F)'],['Remaining','=MAX(B4-B5,0)'],
     ['Open Pipeline','=SUMIF(Proposals!G:G,"Sent",Proposals!E:E)+SUMIF(Proposals!G:G,"Negotiating",Proposals!E:E)'],['Prospects','=COUNTA(Prospects!B2:B)'],
     ['Contacted','=COUNTIF(Prospects!J:J,"Contacted")+COUNTIF(Prospects!J:J,"Follow-Up")+COUNTIF(Prospects!J:J,"Responded")+COUNTIF(Prospects!J:J,"Meeting")+COUNTIF(Prospects!J:J,"Proposal")+COUNTIF(Prospects!J:J,"Negotiation")+COUNTIF(Prospects!J:J,"Won")'],
-    ['Meetings','=COUNTIF(Meetings!G:G,"Scheduled")+COUNTIF(Meetings!G:G,"Completed")'],['Proposals Sent','=COUNTIF(Proposals!G:G,"Sent")+COUNTIF(Proposals!G:G,"Negotiating")+COUNTIF(Proposals!G:G,"Accepted")'],['Won Deals','=COUNTIF(Proposals!G:G,"Accepted")']
+    ['Meetings','=COUNTIF(Meetings!G:G,"Scheduled")+COUNTIF(Meetings!G:G,"Completed")'],['Proposals Sent','=COUNTIF(Proposals!G:G,"Sent")+COUNTIF(Proposals!G:G,"Negotiating")+COUNTIF(Proposals!G:G,"Accepted")'],['Won Deals','=COUNTIF(Proposals!G:G,"Accepted")'],
+    ['Outreach Sent Today','=COUNTIFS(\'Outreach Pipeline\'!F:F,">="&TODAY(),\'Outreach Pipeline\'!F:F,"<"&TODAY()+1,\'Outreach Pipeline\'!H:H,"Sent")'],
+    ['Follow-Ups Completed Today','=COUNTIFS(\'Follow Ups\'!I:I,">="&TODAY(),\'Follow Ups\'!I:I,"<"&TODAY()+1,\'Follow Ups\'!H:H,"Completed")']
   ]);
-  sh.getRange('D3:E8').setValues([['Today',''],['Follow-Ups Due Today','=COUNTIFS(\'Follow Ups\'!E:E,TODAY(),\'Follow Ups\'!H:H,"<>Completed")'],['Follow-Ups Overdue','=COUNTIFS(\'Follow Ups\'!E:E,"<"&TODAY(),\'Follow Ups\'!H:H,"<>Completed")'],['Meetings Today','=COUNTIFS(Meetings!E:E,TODAY(),Meetings!G:G,"<>Cancelled")'],['Clients','=COUNTA(Clients!B2:B)'],['Next Action','See Today sheet']]);
-  sh.getRange('A14:H14').merge().setValue('TODAY / OVERDUE FOLLOW-UPS').setFontWeight('bold');
-  sh.getRange('A15:H15').setValues([['Business','Contact','Due Date','Type','Channel','Status','Next Follow-Up','Notes']]);
-  sh.getRange('A16').setFormula('=IFERROR(FILTER({\'Follow Ups\'!C2:C,\'Follow Ups\'!D2:D,\'Follow Ups\'!E2:E,\'Follow Ups\'!F2:F,\'Follow Ups\'!G2:G,\'Follow Ups\'!H2:H,\'Follow Ups\'!K2:K,\'Follow Ups\'!L2:L},\'Follow Ups\'!E2:E<=TODAY(),\'Follow Ups\'!H2:H<>"Completed"),"No open follow-ups due today or overdue")');
-  sh.getRange('A25:H25').merge().setValue('90-DAY RULE: SELL FIRST. The CRM exists to remove friction from prospecting, follow-up, meetings, closing, and revenue tracking.').setFontWeight('bold');
+  sh.getRange('D3:E9').setValues([['Today',''],['Follow-Ups Due Today','=COUNTIFS(\'Follow Ups\'!E:E,TODAY(),\'Follow Ups\'!H:H,"<>Completed")'],['Follow-Ups Overdue','=COUNTIFS(\'Follow Ups\'!E:E,"<"&TODAY(),\'Follow Ups\'!H:H,"<>Completed")'],['Meetings Today','=COUNTIFS(Meetings!E:E,TODAY(),Meetings!G:G,"<>Cancelled")'],['Clients','=COUNTA(Clients!B2:B)'],['New/Research Prospects','=COUNTIF(Prospects!J:J,"New")+COUNTIF(Prospects!J:J,"Research")'],['Next Action','See Today sheet']]);
+  sh.getRange('A16:H16').merge().setValue('TODAY / OVERDUE FOLLOW-UPS').setFontWeight('bold');
+  sh.getRange('A17:H17').setValues([['Business','Contact','Due Date','Type','Channel','Status','Next Follow-Up','Notes']]);
+  sh.getRange('A18').setFormula('=IFERROR(FILTER({\'Follow Ups\'!C2:C,\'Follow Ups\'!D2:D,\'Follow Ups\'!E2:E,\'Follow Ups\'!F2:F,\'Follow Ups\'!G2:G,\'Follow Ups\'!H2:H,\'Follow Ups\'!K2:K,\'Follow Ups\'!L2:L},\'Follow Ups\'!E2:E<=TODAY(),\'Follow Ups\'!H2:H<>"Completed"),"No open follow-ups due today or overdue")');
+  sh.getRange('A28:H28').merge().setValue('90-DAY RULE: SELL FIRST. The CRM exists to remove friction from prospecting, follow-up, meetings, closing, and revenue tracking.').setFontWeight('bold');
   sh.autoResizeColumns(1,8);
   sh.getRange('B4:B7').setNumberFormat('$#,##0.00');
 }
@@ -229,6 +257,8 @@ function validateCRMSetup(showAlert=true){
   if(p) checks.push((p.getRange('A1').getValue()==='Prospect ID'?'PASS':'FAIL')+' — Prospect ID header');
   if(m) checks.push((m.getRange('A1').getValue()==='Follow-Up ID'?'PASS':'FAIL')+' — Follow-Up ID header');
   if(d) checks.push((String(d.getRange('B4').getFormula()).indexOf('Settings!B2')>=0?'PASS':'FAIL')+' — Revenue goal formula');
-  const result=checks.join('\n'); if(showAlert) SpreadsheetApp.getUi().alert('RCS CRM System Check\n\n'+result+'\n\nManual test still required: enter one test prospect, outreach, follow-up, meeting, proposal, acceptance, and payment to confirm your Sheet behaves correctly.');
+  if(d) checks.push((String(d.getRange('B5').getFormula()).indexOf('Revenue!G:G')>=0?'PASS':'FAIL')+' — Revenue collection formula');
+  const result=checks.join('\n');
+  if(showAlert) SpreadsheetApp.getUi().alert('RCS CRM System Check\n\n'+result+'\n\nManual live-sheet test still required: create one test prospect and run it through outreach, follow-up, meeting, proposal, acceptance, client, and paid revenue.');
   return result;
 }
