@@ -1,48 +1,73 @@
-# RCS Operational CRM
+# Roman Creative Studio — Operational CRM
 
 ## Purpose
 
-This is the **minimum viable operating CRM** for Roman Creative Studio's 90-day journey. It is intentionally built around Google Sheets so there is no paid CRM dependency.
+This is the **90-day execution CRM** for Roman Creative Studio. It uses Google Sheets so there is no paid CRM dependency and keeps the workflow centered on selling.
 
-The system covers the revenue path:
+## Included
 
-**Prospect → Audit → Outreach → Follow-Up → Meeting → Proposal → Client → Revenue**
-
-It also provides a Dashboard for daily execution and a lightweight Activity Log for history.
-
-## What is intentionally NOT included
-
-Do not expand this into a custom SaaS, Supabase app, client portal, ticketing system, AI automation platform, or accounting system during the 90-day journey. Those belong after the revenue goal unless a real client requirement makes them necessary.
+- Dashboard with the $10,000 90-day goal
+- Prospects
+- Website Audits
+- Outreach Pipeline
+- Follow Ups
+- Meetings
+- Proposals
+- Clients
+- Revenue
+- Referrals Network
+- Activity Log
+- Settings
+- Today action view
 
 ## Setup
 
-1. Create a blank Google Sheet for RCS CRM.
+1. Create/open the Google Sheet that will be the RCS CRM.
 2. Open **Extensions → Apps Script**.
-3. Replace the default script with `Code.gs` from this folder.
-4. Save and run `setupRCSCRM` once.
-5. Approve the Google authorization prompt.
-6. Return to the Sheet and use the **RCS CRM** menu.
+3. Replace the default Apps Script with `Code.gs` from this folder.
+4. Save.
+5. Run `setupRCSCRM()` once.
+6. Approve the Google authorization prompt.
+7. Reload the Sheet.
+8. Open **RCS CRM → Run System Check**.
 
-The setup creates the tabs, headers, dropdowns, formulas, dashboard metrics, and daily follow-up views.
+The setup is designed to be rerunnable. It repairs headers, filters, validations, dashboard formulas, formatting, and the Today view without requiring you to rebuild the workbook.
 
-## Operating rule
+## Daily workflow
 
-If an action can be completed in the CRM in under a minute, log it. If logging it starts taking more time than selling, simplify the data—not the selling.
+**Prospects:** add the business, decision-maker, website, stage, priority, and notes. The Created Date is stamped automatically.
+
+**Website Audits:** record the audit, key problems, recommended fixes, and audit link.
+
+**Outreach Pipeline:** record each outreach attempt. When Status becomes `Sent`, the CRM stamps Date Sent, schedules the default follow-up, updates the prospect stage/contact date, and logs the activity.
+
+**Follow Ups:** use the Dashboard or Today sheet as the daily action queue. Mark a follow-up `Completed` when done; completion is stamped and logged.
+
+**Meetings:** record the pain/need, budget, timeline, decision-maker status, and next action. Completing a meeting updates the prospect stage to `Responded` so the deal can move forward without losing the meeting record.
+
+**Proposals:** when Status becomes `Sent`, the CRM stamps Sent Date and creates the default next follow-up date. When Status becomes `Accepted`, the prospect becomes `Won` and a client record is created automatically unless one already exists.
+
+**Revenue:** record every payment here. Dashboard revenue collected counts only Revenue rows marked `Paid`.
 
 ## Definition of done
 
-The CRM is considered operational when this test passes:
+The CRM is operational when this chain works in the actual Google Sheet:
 
-1. Add a prospect.
-2. Add an audit.
-3. Log outreach.
-4. Create a follow-up.
-5. Record a response.
-6. Create a meeting and next action.
-7. Create a proposal and amount.
-8. Mark the proposal accepted.
-9. Create the client record.
-10. Record revenue/payment.
-11. Confirm Dashboard metrics update.
+`Prospect → Audit → Outreach → Follow-Up → Meeting → Proposal → Accepted → Client → Revenue → Dashboard`
 
-Once this passes, **freeze the CRM**. Only fix bugs or add something that directly removes friction from prospecting, follow-up, closing, or revenue tracking.
+A manual end-to-end test in the live Google Sheet is required because Apps Script behavior depends on the Sheet and authorization environment.
+
+## 90-day freeze rule
+
+Once the end-to-end test passes, freeze this system. During the 90-day journey, only make changes that:
+
+- fix a real bug
+- prevent lost data/history
+- reduce friction in prospecting
+- reduce friction in follow-up
+- reduce friction in meetings/proposals
+- improve client/revenue tracking
+
+Do **not** turn this into a custom SaaS, Supabase application, client portal, ticketing system, accounting platform, or advanced AI automation project during the 90-day push.
+
+**Goal:** spend time selling and delivering, not maintaining the CRM.
