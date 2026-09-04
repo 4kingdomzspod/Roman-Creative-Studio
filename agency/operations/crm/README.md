@@ -35,19 +35,19 @@ The setup is designed to be rerunnable. It repairs headers, filters, validations
 
 ## Daily workflow
 
-**Prospects:** add the business, decision-maker, website, stage, priority, and notes. The Created Date is stamped automatically.
+**1. Prospects:** add the business, decision-maker, website, industry/location, stage, priority, potential value, and notes. The Prospect ID and Created Date are stamped automatically.
 
-**Website Audits:** record the audit, key problems, recommended fixes, and audit link.
+**2. Website Audits:** record the audit, key problems, recommended fixes, scores, and audit link against the Prospect ID.
 
-**Outreach Pipeline:** record each outreach attempt. When Status becomes `Sent`, the CRM stamps Date Sent, schedules the default follow-up, updates the prospect stage/contact date, and logs the activity.
+**3. Outreach Pipeline:** record each outreach attempt. When Status becomes `Sent`, the CRM stamps Date Sent, schedules a default follow-up, updates the prospect to `Contacted`, updates Last Contact Date, and logs the activity. When Status becomes `Responded`, it records the response and moves the prospect to `Responded`.
 
-**Follow Ups:** use the Dashboard or Today sheet as the daily action queue. Mark a follow-up `Completed` when done; completion is stamped and logged.
+**4. Follow Ups:** use the Dashboard or Today sheet as the daily action queue. Mark a follow-up `Completed` when done; completion is stamped and logged. If a Next Follow-Up Date is entered, the next task is created automatically.
 
-**Meetings:** record the pain/need, budget, timeline, decision-maker status, and next action. Completing a meeting updates the prospect stage to `Responded` so the deal can move forward without losing the meeting record.
+**5. Meetings:** record the pain/need, budget, timeline, decision-maker status, notes, and next action. Scheduling a meeting moves the prospect to `Meeting`. Completing the meeting logs the event without incorrectly moving the prospect backward in the pipeline.
 
-**Proposals:** when Status becomes `Sent`, the CRM stamps Sent Date and creates the default next follow-up date. When Status becomes `Accepted`, the prospect becomes `Won` and a client record is created automatically unless one already exists.
+**6. Proposals:** when Status becomes `Sent`, the CRM stamps Sent Date, creates the default next follow-up date, moves the prospect to `Proposal`, and logs the event. When Status becomes `Accepted`, Decision Date is stamped, the prospect becomes `Won`, and exactly one Client is created for that Prospect ID.
 
-**Revenue:** record every payment here. Dashboard revenue collected counts only Revenue rows marked `Paid`.
+**7. Revenue:** record every payment against the Client ID. Dashboard Revenue Collected counts only Revenue rows marked `Paid`.
 
 ## Definition of done
 
@@ -56,6 +56,10 @@ The CRM is operational when this chain works in the actual Google Sheet:
 `Prospect → Audit → Outreach → Follow-Up → Meeting → Proposal → Accepted → Client → Revenue → Dashboard`
 
 A manual end-to-end test in the live Google Sheet is required because Apps Script behavior depends on the Sheet and authorization environment.
+
+## Acceptance test
+
+Use `CRM-TEST.md` after installation. It deliberately uses a fake business and requires the complete workflow to pass before the CRM is frozen.
 
 ## 90-day freeze rule
 
