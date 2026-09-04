@@ -2,39 +2,41 @@
  * RCS CRM — Core Orchestrator
  * ---------------------------------------------------------------------------
  * Canonical CRM home: /crm
- * This file coordinates the modular CRM files in this folder.
+ * Modular architecture is preserved. This file only owns the menu,
+ * orchestrator, shared sheet/format helpers, and CRM-wide safety policy.
  *
- * SAFETY BOUNDARY:
- * - CRM operates on CRM/Google Sheet data only.
- * - The CRM may read a website for audit/research purposes through the
- *   dedicated audit modules, but it must never edit, deploy, publish, delete,
- *   or mutate website source files or hosting configuration.
- * - Roman Creative Studio is a permanent INTERNAL TEST ACCOUNT. It may be
- *   used to exercise CRM workflows, but it is excluded from production sales
- *   metrics, revenue goals, daily queues, and lead-performance reporting.
- * - This file intentionally preserves the modular CRM architecture below.
+ * SAFETY POLICY:
+ * 1. Roman Creative Studio is a permanent INTERNAL TEST ACCOUNT.
+ * 2. The internal test account may exercise CRM workflows, but must never
+ *    count toward production sales metrics, the $10K goal, revenue, pipeline
+ *    performance, or production outreach queues.
+ * 3. CRM website audits are read-only research. CRM code is explicitly
+ *    prohibited from editing, deploying, publishing, deleting, or mutating
+ *    RCS website source files or hosting configuration.
+ * 4. These protections are additive and do not replace the existing modular
+ *    CRM features in the other files in /crm.
  *
  * File layout:
- *   Code.gs                    - menu, buildRCSCRM() orchestrator, safety helpers
- *   CRM_Builder.gs             - sheet schema
- *   CRM_Settings.gs            - Settings lists + validation
- *   CRM_Dashboard.gs           - Dashboard
- *   CRM_Import.gs              - prospect import
- *   CRM_Actions.gs             - prospect actions/conversion/archive/repair
- *   CRM_Sync.gs                - GitHub -> Prospects sync
- *   CRM_Audits.gs              - website audit/read-only research
- *   CRM_Outreach.gs             - outreach brief
- *   CRM_OutreachWorkflow.gs    - contact/follow-up workflow
- *   CRM_Scoring.gs             - lead scoring
- *   CRM_CommandCenter.gs       - daily revenue command center
- *   CRM_Analytics.gs           - pipeline intelligence
- *   CRM_Health.gs              - CRM health audit
- *   CRM_Automation.gs           - maintenance/automation
- *   CRM_NextAction.gs           - next-action engine
- *   CRM_OutreachAutomation.gs  - outreach preparation; never sends automatically
+ *   Code.gs - menu, buildRCSCRM() orchestrator, shared helpers + safety policy
+ *   CRM_Builder.gs - schema
+ *   CRM_Settings.gs - settings lists + validation
+ *   CRM_Dashboard.gs - dashboard
+ *   CRM_Import.gs - CSV import
+ *   CRM_Actions.gs - prospect actions/initialization/repair
+ *   CRM_Sync.gs - GitHub -> Prospects sync
+ *   CRM_Audits.gs - website audit/read-only research
+ *   CRM_Outreach.gs - outreach brief
+ *   CRM_OutreachWorkflow.gs - contact/follow-up workflow
+ *   CRM_Scoring.gs - lead scoring
+ *   CRM_CommandCenter.gs - daily revenue command center
+ *   CRM_Analytics.gs - pipeline intelligence
+ *   CRM_Health.gs - CRM health audit
+ *   CRM_Automation.gs - maintenance/automation
+ *   CRM_NextAction.gs - next-action engine
+ *   CRM_OutreachAutomation.gs - outreach preparation; never sends automatically
  *
- * Safe to run repeatedly: the builder/settings modules are designed to add
- * missing structure without clearing CRM records.
+ * Safe to run repeatedly: builder/settings only add missing structure; data
+ * rows are not cleared. Dashboard is formula-driven and may be redrawn.
  */
 
 const RCS_CRM_SAFETY = Object.freeze({
@@ -42,7 +44,7 @@ const RCS_CRM_SAFETY = Object.freeze({
   INTERNAL_TEST_BUSINESS: 'Roman Creative Studio',
   INTERNAL_TEST_DOMAIN: 'romancreativestudio.co',
   REVENUE_GOAL: 10000,
-  CANONICAL_FOLDER: 'crm',
+  CANONICAL_CRM_FOLDER: 'crm',
   WEBSITE_MUTATION_ALLOWED: false
 });
 
@@ -96,9 +98,6 @@ function onOpen() {
     .addToUi();
 }
 
-// Simple trigger: only initializes a manually-created Prospects row.
-// RCS remains usable as an internal test record; it is never silently
-// converted into production reporting by this trigger.
 function onEdit(e) {
   try {
     if (!e || !e.range) return;
@@ -123,7 +122,6 @@ function onEdit(e) {
 
 function buildRCSCRM() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-
   maybeRepurposeDefaultSheet_(ss);
 
   SHEET_DEFS.forEach(function (def) {
@@ -197,7 +195,6 @@ function ensureHeaders_(sheet, headers) {
 
   const existingSet = {};
   existingHeaders.forEach(function (h) { existingSet[h.toLowerCase()] = true; });
-
   const missing = headers.filter(function (h) { return !existingSet[h.toLowerCase()]; });
   if (missing.length === 0) return;
 
@@ -207,7 +204,6 @@ function ensureHeaders_(sheet, headers) {
 
 function formatDataSheet_(sheet, numCols) {
   if (numCols === 0) return;
-
   freezeHeaderRow_(sheet);
   styleHeaderRow_(sheet, numCols);
   applyAlternatingBanding_(sheet, numCols);
@@ -229,16 +225,14 @@ function styleHeaderRow_(sheet, numCols) {
 
 function applyAlternatingBanding_(sheet, numCols) {
   sheet.getBandings().forEach(function (banding) { banding.remove(); });
-
   const rowCount = Math.max(sheet.getMaxRows() - 1, BANDING_FUTURE_ROWS);
-  const range = sheet.getRange(2, 1, rowCount, numCols);
-  range.applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false);
+  sheet.getRange(2, 1, rowCount, numCols)
+    .applyRowBanding(SpreadsheetApp.BandingTheme.LIGHT_GREY, false, false);
 }
 
 function applyBasicFilter_(sheet, numCols) {
   const existing = sheet.getFilter();
   if (existing) existing.remove();
-
   const lastRow = Math.max(sheet.getLastRow(), 1);
   sheet.getRange(1, 1, lastRow, numCols).createFilter();
 }
@@ -252,13 +246,13 @@ function autoResizeColumns_(sheet, numCols) {
 // ---------------------------------------------------------------------------
 
 function isInternalTestBusiness_(business) {
-  const value = String(business || '').trim().toLowerCase();
-  return value === RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS.toLowerCase();
+  return String(business || '').trim().toLowerCase() ===
+    RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS.toLowerCase();
 }
 
 function isInternalTestWebsite_(website) {
-  const value = String(website || '').trim().toLowerCase();
-  return value.indexOf(RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN) !== -1;
+  return String(website || '').trim().toLowerCase().indexOf(
+    RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN.toLowerCase()) !== -1;
 }
 
 function isInternalTestRecord_(business, website) {
@@ -269,31 +263,50 @@ function shouldExcludeFromProduction_(business, website) {
   return isInternalTestRecord_(business, website);
 }
 
+// Central guard for future production-only operations. It deliberately does
+// NOT block CRM testing; it only blocks using the internal RCS record as a
+// real production lead.
+function assertNotProductionRecord_(business, website) {
+  if (shouldExcludeFromProduction_(business, website)) {
+    throw new Error('Roman Creative Studio is an internal CRM test account and cannot be used in production-only operations.');
+  }
+  return true;
+}
+
+// Hard-coded false by design. There is no supported CRM pathway for website
+// mutation. Audit/research modules may read URLs; they must never use this
+// function to obtain permission to write/deploy/delete website assets.
+function crmWebsiteMutationAllowed_() {
+  return false;
+}
+
+function assertCrmOnlyOperation_() {
+  if (RCS_CRM_SAFETY.WEBSITE_MUTATION_ALLOWED !== false || crmWebsiteMutationAllowed_() !== false) {
+    throw new Error('CRM safety violation: website mutation/deployment is disabled.');
+  }
+  return true;
+}
+
 function ensureInternalTestBusinessSetting_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const settings = ss.getSheetByName('Settings');
+  const settings = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Settings');
   if (!settings) return;
 
-  const headerRow = settings.getRange(1, 1, 1, Math.max(6, settings.getLastColumn())).getValues()[0];
-  let col = headerRow.findIndex(function (h) {
+  const width = Math.max(settings.getLastColumn(), 8);
+  const headers = settings.getRange(1, 1, 1, width).getValues()[0];
+  let businessCol = headers.findIndex(function (h) {
     return String(h).trim().toLowerCase() === 'internal test business';
   }) + 1;
 
-  // Keep the safety marker in a dedicated column so existing Settings lists
-  // remain untouched. This is intentionally additive.
-  if (col === 0) {
-    col = Math.max(settings.getLastColumn() + 1, 7);
-    settings.getRange(1, col).setValue('Internal Test Business');
+  if (businessCol === 0) {
+    businessCol = Math.max(settings.getLastColumn() + 1, 7);
+    settings.getRange(1, businessCol).setValue('Internal Test Business');
   }
-  settings.getRange(2, col).setValue(RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS);
 
-  const domainCol = col + 1;
-  settings.getRange(1, domainCol).setValue('Internal Test Website');
-  settings.getRange(2, domainCol).setValue(RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN);
-
-  const policyCol = col + 2;
-  settings.getRange(1, policyCol).setValue('Website Mutation Allowed');
-  settings.getRange(2, policyCol).setValue('FALSE');
+  settings.getRange(2, businessCol).setValue(RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS);
+  settings.getRange(1, businessCol + 1).setValue('Internal Test Website');
+  settings.getRange(2, businessCol + 1).setValue(RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN);
+  settings.getRange(1, businessCol + 2).setValue('Website Mutation Allowed');
+  settings.getRange(2, businessCol + 2).setValue('FALSE');
 }
 
 function getInternalTestBusiness_() {
@@ -304,63 +317,32 @@ function getInternalTestDomain_() {
   return RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN;
 }
 
-function crmWebsiteMutationAllowed_() {
-  return false;
-}
-
-function assertCrmOnlyOperation_() {
-  if (RCS_CRM_SAFETY.WEBSITE_MUTATION_ALLOWED !== false) {
-    throw new Error('CRM safety violation: website mutation is not permitted.');
-  }
-  return true;
-}
-
 function runRcsSafetyCheck_() {
   const failures = [];
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  if (RCS_CRM_SAFETY.CANONICAL_FOLDER !== 'crm') {
-    failures.push('Canonical CRM folder is not /crm.');
-  }
-  if (RCS_CRM_SAFETY.WEBSITE_MUTATION_ALLOWED !== false) {
-    failures.push('Website mutation policy is not locked to FALSE.');
-  }
-  if (!isInternalTestBusiness_(RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS)) {
-    failures.push('Internal test business matcher failed.');
-  }
-  if (!isInternalTestWebsite_('https://' + RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN)) {
-    failures.push('Internal test website matcher failed.');
-  }
-  if (ss && ss.getSheetByName('Settings')) {
-    ensureInternalTestBusinessSetting_();
-  } else {
-    failures.push('Settings sheet is missing.');
-  }
+  if (RCS_CRM_SAFETY.CANONICAL_CRM_FOLDER !== 'crm') failures.push('Canonical CRM folder policy is incorrect.');
+  if (RCS_CRM_SAFETY.WEBSITE_MUTATION_ALLOWED !== false) failures.push('Website mutation policy is not locked off.');
+  if (crmWebsiteMutationAllowed_() !== false) failures.push('Website mutation helper is not locked off.');
+  if (!isInternalTestBusiness_('Roman Creative Studio')) failures.push('Internal test business matcher failed.');
+  if (!isInternalTestWebsite_('https://romancreativestudio.co')) failures.push('Internal test website matcher failed.');
+  if (!ss.getSheetByName('Settings')) failures.push('Settings sheet is missing.');
 
   if (failures.length) {
     throw new Error('RCS SAFETY CHECK FAILED: ' + failures.join(' | '));
   }
 
+  ensureInternalTestBusinessSetting_();
   const message = [
-    'RCS CRM safety check passed.',
-    'Canonical CRM home: /crm',
-    'Internal test business: ' + RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS,
-    'Internal test website: ' + RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN,
-    'Website mutation/deployment: LOCKED OFF'
+    'RCS CRM safety check PASSED.',
+    'CRM home: /crm',
+    'Internal test account: Roman Creative Studio',
+    'Internal website: romancreativestudio.co',
+    'Website edit/deploy/delete: DISABLED',
+    'Production reporting exclusion: ENABLED'
   ].join('\n');
-
   notify_(message);
   return { ok: true, message: message };
-}
-
-function assertNotProductionRecord_(business, website) {
-  // Call this before any production-only reporting/action is performed.
-  // It does not block testing; it only provides a consistent guard for
-  // production-only code paths.
-  if (shouldExcludeFromProduction_(business, website)) {
-    throw new Error('Internal RCS test account is excluded from production-only operations.');
-  }
-  return true;
 }
 
 // ---------------------------------------------------------------------------
