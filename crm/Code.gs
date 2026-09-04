@@ -1,66 +1,50 @@
 /**
- * RCS CRM — Sprint 1 Core + Sprint 2 Prospect Workflow + Sprint 3 GitHub
- * Sync + Sprint 4 Website Audit + Sprint 5 Outreach Intelligence + Sprint 6
- * Outreach Execution + Follow-Up + Sprint 7 Lead Scoring + Prioritization +
- * Sprint 8 Daily Sales Command Center + Sprint 9 Pipeline Intelligence &
- * Analytics + Sprint 10 CRM Data Quality & Health Audit + Sprint 11
- * Automation & Daily Maintenance + Sprint 12 Next-Action Engine + Sprint 13
- * Automated Outreach Preparation Engine (+ Sprint 13B batch preparation,
- * Sprint 13C resumable batch execution)
+ * RCS CRM — Core Orchestrator
  * ---------------------------------------------------------------------------
- * Builds/updates the Roman Creative Studio CRM inside the Google Sheet this
- * script is bound to. Container-bound script only — no Web App, API
- * executable, Add-on, or Library deployment required or used anywhere here.
+ * Canonical CRM home: /crm
+ * This file coordinates the modular CRM files in this folder.
+ *
+ * SAFETY BOUNDARY:
+ * - CRM operates on CRM/Google Sheet data only.
+ * - The CRM may read a website for audit/research purposes through the
+ *   dedicated audit modules, but it must never edit, deploy, publish, delete,
+ *   or mutate website source files or hosting configuration.
+ * - Roman Creative Studio is a permanent INTERNAL TEST ACCOUNT. It may be
+ *   used to exercise CRM workflows, but it is excluded from production sales
+ *   metrics, revenue goals, daily queues, and lead-performance reporting.
+ * - This file intentionally preserves the modular CRM architecture below.
  *
  * File layout:
- *   Code.gs               - menu, buildRCSCRM() orchestrator, shared sheet/format helpers
- *   CRM_Builder.gs        - the 11-sheet schema (names, headers, validation map)
- *   CRM_Settings.gs       - Settings dropdown lists + validation application
- *   CRM_Dashboard.gs      - the formula-driven Dashboard sheet
- *   CRM_Import.gs         - "Import Prospects..." CSV dialog + import logic
- *   CRM_Actions.gs        - Move to Outreach / Convert to Client / Archive Lead;
- *                           initializeProspectRow_ / Repair Prospects — the
- *                           canonical Prospect initialization every creation
- *                           path (import, sync, manual entry) calls
- *   CRM_Sync.gs           - "Sync Prospects" + Auto Sync (GitHub -> Prospects)
- *   CRM_Audits.gs         - Website Audit: fetch + score a site, log to Website Audits
- *   CRM_Outreach.gs       - Outreach Brief: turns a Website Audits record into a
- *                           deterministic, template-based sales brief on Prospects
- *   CRM_OutreachWorkflow.gs - Mark as Contacted / Schedule Follow-Up / Generate
- *                           Follow-Up Message, built on top of the Outreach Brief
- *   CRM_Scoring.gs        - RCS Lead Priority Score: deterministic 0-100 score +
- *                           tier + reasons from existing Prospects/Website Audits data
- *   CRM_CommandCenter.gs  - Daily Revenue Command Center: read-only ranked daily
- *                           action queue (prospects/follow-ups/meetings/proposals/
- *                           outstanding payments) + $10K Tracker/Funnel/Revenue Math,
- *                           built from existing Prospects/Meetings/Proposals/Revenue
- *                           data and CRM_Analytics.gs's funnel/value engine
- *   CRM_Analytics.gs      - Pipeline Intelligence: read-only funnel/value/aging/risk/
- *                           industry analytics built from existing CRM data only
- *   CRM_Health.gs         - CRM Health Audit: read-only completeness/duplicate/
- *                           consistency/integrity/staleness checks + a 0-100 CRM Health Score
- *   CRM_Automation.gs     - Daily CRM Maintenance report, Automation Status, and an
- *                           optional installable daily trigger — reporting only, no
- *                           automatic edits, reuses CRM_Health.gs/CRM_Analytics.gs
- *   CRM_NextAction.gs     - Next-Action Engine: read-only, ranked "what should I act
- *                           on next?" report across Prospects/Meetings/Proposals/
- *                           Clients, reusing Sprint 7's Lead Score as-is
- *   CRM_OutreachAutomation.gs - Prepares (never sends) a personalized outreach
- *                           message for one selected prospect, or in a
- *                           sequential batch across every eligible prospect:
- *                           Tavily research + the existing Website Audit +
- *                           Gemini analysis, saved to Prospects as
- *                           READY_FOR_REVIEW
+ *   Code.gs                    - menu, buildRCSCRM() orchestrator, safety helpers
+ *   CRM_Builder.gs             - sheet schema
+ *   CRM_Settings.gs            - Settings lists + validation
+ *   CRM_Dashboard.gs           - Dashboard
+ *   CRM_Import.gs              - prospect import
+ *   CRM_Actions.gs             - prospect actions/conversion/archive/repair
+ *   CRM_Sync.gs                - GitHub -> Prospects sync
+ *   CRM_Audits.gs              - website audit/read-only research
+ *   CRM_Outreach.gs             - outreach brief
+ *   CRM_OutreachWorkflow.gs    - contact/follow-up workflow
+ *   CRM_Scoring.gs             - lead scoring
+ *   CRM_CommandCenter.gs       - daily revenue command center
+ *   CRM_Analytics.gs           - pipeline intelligence
+ *   CRM_Health.gs              - CRM health audit
+ *   CRM_Automation.gs           - maintenance/automation
+ *   CRM_NextAction.gs           - next-action engine
+ *   CRM_OutreachAutomation.gs  - outreach preparation; never sends automatically
  *
- * Safe to run repeatedly: sheets, headers, and Settings values are only
- * ever added when missing — existing row data is never overwritten or
- * cleared. Dashboard is the one exception: every cell on it is a formula
- * derived from the other sheets, so it's redrawn fresh each run (see
- * buildDashboard_ in CRM_Dashboard.gs) — nothing on it is a manually
- * entered record, so there's nothing to lose by redrawing it.
- *
- * Install / run: see crm/README.md.
+ * Safe to run repeatedly: the builder/settings modules are designed to add
+ * missing structure without clearing CRM records.
  */
+
+const RCS_CRM_SAFETY = Object.freeze({
+  VERSION: '1.1',
+  INTERNAL_TEST_BUSINESS: 'Roman Creative Studio',
+  INTERNAL_TEST_DOMAIN: 'romancreativestudio.co',
+  REVENUE_GOAL: 10000,
+  CANONICAL_FOLDER: 'crm',
+  WEBSITE_MUTATION_ALLOWED: false
+});
 
 function onOpen() {
   const ui = SpreadsheetApp.getUi();
@@ -107,32 +91,31 @@ function onOpen() {
     .addItem('Move to Outreach', 'menuMoveToOutreach_')
     .addItem('Convert to Client', 'menuConvertToClient_')
     .addItem('Archive Lead', 'menuArchiveLead_')
+    .addSeparator()
+    .addItem('RCS Safety Check', 'runRcsSafetyCheck_')
     .addToUi();
 }
 
-// Simple trigger (no installation needed, same as onOpen) — the manual-entry
-// counterpart to CSV import/Auto Sync both funneling through
-// initializeProspectRow_ (CRM_Actions.gs). Reacts only to a Business name
-// being typed directly into a Prospects row whose Status is still blank;
-// every other edit (including the Status/Score cells this itself writes)
-// is ignored on the column check below, so there is no re-trigger loop.
-// Simple triggers can't call services like UrlFetchApp, but
-// initializeProspectRow_ only ever reads/writes this spreadsheet's own
-// cells (its scoring step reads Website Audits, never fetches anything),
-// so it's fully compatible.
+// Simple trigger: only initializes a manually-created Prospects row.
+// RCS remains usable as an internal test record; it is never silently
+// converted into production reporting by this trigger.
 function onEdit(e) {
   try {
     if (!e || !e.range) return;
     const sheet = e.range.getSheet();
     if (sheet.getName() !== 'Prospects') return;
-    if (e.range.getNumRows() !== 1 || e.range.getNumColumns() !== 1) return; // single-cell edits only
-    if (e.range.getRow() < 2) return; // header row
+    if (e.range.getNumRows() !== 1 || e.range.getNumColumns() !== 1) return;
+    if (e.range.getRow() < 2) return;
 
-    const headers = typeof getLiveProspectsHeaders_ === 'function' ? getLiveProspectsHeaders_(sheet) : getHeaders_('Prospects');
+    const headers = typeof getLiveProspectsHeaders_ === 'function'
+      ? getLiveProspectsHeaders_(sheet)
+      : getHeaders_('Prospects');
     const businessCol = headers.indexOf('Business') + 1;
     if (businessCol === 0 || e.range.getColumn() !== businessCol) return;
 
-    if (typeof initializeProspectRow_ === 'function') initializeProspectRow_(sheet, headers, e.range.getRow());
+    if (typeof initializeProspectRow_ === 'function') {
+      initializeProspectRow_(sheet, headers, e.range.getRow());
+    }
   } catch (err) {
     Logger.log('onEdit failed: ' + err.message);
   }
@@ -154,12 +137,7 @@ function buildRCSCRM() {
     if (def.name === 'Settings') {
       buildSettingsSheet_(sheet);
       formatDataSheet_(sheet, Object.keys(SETTINGS_LISTS).length);
-      // GitHub Sync panel (CRM_Sync.gs) — columns H:I, outside the
-      // dropdown-list columns. Guarded so Code.gs still builds a working
-      // CRM even if CRM_Sync.gs hasn't been added to the project yet.
       if (typeof ensureSyncStatusBlock_ === 'function') ensureSyncStatusBlock_(sheet);
-      // Automation panel (CRM_Automation.gs) — columns K:L, separate from
-      // the GitHub Sync panel above. Same guard for the same reason.
       if (typeof ensureAutomationStatusBlock_ === 'function') ensureAutomationStatusBlock_(sheet);
       return;
     }
@@ -168,8 +146,6 @@ function buildRCSCRM() {
     formatDataSheet_(sheet, def.headers.length);
   });
 
-  // Validations depend on Settings already existing/populated, so this
-  // runs after every sheet above has been created.
   const settingsSheet = ss.getSheetByName('Settings');
   SHEET_DEFS.forEach(function (def) {
     if (!def.validations || Object.keys(def.validations).length === 0) return;
@@ -177,6 +153,7 @@ function buildRCSCRM() {
     applyValidations_(sheet, def.headers, def.validations, settingsSheet);
   });
 
+  ensureInternalTestBusinessSetting_();
   SpreadsheetApp.flush();
   notify_('RCS CRM is up to date: ' + SHEET_DEFS.length + ' sheets checked.');
 }
@@ -191,9 +168,6 @@ function getOrCreateSheet_(ss, name) {
   return ss.insertSheet(name);
 }
 
-// If the spreadsheet is the untouched default blank sheet (just "Sheet1"
-// with nothing in it), rename it to "Dashboard" instead of leaving an
-// orphan empty tab alongside the 11 CRM sheets.
 function maybeRepurposeDefaultSheet_(ss) {
   const sheets = ss.getSheets();
   if (sheets.length !== 1) return;
@@ -207,12 +181,6 @@ function maybeRepurposeDefaultSheet_(ss) {
   }
 }
 
-// Writes the full header row on a brand-new sheet. On a sheet that already
-// has headers, it only appends whichever headers from the target list are
-// missing — added to the end, after whatever is already there. That's what
-// lets a schema addition reach an already-built sheet without disturbing
-// any existing column's position, name, or data (requirement: "Add missing
-// columns only at the end").
 function ensureHeaders_(sheet, headers) {
   if (headers.length === 0) return;
 
@@ -237,11 +205,6 @@ function ensureHeaders_(sheet, headers) {
   sheet.getRange(1, startCol, 1, missing.length).setValues([missing]);
 }
 
-// ---------------------------------------------------------------------------
-// Formatting (idempotent — safe to re-run, never touches cell values below
-// the header row, never clears a data sheet)
-// ---------------------------------------------------------------------------
-
 function formatDataSheet_(sheet, numCols) {
   if (numCols === 0) return;
 
@@ -265,10 +228,6 @@ function styleHeaderRow_(sheet, numCols) {
 }
 
 function applyAlternatingBanding_(sheet, numCols) {
-  // Remove any existing banding first — Sheets throws if a new banding
-  // range overlaps one that's already there, so this keeps re-runs clean.
-  // Bandings are a formatting object, not cell data — removing/reapplying
-  // never touches a single value.
   sheet.getBandings().forEach(function (banding) { banding.remove(); });
 
   const rowCount = Math.max(sheet.getMaxRows() - 1, BANDING_FUTURE_ROWS);
@@ -289,6 +248,122 @@ function autoResizeColumns_(sheet, numCols) {
 }
 
 // ---------------------------------------------------------------------------
+// RCS safety boundary
+// ---------------------------------------------------------------------------
+
+function isInternalTestBusiness_(business) {
+  const value = String(business || '').trim().toLowerCase();
+  return value === RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS.toLowerCase();
+}
+
+function isInternalTestWebsite_(website) {
+  const value = String(website || '').trim().toLowerCase();
+  return value.indexOf(RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN) !== -1;
+}
+
+function isInternalTestRecord_(business, website) {
+  return isInternalTestBusiness_(business) || isInternalTestWebsite_(website);
+}
+
+function shouldExcludeFromProduction_(business, website) {
+  return isInternalTestRecord_(business, website);
+}
+
+function ensureInternalTestBusinessSetting_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const settings = ss.getSheetByName('Settings');
+  if (!settings) return;
+
+  const headerRow = settings.getRange(1, 1, 1, Math.max(6, settings.getLastColumn())).getValues()[0];
+  let col = headerRow.findIndex(function (h) {
+    return String(h).trim().toLowerCase() === 'internal test business';
+  }) + 1;
+
+  // Keep the safety marker in a dedicated column so existing Settings lists
+  // remain untouched. This is intentionally additive.
+  if (col === 0) {
+    col = Math.max(settings.getLastColumn() + 1, 7);
+    settings.getRange(1, col).setValue('Internal Test Business');
+  }
+  settings.getRange(2, col).setValue(RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS);
+
+  const domainCol = col + 1;
+  settings.getRange(1, domainCol).setValue('Internal Test Website');
+  settings.getRange(2, domainCol).setValue(RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN);
+
+  const policyCol = col + 2;
+  settings.getRange(1, policyCol).setValue('Website Mutation Allowed');
+  settings.getRange(2, policyCol).setValue('FALSE');
+}
+
+function getInternalTestBusiness_() {
+  return RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS;
+}
+
+function getInternalTestDomain_() {
+  return RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN;
+}
+
+function crmWebsiteMutationAllowed_() {
+  return false;
+}
+
+function assertCrmOnlyOperation_() {
+  if (RCS_CRM_SAFETY.WEBSITE_MUTATION_ALLOWED !== false) {
+    throw new Error('CRM safety violation: website mutation is not permitted.');
+  }
+  return true;
+}
+
+function runRcsSafetyCheck_() {
+  const failures = [];
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  if (RCS_CRM_SAFETY.CANONICAL_FOLDER !== 'crm') {
+    failures.push('Canonical CRM folder is not /crm.');
+  }
+  if (RCS_CRM_SAFETY.WEBSITE_MUTATION_ALLOWED !== false) {
+    failures.push('Website mutation policy is not locked to FALSE.');
+  }
+  if (!isInternalTestBusiness_(RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS)) {
+    failures.push('Internal test business matcher failed.');
+  }
+  if (!isInternalTestWebsite_('https://' + RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN)) {
+    failures.push('Internal test website matcher failed.');
+  }
+  if (ss && ss.getSheetByName('Settings')) {
+    ensureInternalTestBusinessSetting_();
+  } else {
+    failures.push('Settings sheet is missing.');
+  }
+
+  if (failures.length) {
+    throw new Error('RCS SAFETY CHECK FAILED: ' + failures.join(' | '));
+  }
+
+  const message = [
+    'RCS CRM safety check passed.',
+    'Canonical CRM home: /crm',
+    'Internal test business: ' + RCS_CRM_SAFETY.INTERNAL_TEST_BUSINESS,
+    'Internal test website: ' + RCS_CRM_SAFETY.INTERNAL_TEST_DOMAIN,
+    'Website mutation/deployment: LOCKED OFF'
+  ].join('\n');
+
+  notify_(message);
+  return { ok: true, message: message };
+}
+
+function assertNotProductionRecord_(business, website) {
+  // Call this before any production-only reporting/action is performed.
+  // It does not block testing; it only provides a consistent guard for
+  // production-only code paths.
+  if (shouldExcludeFromProduction_(business, website)) {
+    throw new Error('Internal RCS test account is excluded from production-only operations.');
+  }
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // Utilities
 // ---------------------------------------------------------------------------
 
@@ -296,8 +371,6 @@ function notify_(message) {
   try {
     SpreadsheetApp.getUi().alert(message);
   } catch (e) {
-    // getUi() throws if run from a context with no UI (e.g. a trigger) —
-    // fall back to the execution log instead of failing the run.
     Logger.log(message);
   }
 }
